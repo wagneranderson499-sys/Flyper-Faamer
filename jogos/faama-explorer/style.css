@@ -662,3 +662,202 @@ body {
   .sports-hud-line strong{font-size:9px}
   .sports-progress{height:4px;margin-top:5px}
 }
+
+/* FAAMA Explorer 2.8 — Restaurante, pedidos e escolha de ingredientes */
+.quest-restaurant {
+  margin-top:13px;
+  border-color:#83b99b;
+  background:linear-gradient(118deg,#183d3c,#2c514a 56%,#254447);
+}
+.quest-restaurant .quest-medallion {border-color:#b2e3b6}
+.quest-restaurant .quest-title strong {color:#b9ecc6}
+.quest-restaurant .quest-stage {border-color:#b2e3b6;color:#d2f5d2}
+.restaurant-hud {
+  position:absolute;
+  z-index:8;
+  top:86px;
+  right:15px;
+  width:min(306px,36%);
+  padding:10px 12px;
+  border:2px solid #b7dfb4;
+  border-radius:12px;
+  color:#f8f4d8;
+  background:linear-gradient(135deg,#244e46ef,#31594def);
+  box-shadow:0 10px 28px #0b2734a8;
+  pointer-events:none;
+}
+.restaurant-hud-top,.restaurant-hud-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:7px;
+}
+.restaurant-hud-top span {
+  color:#d7f2be;
+  font-size:9px;
+  letter-spacing:.05em;
+  font-weight:800;
+}
+.restaurant-hud-top strong {
+  color:#fff5d5;
+  font-size:20px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.restaurant-hud p {
+  margin:7px 0;
+  color:#fff7d4;
+  font-size:11px;
+  line-height:1.3;
+  font-weight:700;
+}
+.restaurant-hud-row{font-size:10px;color:#f4efdc}
+.restaurant-hud-row strong{color:#e0f3b0}
+.restaurant-hud-row span{text-align:right}
+.restaurant-progress {
+  height:6px;
+  margin-top:9px;
+  border-radius:8px;
+  background:#163b3c;
+  overflow:hidden;
+}
+.restaurant-progress i{
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:8px;
+  background:linear-gradient(90deg,#9fe3ad,#f8e68f);
+  transition:width .2s ease;
+}
+.restaurant-cooking {
+  position:absolute;
+  z-index:31;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:min(590px,calc(100% - 26px));
+  max-height:calc(100% - 20px);
+  overflow-y:auto;
+  padding:16px;
+  border:2px solid #bee3b5;
+  border-radius:15px;
+  background:linear-gradient(135deg,#193940,#2b4b48);
+  color:#fff4d8;
+  box-shadow:0 20px 80px #061b21ec;
+}
+.restaurant-cooking-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.restaurant-cooking-header div{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.restaurant-cooking-header small{
+  font-size:10px;
+  letter-spacing:.08em;
+  color:#bce3b9;
+  font-weight:800;
+}
+.restaurant-cooking-header strong{
+  font-size:19px;
+  font-weight:900;
+  line-height:1.2;
+}
+.restaurant-cooking-header button {
+  width:32px;
+  height:32px;
+  border:1px solid #a5c2bc;
+  border-radius:8px;
+  background:#315b59;
+  color:#fff5df;
+  cursor:pointer;
+  font-size:21px;
+}
+.restaurant-cooking p{
+  font-size:12px;
+  line-height:1.5;
+  color:#e9ede0;
+  margin:10px 0 0;
+}
+.restaurant-customer {
+  color:#f7d994!important;
+  font-weight:800;
+}
+.restaurant-ingredients {
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:7px;
+  margin:14px 0;
+}
+.restaurant-ingredients button{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:71px;
+  padding:7px 3px;
+  background:#2a5a56;
+  border:1px solid #96b7a7;
+  border-radius:9px;
+  color:#eef7e7;
+  text-align:center;
+  cursor:pointer;
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+}
+.restaurant-ingredients button span{font-size:23px;line-height:1}
+.restaurant-ingredients button[aria-pressed="true"]{
+  border:2px solid #fff0aa;
+  color:#193c3d;
+  background:linear-gradient(#e2f5bd,#b8ddaf);
+  box-shadow:0 0 0 2px #c9ebb741;
+}
+.restaurant-ingredients button:hover,.restaurant-ingredients button:focus-visible {
+  outline:2px solid #ffeda5;
+  outline-offset:1px;
+}
+.restaurant-cooking-bottom {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.restaurant-cooking-bottom span{font-size:12px;color:#e3f0d9}
+.restaurant-cooking-bottom button{
+  padding:10px 14px;
+  border:0;
+  border-radius:8px;
+  background:#e6bc6d;
+  color:#233c3e;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+}
+.restaurant-cooking-bottom button:hover{background:#f6d58e}
+.restaurant-feedback{
+  min-height:18px;
+  font-size:11px!important;
+  color:#ffdb9e!important;
+}
+@media(max-width:800px){
+  .restaurant-hud{top:53px;right:5px;width:44%;padding:6px 7px;border-width:1px;border-radius:8px}
+  .restaurant-hud-top span{font-size:7px}
+  .restaurant-hud-top strong{font-size:13px}
+  .restaurant-hud p{font-size:9px;margin:4px 0}
+  .restaurant-hud-row{font-size:8px}
+  .restaurant-progress{height:4px;margin-top:5px}
+  .restaurant-cooking{padding:10px;max-height:calc(100% - 10px);border-radius:10px}
+  .restaurant-cooking-header strong{font-size:14px}
+  .restaurant-cooking p{font-size:10px;margin-top:5px}
+  .restaurant-ingredients{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:8px 0}
+  .restaurant-ingredients button{min-height:52px;padding:4px 1px;gap:3px;font-size:8px}
+  .restaurant-ingredients button span{font-size:16px}
+  .restaurant-cooking-bottom button{padding:7px 9px;font-size:10px}
+}
