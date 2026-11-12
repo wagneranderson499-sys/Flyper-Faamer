@@ -303,8 +303,12 @@ body {
     background: linear-gradient(135deg, #59305b, #9a477e);
 }
 
-.space .imagem-jogo {
+.space-invaders .imagem-jogo {
     background: linear-gradient(135deg, #17375e, #286b9b);
+}
+
+.faama-explorer .imagem-jogo {
+    background: linear-gradient(135deg, #16443a, #317f67);
 }
 
 .jogo-emoji {
