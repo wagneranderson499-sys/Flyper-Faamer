@@ -1631,7 +1631,7 @@
     const icon = {
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
       daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
-      helena: "👩🏽‍🏫"
+      helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -1659,7 +1659,9 @@
   function closeDialogue(completed=false) {
     if (!activeDialogue) return;
     const startSports=completed && pendingSportsStart && sports.active;
+    const startRestaurant=completed && pendingRestaurantStart && restaurant.active;
     pendingSportsStart=false;
+    pendingRestaurantStart=false;
     activeDialogue = null;
     dialogueUI.root.classList.add("hidden");
     held.clear();
@@ -1670,6 +1672,10 @@
     if(startSports&&sports.start()){
       refreshSportsUI();
       show("Circuito iniciado! 90 segundos para pegar as cinco medalhas!",5);
+    }
+    if(startRestaurant&&restaurant.begin()){
+      refreshRestaurantUI();
+      show("Restaurante aberto! Você tem três minutos para preparar e entregar cinco pedidos.",5);
     }
   }
 
@@ -1684,8 +1690,27 @@
   }
 
   function interact() {
+    if(foodOpen)return;
     if (activeDialogue) {
       advanceDialogue();
+      return;
+    }
+    if(restaurant.active){
+      const action=restaurant.nearest();
+      if(!action){show(restaurant.objective(),4);return;}
+      if(action.kind==="exit"){
+        leaveRestaurant();
+      }else if(action.kind==="chef"){
+        const event=restaurant.talkChef();
+        pendingRestaurantStart=event.startOnClose===true;
+        openDialogue({...restaurant.chef,lines:event.lines});
+      }else if(action.kind==="prep"){
+        openFood();
+      }else if(action.kind==="customer"){
+        const event=restaurant.deliver(action.id);
+        if(event?.message)show(event.message,event.kind==="finished"?7:5);
+        refreshRestaurantUI();
+      }
       return;
     }
     if(sports.active){
@@ -1760,6 +1785,10 @@
     }
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="restaurant"&&nearRestaurantEntrance()) {
+      enterRestaurant();
+      return;
+    }
     if (near?.id==="sports"&&nearSportsEntrance()) {
       enterSports();
       return;
@@ -1801,6 +1830,8 @@
       show("Para entrar no Prédio Acadêmico, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
     } else if (near?.id==="sports") {
       show("Para entrar no Complexo Esportivo, vá até a porta principal do ginásio.",5);
+    } else if (near?.id==="restaurant") {
+      show("Para entrar no Restaurante, aproxime-se da entrada principal.",5);
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1809,6 +1840,36 @@
   }
 
   function update(dt) {
+    if(restaurant.active){
+      if(activeDialogue){
+        held.clear();
+        restaurant.pause();
+        if(ui.interact){
+          ui.interact.disabled=false;
+          ui.interact.textContent="CONTINUAR [E]";
+        }
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        const result=restaurant.update(dt,foodOpen?new Set():held);
+        if(result?.kind==="timeout"&&foodOpen)closeFood();
+        if(result?.message)show(result.message,7);
+        const spot=restaurant.nearest();
+        if(ui.interact){
+          ui.interact.disabled=foodOpen||!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="chef"?"CONVERSAR [E]":
+            spot?.kind==="prep"?"PREPARAR [E]":
+            spot?.kind==="customer"?"ENTREGAR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=restaurant.objective();
+      }
+      if(ui.location)ui.location.textContent="RESTAURANTE DA FAAMA • SALÃO";
+      if(interiorUI.room)interiorUI.room.textContent="O Restaurante Misterioso";
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E preparar e entregar pedidos";
+      refreshRestaurantUI();
+      return;
+    }
     if(sports.active){
       if(activeDialogue){
         held.clear();
@@ -1966,7 +2027,8 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="sports"&&nearSportsEntrance()
+      ui.interact.textContent = near?.id==="restaurant"&&nearRestaurantEntrance()
+        ? "ENTRAR [E]" : near?.id==="sports"&&nearSportsEntrance()
         ? "ENTRAR [E]" : near?.id==="academic"&&nearAcademicEntrance()
         ? "ENTRAR [E]" : near?.id==="central"&&nearCentralEntrance()
           ? "ENTRAR [E]" : nearQuestItem
@@ -1976,7 +2038,9 @@
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="sports"&&nearSportsEntrance()
+      hint.textContent = near?.id==="restaurant"&&nearRestaurantEntrance()
+        ? "[E] Entrar no Restaurante"
+        : near?.id==="sports"&&nearSportsEntrance()
         ? "[E] Entrar no Complexo Esportivo"
         : near?.id==="academic"&&nearAcademicEntrance()
         ? "[E] Entrar no Prédio Acadêmico"
@@ -1998,7 +2062,9 @@
           : indoorQuest.stage()==="completed"
             ? academic.stage()==="completed"
               ? sports.progress().completed
-                ? "Quatro missões concluídas! Explore o campus."
+                ? restaurant.progress().completed
+                  ? "Cinco missões concluídas! Explore o campus."
+                  : "Nova missão: O Restaurante Misterioso. Converse com Clara!"
                 : "Próximo desafio: Circuito dos Campeões no Complexo Esportivo."
               : "Prédio Acadêmico: converse com a professora Helena."
             : "Missão 02: continue a investigação no Prédio Central.")
@@ -2013,11 +2079,17 @@
       previous = ms;
       time += dt;
 
-      if(!interior.active&&!academic.active&&!sports.active){
+      if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
 
+      if(restaurant.active){
+        restaurant.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);
+        return;
+      }
       if(sports.active){
         sports.draw(time,zoom);
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
@@ -2127,6 +2199,17 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(foodOpen){
+      if(k==="Escape")closeFood();
+      else if(k==="Enter")prepareFood();
+      else if(/^[0-9]$/.test(k)){
+        const index=k==="0"?9:Number(k)-1;
+        const button=foodUI.choices[index];
+        if(button)selectFood(button.dataset.foodId);
+      }
+      e.preventDefault();
+      return;
+    }
     if(activeAcademicQuiz){
       if(k==="Escape")closeAcademicQuiz();
       else if(["1","2","3"].includes(k))answerAcademicQuiz(Number(k)-1);
