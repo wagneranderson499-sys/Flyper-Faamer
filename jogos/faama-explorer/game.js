@@ -35,94 +35,16 @@
   canvas.width = SW;
   canvas.height = SH;
 
-  const sites = [
-    {
-      id: "pool",
-      name: "PISCINA",
-      x: 9, y: 6, w: 5, h: 3, z: 10,
-      roof: "#d4d7c4",
-      wall: "#f2f0dc",
-      side: "#b6c5ac",
-      type: "pool",
-      info: "Piscina e área esportiva da FAAMA."
-    },
-    {
-      id: "female",
-      name: "RESIDENCIAL FEMININO",
-      x: 16, y: 8, w: 5, h: 5, z: 65,
-      roof: "#3d777b",
-      wall: "#e4e9dd",
-      side: "#9abcb1",
-      type: "female",
-      info: "Residencial feminino. Futuramente, parte da fase do labirinto."
-    },
-    {
-      id: "male",
-      name: "RESIDENCIAL MASCULINO",
-      x: 27, y: 20, w: 5, h: 5, z: 65,
-      roof: "#4c7773",
-      wall: "#e9dfcb",
-      side: "#bcae91",
-      type: "male",
-      info: "Residencial masculino. Futuramente, parte da fase do labirinto."
-    },
-    {
-      id: "central",
-      name: "PRÉDIO CENTRAL",
-      x: 16, y: 24, w: 5, h: 4, z: 86,
-      roof: "#2c8e83",
-      wall: "#e2b348",
-      side: "#d47e3c",
-      type: "central",
-      info: "Fase 1: fuja dos quero-queros, capivaras e Afuá e encontre a chave do Prédio Escolar."
-    },
-    {
-      id: "academic",
-      name: "PRÉDIO ACADÊMICO",
-      x: 22, y: 32, w: 6, h: 4, z: 64,
-      roof: "#42796b",
-      wall: "#e5e5d7",
-      side: "#b5c6b8",
-      type: "academic",
-      info: "Prédio acadêmico. A missão será definida depois."
-    },
-    {
-      id: "school",
-      name: "FAAMINHA • ESCOLA",
-      x: 4, y: 27, w: 6, h: 5, z: 58,
-      roof: "#498779",
-      wall: "#f0ead9",
-      side: "#c3c7b1",
-      type: "school",
-      info: "Fase 2: encontre os alunos escondidos nos banheiros."
-    },
-    {
-      id: "church",
-      name: "IGREJA DA FAAMA",
-      x: 5, y: 39, w: 6, h: 3, z: 85,
-      roof: "#405b65",
-      wall: "#eee6d8",
-      side: "#b9b6a9",
-      type: "church",
-      info: "Fase final: chegue à igreja e conclua a aventura."
-    },
-    {
-      id: "sports",
-      name: "COMPLEXO ESPORTIVO",
-      x: 3, y: 12, w: 6, h: 5, z: 25,
-      roof: "#397a82",
-      wall: "#cbd6c6",
-      side: "#a7b7a9",
-      type: "sports",
-      info: "Fase 3: administre sua energia e supere os desafios esportivos."
-    }
-  ];
+  // Planta do campus separada do motor de renderização.
+  const sites = window.FAAMA_MAP.sites;
 
   const player = {
     x: 15,
     y: 42,
     speed: 5,
-    walk: 0
+    walk: 0,
+    facing: "down",
+    moving: false
   };
 
   const held = new Set();
@@ -135,14 +57,7 @@
 
   const camera = { x: 0, y: 0 };
 
-  const roads = [
-    [[14, 43], [14, 36], [16, 31], [17, 27], [16, 19], [13, 15], [11, 10]],
-    [[14, 36], [7, 34], [4, 30], [4, 23], [5, 15], [9, 10]],
-    [[14, 36], [23, 38], [29, 34], [31, 25], [29, 19], [25, 12], [20, 8]],
-    [[4, 23], [12, 21], [19, 21], [28, 21]],
-    [[14, 36], [16, 30], [21, 27], [27, 22]],
-    [[7, 34], [5, 39]]
-  ];
+  const roads = window.FAAMA_MAP.roads;
 
   function iso(x, y, z = 0) {
     return {
@@ -682,8 +597,12 @@
     if (!blocked(nx, player.y)) player.x = nx;
     if (!blocked(player.x, ny)) player.y = ny;
 
-    if (dx || dy) {
+    player.moving = Boolean(dx || dy);
+    if (player.moving) {
       player.walk += dt * 12;
+      player.facing = Math.abs(dx) > Math.abs(dy)
+        ? (dx > 0 ? "right" : "left")
+        : (dy > 0 ? "down" : "up");
     }
 
     near = nearest();
@@ -702,8 +621,8 @@
 
     if (ui.objective) {
       ui.objective.textContent = near
-        ? "Pressione E para conhecer este local"
-        : "Explore o campus e encontre o Prédio Central";
+        ? "[E] Conhecer: " + (near.short || near.name)
+        : "Visite o Prédio Central e conheça a FAAMA";
     }
   }
 
@@ -738,6 +657,7 @@
       ground();
       drawRoads();
       plazas();
+      campusDecor();
 
       const objects = [
         ...trees.map(t => ({
@@ -755,12 +675,17 @@
         {
           depth: player.x + player.y,
           draw: character
+        },
+        {
+          depth: 14 + 43,
+          draw: gateway
         }
       ].sort((a, b) => a.depth - b.depth);
 
       objects.forEach(o => o.draw());
 
       ctx.restore();
+      drawMinimap();
 
       if (ui.toast && time > toastUntil) {
         ui.toast.classList.add("hidden");
