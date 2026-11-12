@@ -583,59 +583,62 @@
     }
   }
 
+
   function tree(t) {
-    const p = P(t.x, t.y);
-    const s = t.size;
-
-    ellipse(p.x + 6, p.y + 4, 13 * s, 6 * s, "#315d3944");
-
-    line(
-      { x: p.x, y: p.y },
-      { x: p.x, y: p.y - 26 * s },
-      "#75583a",
-      6 * s
-    );
-
-    polygon([
-      { x: p.x, y: p.y - 67 * s },
-      { x: p.x + 22 * s, y: p.y - 49 * s },
-      { x: p.x + 21 * s, y: p.y - 30 * s },
-      { x: p.x, y: p.y - 17 * s },
-      { x: p.x - 22 * s, y: p.y - 30 * s },
-      { x: p.x - 22 * s, y: p.y - 49 * s }
-    ], "#367846");
-
-    polygon([
-      { x: p.x, y: p.y - 67 * s },
-      { x: p.x + 22 * s, y: p.y - 49 * s },
-      { x: p.x, y: p.y - 36 * s },
-      { x: p.x - 22 * s, y: p.y - 49 * s }
-    ], "#63a55a");
+    const p=P(t.x,t.y), sz=t.size;
+    const seed=t.seed || 13;
+    // Copas em grupos arredondados para substituir as árvores geométricas.
+    ellipse(p.x+10*sz,p.y+5*sz,23*sz,8*sz,"#234d3559");
+    line({x:p.x,y:p.y},{x:p.x-3*sz,y:p.y-35*sz},"#6d5039",8*sz);
+    line({x:p.x-2*sz,y:p.y-24*sz},
+      {x:p.x-15*sz,y:p.y-41*sz},"#786147",3*sz);
+    const baseColors=t.flowering
+      ? ["#a94481","#d65d9c","#e385b0","#f7acd3"]
+      : ["#226441","#2e7e48","#4b9751","#7db85e"];
+    const clumps=[
+      [-22,-45,15],[-10,-59,18],[12,-60,18],[25,-46,16],
+      [0,-43,23],[-28,-32,12],[27,-32,12],[0,-70,15]
+    ];
+    clumps.forEach(([dx,dy,r],i)=>{
+      const ox=(seeded(seed+i*3)-.5)*6;
+      const oy=(seeded(seed+i*7)-.5)*5;
+      ellipse(p.x+(dx+ox)*sz,p.y+(dy+oy)*sz,r*sz,r*.78*sz,
+        baseColors[i%baseColors.length]);
+      ellipse(p.x+(dx+ox-5)*sz,p.y+(dy+oy-5)*sz,
+        r*.45*sz,r*.28*sz,t.flowering?"#ffbfdf55":"#b6d87e72");
+    });
+    for(let i=0;i<8;i++){
+      const a=seeded(seed+i*13)*Math.PI*2;
+      const rad=seeded(seed+i*17)*24*sz;
+      ellipse(p.x+Math.cos(a)*rad,p.y-49*sz+Math.sin(a)*rad*.8,
+        2.2*sz,1.5*sz,t.flowering?"#fff0d3":"#b4d17a");
+    }
   }
 
   function palm(t) {
-    const p = P(t.x, t.y);
-
-    line(
-      p,
-      { x: p.x + 2, y: p.y - 55 },
-      "#82643e",
-      5
-    );
-
-    for (let i = 0; i < 6; i++) {
-      const a = i * Math.PI / 3;
-
-      line(
-        { x: p.x + 2, y: p.y - 56 },
-        {
-          x: p.x + 2 + Math.cos(a) * 23,
-          y: p.y - 56 + Math.sin(a) * 13
-        },
-        "#3d8e4b",
-        5
-      );
+    const p=P(t.x,t.y);
+    ellipse(p.x+5,p.y+3,13,4,"#244b3555");
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
+    ctx.quadraticCurveTo(p.x-10,p.y-26,p.x+2,p.y-64);
+    ctx.strokeStyle="#936f48";
+    ctx.lineWidth=7;
+    ctx.stroke();
+    for(let i=0;i<6;i++){
+      const a=i*Math.PI/3 + .2;
+      const ox=Math.cos(a)*32, oy=Math.sin(a)*15;
+      const start={x:p.x+2,y:p.y-64};
+      const tip={x:start.x+ox,y:start.y+oy+8};
+      ctx.beginPath();
+      ctx.moveTo(start.x,start.y);
+      ctx.quadraticCurveTo(start.x+ox*.5,start.y+oy-13,tip.x,tip.y);
+      ctx.quadraticCurveTo(start.x+ox*.48+5,start.y+oy-3,start.x,start.y+2);
+      ctx.fillStyle=i%2?"#327c42":"#58a44f";
+      ctx.fill();
+      line(start,{x:start.x+ox*.68,y:start.y+oy*.5},
+        "#91c975",1.3);
     }
+    ellipse(p.x+2,p.y-65,4,4,"#a58d47");
   }
 
 
@@ -714,32 +717,58 @@
     ctx.restore();
   }
 
-  // Flores e relva: detalhes independentes das colisões e das construções.
+
+  // Detalhes das praças renderizados sob prédios e personagens.
   function campusDecor() {
-    for (let y=2;y<H-2;y+=2.2) {
-      for (let x=2;x<W-2;x+=2.7) {
+    for(let y=2;y<H-2;y+=2.3){
+      for(let x=2;x<W-2;x+=2.6){
         const n=seeded(x*83+y*37);
-        if (n<.45 || roadNear(x,y) ||
-            sites.some(b=>inside(x,y,b,1))) continue;
+        if(n<.60 || roadNear(x,y) ||
+           sites.some(b=>inside(x,y,b,1)))continue;
         const p=P(x,y);
-        line({x:p.x,y:p.y},{x:p.x-3,y:p.y-6}, "#3a894a", 1.5);
-        line({x:p.x,y:p.y},{x:p.x+3,y:p.y-4}, "#4c9f50", 1.5);
-        if (n>.77) {
-          ellipse(p.x-2,p.y-7,3,2,n>.91?"#f0b2db":"#ffe59b");
-          ellipse(p.x+2,p.y-6,2,2,"#fff2ca");
+        line({x:p.x,y:p.y},{x:p.x-2,y:p.y-5},"#417d48",1.3);
+        line({x:p.x+3,y:p.y},{x:p.x+4,y:p.y-4},"#699f51",1.2);
+        if(n>.83) {
+          ellipse(p.x-3,p.y-6,2.5,2,n>.93?"#ec95b8":"#f8dc8f");
+          ellipse(p.x+2,p.y-5,2,1.6,"#fff3d1");
         }
       }
     }
-    // Luminárias nos caminhos principais.
-    [[13,37],[17,31],[12,30],[23,32],[12,21],[22,21],[26,20]]
-      .forEach(([x,y])=>{
-        const p=P(x,y);
-        ellipse(p.x+3,p.y+2,7,3,"#233d3644");
-        line(p,{x:p.x,y:p.y-29},"#34594e",3);
-        ellipse(p.x,p.y-30,6,6,"#ffd86b33");
-        ellipse(p.x,p.y-31,3,4,"#fff2ad");
-      });
+
+    const lamps=[
+      [13.5,36.5],[24.7,36.5],[13.4,29.1],[24.5,29.1],
+      [11.9,21],[26.8,21],[10.4,16],[26,17]
+    ];
+    for (const [x,y] of lamps) {
+      const p=P(x,y);
+      ellipse(p.x+4,p.y+4,7,3,"#172f3359");
+      line(p,{x:p.x,y:p.y-31},"#3f5d56",3.7);
+      ellipse(p.x,p.y-32,7,6,"#ffdb7566");
+      ellipse(p.x,p.y-33,4,4,"#fff1a8");
+      line({x:p.x-4,y:p.y-36},{x:p.x+4,y:p.y-36},"#273e43",2);
+    }
+
+    const benches=[[12.3,33],[25.5,33.2],[13.1,26],[24.9,26],[9.5,36.1]];
+    benches.forEach(([x,y])=>{
+      const p=P(x,y);
+      ellipse(p.x+4,p.y+6,18,4,"#26443355");
+      line({x:p.x-12,y:p.y-8},{x:p.x+12,y:p.y-8},"#7d5239",6);
+      line({x:p.x-12,y:p.y-1},{x:p.x+12,y:p.y-1},"#c89257",6);
+      line({x:p.x-8,y:p.y+1},{x:p.x-8,y:p.y+8},"#40514c",3);
+      line({x:p.x+8,y:p.y+1},{x:p.x+8,y:p.y+8},"#40514c",3);
+    });
+
+    // Borboletas dão movimento sem criar NPCs ou missões prematuras.
+    for(const [x,y,phase] of [[11,28,0],[27,25,1.6],[9.8,17,3.1]]){
+      const p=P(x,y), flight=Math.sin(time*2.1+phase);
+      const bx=p.x+Math.sin(time*.7+phase)*7;
+      const by=p.y-17+flight*4;
+      ellipse(bx-3,by,3,2.2,"#f7b6db");
+      ellipse(bx+3,by,3,2.2,"#ffdf87");
+      line({x:bx,y:by-2},{x:bx,y:by+4},"#6c664c",1);
+    }
   }
+
 
   function gateway() {
     const p=P(20,42.7);
