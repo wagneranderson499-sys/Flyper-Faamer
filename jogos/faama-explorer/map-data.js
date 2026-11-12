@@ -32,11 +32,20 @@ window.FAAMA_MAP = {
       info:"Igreja da FAAMA: ponto importante da aventura e das atividades do campus." }
   ],
   roads: [
-    [[14,43],[14,36],[16,31],[17,28],[18,21],[17,15],[18,12]],
-    [[14,36],[7,34],[6,30],[4,23],[5,15],[11,10]],
-    [[14,36],[23,38],[29,34],[31,25],[29,19],[26,16],[25,13],[30,12]],
-    [[4,23],[12,21],[19,21],[28,21]],
-    [[14,36],[16,30],[21,27],[27,27],[29,30]],
-    [[7,34],[6,39]]
-  ]
-};
+    // A via principal liga a portaria à praça do Prédio Central.
+    [[20,43],[20,36],[19,32],[19,29]],
+    // Contorno do prédio central em direção aos residenciais e piscina.
+    [[19,22],[19,19],[18,15],[18,12]],
+    // Lado esquerdo: igreja, FAAMinha, quadras e piscina.
+    [[20,36],[11,35],[8,32],[5,31],[5,20],[5,15],[11,10]],
+    // Lado direito: Prédio Acadêmico, restaurante e Residencial Masculino.
+    [[20,36],[26,37],[30,34],[30,27],[29,19],[27,16],[25,15],[30,13]],
+    // Passeio transversal ao norte do prédio central.
+    [[5,21],[11,21],[19,21],[28,21]],
+    [[19,29],[23,28],[25,25],[28,21]],
+    // Acesso à igreja.
+    [[11,35],[7,40]],
+    // Rotas de ligação no setor superior.
+    [[18,15],[12,13],[11,10]],
+    [[24,21],[24,16],[25,15]]
+  ]};
