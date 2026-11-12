@@ -578,3 +578,87 @@ body {
 @media(max-width:800px){
   .academic-choices button{min-height:37px;padding:8px 9px;font-size:11px}
 }
+
+/* FAAMA Explorer 2.7 — Placar do circuito e diário esportivo */
+.quest-sports {
+  margin-top:13px;
+  border-color:#e8bb67;
+  background:linear-gradient(118deg,#213a4b,#3b4858 58%,#263f4e);
+}
+.quest-sports .quest-medallion {border-color:#ffdf93}
+.quest-sports .quest-title strong {color:#ffe0a1}
+.quest-sports .quest-stage {border-color:#ffc87c;color:#ffe7bd}
+.sports-quest-stats span {
+  background:#183a47;
+  border-color:#d6b66e78;
+}
+.sports-hud {
+  position:absolute;
+  top:86px;
+  right:15px;
+  z-index:8;
+  width:min(292px,34%);
+  padding:11px 13px;
+  border:2px solid #e8c078;
+  border-radius:12px;
+  color:#f8efd8;
+  background:linear-gradient(125deg,#1e4050ed,#315267ed);
+  box-shadow:0 8px 28px #041d2999;
+  pointer-events:none;
+}
+.sports-hud-top,.sports-hud-line {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:9px;
+}
+.sports-hud-top span {
+  color:#ffe1a5;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.045em;
+}
+.sports-hud-top strong {
+  color:#fff5d1;
+  font-size:21px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.sports-hud-line {
+  margin-top:6px;
+  color:#e5efe7;
+  font-size:10px;
+}
+.sports-hud-line strong{color:#ffda88;font-size:12px}
+.sports-hud-line span{text-align:right;max-width:55%}
+.sports-progress {
+  margin-top:9px;
+  height:7px;
+  border-radius:10px;
+  background:#0d2d3a;
+  overflow:hidden;
+}
+.sports-progress i {
+  display:block;
+  width:0;
+  height:100%;
+  background:linear-gradient(90deg,#ffd56e,#fff2bb);
+  border-radius:10px;
+  transition:width .2s ease;
+}
+@media(max-width:800px){
+  .sports-hud {
+    top:53px;
+    right:5px;
+    width:43%;
+    padding:6px 7px;
+    border-width:1px;
+    border-radius:8px;
+  }
+  .sports-hud-top span{font-size:7px}
+  .sports-hud-top strong{font-size:13px}
+  .sports-hud-line{margin-top:3px;font-size:8px}
+  .sports-hud-line strong{font-size:9px}
+  .sports-progress{height:4px;margin-top:5px}
+}
