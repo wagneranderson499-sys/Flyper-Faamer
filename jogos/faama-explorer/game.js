@@ -61,7 +61,8 @@
 
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
-    ctx, P, sites, worldW: W, worldH: H
+    ctx, P, sites, worldW: W, worldH: H,
+    obstacleAt: (x, y, radius) => landscapeBlocked(x, y, radius)
   });
   let nearTalker = null;
   let activeDialogue = null;
@@ -1111,8 +1112,17 @@
     toastUntil = time + seconds;
   }
 
+  function landscapeBlocked(x, y, radius=.32) {
+    return trees.some(t =>
+      Math.hypot(x-t.x,y-t.y)<radius+.23*t.size
+    ) || palms.some(t =>
+      Math.hypot(x-t.x,y-t.y)<radius+.2
+    );
+  }
+
   function blocked(x, y) {
     return sites.some(s => inside(x, y, s, 0.2)) ||
+      landscapeBlocked(x, y, .30) ||
       life.solidAt(x, y, .33);
   }
 
