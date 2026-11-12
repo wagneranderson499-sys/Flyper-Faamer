@@ -32,9 +32,14 @@
                         <div class="stat-line"><span aria-hidden="true">⚡</span><div class="energy-bar"><i></i></div></div>
                     </div>
                 </aside>
-                <aside class="minimap-panel" aria-label="Minimapa do campus">
+                <aside class="minimap-panel" id="minimapPanel" aria-label="Minimapa do campus">
                     <span class="minimap-title">MAPA DO CAMPUS</span>
                     <canvas id="miniMap" width="164" height="182" aria-label="Visão superior com a posição atual do personagem"></canvas>
+                </aside>
+                <aside id="interiorStatus" class="interior-status hidden" aria-label="Ambiente interno">
+                    <small>🏛️ PRÉDIO CENTRAL • INTERIOR</small>
+                    <strong id="interiorRoom">Recepção</strong>
+                    <span>Explore as duas salas, converse e volte pela saída [E]</span>
                 </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
@@ -94,7 +99,7 @@
                 </div>
             </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.3 • A Chave Desaparecida</span></div>
+                    você</span><span>FAAMA Explorer 2.4 • Interior Explorável</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -105,6 +110,7 @@
     <script src="map-data.js"></script>
     <script src="campus-life.js"></script>
     <script src="quests.js"></script>
+    <script src="interior.js"></script>
     <script src="game.js"></script>
 </body>
 
