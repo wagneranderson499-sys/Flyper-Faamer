@@ -63,6 +63,7 @@
   });
   const centralSite = sites.find(s => s.id === "central");
   const academicSite = sites.find(s => s.id === "academic");
+  const sportsSite = sites.find(s => s.id === "sports");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
@@ -84,6 +85,12 @@
     const y=academicSite.y+academicSite.h;
     return player.y >= y-.15 && player.y <= y+1.3 &&
       Math.hypot(player.x-cx,player.y-(y+.65))<1.45;
+  }
+  function nearSportsEntrance(){
+    if(!sportsSite)return false;
+    const cx=sportsSite.x+sportsSite.w/2,y=sportsSite.y+sportsSite.h;
+    return player.y>=y-.16&&player.y<=y+1.4&&
+      Math.hypot(player.x-cx,player.y-(y+.65))<1.48;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -132,6 +139,29 @@
     setInteriorMode(false);
     show("Você voltou ao campus pelo Prédio Acadêmico.",4);
   }
+  function enterSports(){
+    if(interiorUI.building)interiorUI.building.textContent="🏆 COMPLEXO ESPORTIVO • GINÁSIO";
+    sports.enter();
+    held.clear();
+    player.moving=false;
+    setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshSportsUI();
+    show("Bem-vindo ao ginásio! Converse com o treinador Rafael para começar.",5);
+  }
+  function leaveSports(){
+    if(!sports.active)return;
+    sports.leave();
+    held.clear();
+    player.x=sportsSite.x+sportsSite.w/2;
+    player.y=sportsSite.y+sportsSite.h+1.25;
+    player.moving=false;
+    nearTalker=null;
+    nearQuestItem=null;
+    setInteriorMode(false);
+    refreshSportsUI();
+    show("Você voltou ao campus. O recorde do circuito foi preservado.",4);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -141,6 +171,7 @@
   let nearQuestItem = null;
   let activeDialogue = null;
   let pendingQuestNotice = null;
+  let pendingSportsStart=false;
 
   // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
   let questStorage = null;
@@ -152,6 +183,51 @@
   const academic = window.createFaamaAcademic({
     ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
   });
+  const sports=window.createFaamaSports({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const sportsUI={
+    hud:document.getElementById("sportsHUD"),
+    hudTimer:document.getElementById("sportsTimer"),
+    hudMedals:document.getElementById("sportsMedalCount"),
+    hudState:document.getElementById("sportsRaceState"),
+    bar:document.getElementById("sportsMedalBar"),
+    stage:document.getElementById("sportsQuestStage"),
+    description:document.getElementById("sportsQuestDescription"),
+    medals:document.getElementById("sportsQuestMedals"),
+    best:document.getElementById("sportsBestTime"),
+    remaining:document.getElementById("sportsQuestTime"),
+    achievement:document.getElementById("sportsAchievement")
+  };
+  function refreshSportsUI(){
+    const p=sports.progress();
+    const labels={idle:"DISPONÍVEL",running:"EM ANDAMENTO",
+      failed:"TEMPO ESGOTADO",finished:"CONCLUÍDA"};
+    if(sportsUI.stage)sportsUI.stage.textContent=p.completed?"CONCLUÍDA":labels[p.stage];
+    if(sportsUI.description)sportsUI.description.textContent=p.objective;
+    if(sportsUI.medals)sportsUI.medals.textContent="🏅 Medalhas: "+p.medals+" / "+p.medalTotal;
+    if(sportsUI.best)sportsUI.best.textContent="⏱️ Recorde: "+p.bestLabel;
+    if(sportsUI.remaining)sportsUI.remaining.textContent=
+      p.stage==="running"?"⏳ Restante: "+p.timeLeft.toFixed(1).replace(".",",")+"s":
+      "⏳ Limite: "+p.timeLimit+" segundos";
+    if(sportsUI.achievement){
+      sportsUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      sportsUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(sportsUI.hud)sportsUI.hud.classList.toggle("hidden",!sports.active);
+    if(sportsUI.hudTimer)sportsUI.hudTimer.textContent=
+      p.timeLeft.toFixed(1).replace(".",",")+"s";
+    if(sportsUI.hudMedals)sportsUI.hudMedals.textContent=
+      p.medals+" / "+p.medalTotal+" medalhas";
+    if(sportsUI.hudState)sportsUI.hudState.textContent=
+      p.stage==="running"?"Vá até a chegada!":
+      p.stage==="failed"?"Tente novamente":
+      p.stage==="finished"?"Circuito concluído":"Fale com Rafael";
+    if(sportsUI.bar)sportsUI.bar.style.width=(p.medals/p.medalTotal*100)+"%";
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+
+        academic.progress().xp+p.xp)+" XP";
+  }
   const academicUI={
     stage:document.getElementById("academicQuestStage"),
     description:document.getElementById("academicDescription"),
@@ -185,8 +261,7 @@
       academicUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
       academicUI.achievement.classList.toggle("complete",p.completed);
     }
-    if(questUI.xp)questUI.xp.textContent=
-      (quest.progress().xp+indoorQuest.progress().xp+p.xp)+" XP";
+    refreshSportsUI();
   }
   function closeAcademicQuiz(){
     if(!activeAcademicQuiz)return;
