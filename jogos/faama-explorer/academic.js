@@ -346,7 +346,7 @@ window.createFaamaAcademic=function createFaamaAcademic({ctx,storage,canvasWidth
     for(const item of targets){
       const p=point(item.x,item.y),b=Math.sin(elapsed*3+item.x)*2;
       ellipse(p.x,p.y-36+b,14,13,"#ffe4a6ae");
-      label(item.id? "?" : "!",p.x,p.y-31+b,15,"#284b5b",true);
+      label(item.id==="helena"?"!":"?",p.x,p.y-31+b,15,"#284b5b",true);
     }
   }
   function draw(time,zoom=.8){
