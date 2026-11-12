@@ -1,6 +1,6 @@
 /* FAAMA Explorer — planta jogável v2.
    Coordenadas estilizadas com base nas marcações e fotos fornecidas pelo usuário.
-   Eixos x/y pertencem à malha isométrica, não são GPS. */
+   Eixos x/y são posições horizontais e verticais do mapa, não são GPS. */
 window.FAAMA_MAP = {
   sites: [
     { id:"sports", name:"COMPLEXO ESPORTIVO", short:"Complexo esportivo", x:3, y:12, w:6, h:5, z:30,
@@ -15,15 +15,15 @@ window.FAAMA_MAP = {
     { id:"restaurant", name:"RESTAURANTE", short:"Restaurante", x:23, y:11, w:4, h:4, z:38,
       type:"restaurant", roof:"#4c5258", wall:"#737f7b", side:"#414b4c",
       info:"Restaurante: refeição e descanso entre as atividades. Prédio separado dos residenciais." },
-    { id:"school", name:"FAAMINHA", short:"FAAMinha", x:29, y:10, w:4, h:4, z:28,
+    { id:"school", name:"FAAMINHA", short:"FAAMinha", x:4, y:27, w:6, h:4, z:28,
       type:"school", roof:"#2062b1", wall:"#95c753", side:"#c8d7bb",
       info:"FAAMinha: escola verde, com cobertura azul, conforme a fotografia enviada." },
     { id:"central", name:"PRÉDIO CENTRAL", short:"Prédio central", x:16, y:24, w:6, h:4, z:86,
       type:"central", roof:"#4cb79e", wall:"#edba38", side:"#236bc2",
       info:"Prédio central: primeira aventura, encontre a chave e evite os desafios do campus." },
-    { id:"male", name:"RESIDENCIAL MASCULINO", short:"Residencial masculino", x:5, y:27, w:5, h:4, z:65,
+    { id:"male", name:"RESIDENCIAL MASCULINO", short:"Residencial masculino", x:28, y:10, w:5, h:4, z:65,
       type:"male", roof:"#34a18b", wall:"#f6efe0", side:"#c9d6c7",
-      info:"Residencial masculino: prédio com telhado verde e faixa azul/roxa, à esquerda no mapa." },
+      info:"Residencial masculino: edifício com telhado verde e faixa azul/roxa, no canto superior direito do campus." },
     { id:"academic", name:"PRÉDIO ACADÊMICO", short:"Prédio acadêmico", x:26, y:29, w:6, h:4, z:68,
       type:"academic", roof:"#66747d", wall:"#edf1e8", side:"#c8d6d6",
       info:"Prédio acadêmico: dois andares, salas de aula e atividades universitárias." },
