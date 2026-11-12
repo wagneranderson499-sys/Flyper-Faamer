@@ -8,7 +8,7 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
       id: "lia", name: "Lia", role: "Estudante de Psicologia",
       skin: "#b8764f", hair: "#292430", shirt: "#f0d75d",
       pants: "#334c75", backpack: "#b45869", hairStyle: "bun",
-      route: [[20,41],[20,38],[20,36],[19,33],[19,30]],
+      route: [[20.8,41],[20.8,38],[20.8,36],[20.8,33],[20.8,30]],
       speed: 1.05, pause: .6,
       lines: [
         "Oi! Bem-vindo ao campus! Está procurando algum lugar?",
@@ -136,9 +136,16 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
     const nx=npc.x+dx/d*step,ny=npc.y+dy/d*step;
     npc.heading=direction(dx,dy,npc.heading);
     // Pessoas não atravessam o jogador nem se empurram nas calçadas.
-    if(distance(nx,ny,player.x,player.y)<.78 ||
-       students.some(other=>other!==npc&&
-         distance(nx,ny,other.x,other.y)<.66)) {
+    const nowPlayerDist=distance(npc.x,npc.y,player.x,player.y);
+    const nextPlayerDist=distance(nx,ny,player.x,player.y);
+    // Não ficar preso: quando há alguém atrás, é permitido se afastar.
+    const approachingPlayer=nextPlayerDist<.78 &&
+      nextPlayerDist<=nowPlayerDist+.00001;
+    const crowdingOther=students.some(other=>other!==npc&&
+      distance(nx,ny,other.x,other.y)<.66 &&
+      distance(nx,ny,other.x,other.y)<=
+        distance(npc.x,npc.y,other.x,other.y)+.00001);
+    if(approachingPlayer||crowdingOther) {
       npc.wait=Math.max(npc.wait,.18);
       return;
     }
