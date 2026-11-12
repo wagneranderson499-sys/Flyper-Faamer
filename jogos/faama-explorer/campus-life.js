@@ -33,7 +33,7 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
       id: "bia", name: "Bia", role: "Estudante de Enfermagem",
       skin: "#79533d", hair: "#222020", shirt: "#a3d5ce",
       pants: "#39496d", backpack: "#e1a056", hairStyle: "curly",
-      route: [[25,35],[25,33.8],[25,30],[25,27],[25,23]],
+      route: [[24.5,37],[26,37],[28,35.7],[30,34.6]],
       speed: .96, pause: .9,
       lines: [
         "Olá! Você está conhecendo a FAAMA?",
@@ -71,7 +71,7 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
   }));
 
   const animals = [
-    {id:"capi-1",type:"capybara",x:12.8,y:25.6,homeX:12.8,homeY:25.6,
+    {id:"capi-1",type:"capybara",x:13,y:24,homeX:13,homeY:24,
       color:"#996a42",speed:.47,radius:.58,seed:2.1,rest:1.3},
     {id:"capi-2",type:"capybara",x:12.1,y:38.3,homeX:12.1,homeY:38.3,
       color:"#b48150",speed:.42,radius:.58,seed:5.2,rest:1.8},
