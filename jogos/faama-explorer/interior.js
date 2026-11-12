@@ -17,6 +17,7 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
   const desk={id:"reception-desk",kind:"desk",x:15,y:15.2,w:3.3,h:1.05};
   const furniture=[
     desk,
+    {id:"archive-cabinet",kind:"archive",x:18.8,y:13.05,w:1.2,h:1.1},
     {id:"reception-bench",kind:"bench",x:9.0,y:16.8,w:3.0,h:.65},
     {id:"reception-planter",kind:"plant",x:19.2,y:17,w:.8,h:.8},
     {id:"class-table-a",kind:"studentDesk",x:3.7,y:5.1,w:2.25,h:.85},
@@ -58,7 +59,9 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
     {id:"mesa",x:20.9,y:7.15,name:"Mesa de estudos",
       icon:"✏️",text:"Um espaço tranquilo para estudar, conversar e organizar ideias."},
     {id:"bebedouro",x:15.65,y:11.0,name:"Bebedouro",
-      icon:"💧",text:"Uma pausa para beber água ajuda a recuperar o foco durante o dia."}
+      icon:"💧",text:"Uma pausa para beber água ajuda a recuperar o foco durante o dia."},
+    {id:"arquivo",x:19.4,y:13.6,name:"Armário de arquivos",
+      icon:"🗄️",text:"Um armário de documentos com fechadura de combinação."}
   ];
   const attendant={
     id:"marina",name:"Marina",role:"Recepção do Prédio Central",x:13.1,y:15.1,
@@ -238,6 +241,15 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
       }
       return;
     }
+    if(f.kind==="archive"){
+      roundRect(p.x,p.y-6,w,h+6,5,"#7e9298","#e4dac2");
+      for(let row=0;row<2;row++){
+        roundRect(p.x+4,p.y+row*h/2-2,w-8,h/2-5,3,"#c7d2cc","#526b74");
+        roundRect(p.x+w/2-5,p.y+row*h/2+6,10,4,2,"#476879");
+      }
+      text("ARQUIVOS",p.x+w/2,p.y-11,9,"#f6e8c5",true);
+      return;
+    }
     if(f.kind==="water"){
       roundRect(p.x,p.y,w,h,4,"#c8d7df","#597f91");
       roundRect(p.x+4,p.y+3,w-8,h*.43,3,"#77bace");
@@ -339,6 +351,26 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
       text("Marina",p.x,p.y-96+pulse,13,"#f7ecda",true);
     }
   }
+  function drawQuestMarkers(markers=[]) {
+    const location={
+      mural:objects.find(o=>o.id==="mural"),
+      quadro:objects.find(o=>o.id==="quadro"),
+      estante:objects.find(o=>o.id==="estante"),
+      arquivo:objects.find(o=>o.id==="arquivo"),
+      marina:attendant
+    };
+    markers.forEach(marker=>{
+      const obj=location[marker.id];
+      if(!obj)return;
+      const p=point(obj.x,obj.y);
+      const wave=Math.sin(elapsed*3.4+obj.x)*2;
+      const y=p.y-35+wave;
+      ellipse(p.x,y,13,12,marker.kind==="clue"?"#77f1e5a8":"#ffdc7da9");
+      ellipse(p.x,y,8,8,marker.kind==="clue"?"#155d66":"#785824");
+      text(marker.kind==="clue"?"?":marker.kind==="lock"?"🔒":
+        marker.kind==="document"?"📄":"!",p.x,y+4,13,"#fff7ce",true);
+    });
+  }
   function drawNearby(){
     const near=nearest();
     if(!near)return;
@@ -349,7 +381,7 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
     ellipse(p.x,p.y-17+Math.sin(elapsed*3)*2,14,12,"#ffe09a99");
     text("E",p.x,p.y-13+Math.sin(elapsed*3)*2,12,"#253f4e",true);
   }
-  function draw(time,zoom=.8){
+  function draw(time,zoom=.8,questMarkers=[]){
     if(!active)return;
     const z=clamp(zoom/.8,.82,1.8);
     ctx.setTransform(1,0,0,1,0,0);
@@ -376,6 +408,7 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
     walls.forEach(drawWall);
     drawDoors();
     drawActor(attendant,"npc");
+    drawQuestMarkers(questMarkers);
     drawActor(player,"player");
     drawNearby();
     ctx.restore();
