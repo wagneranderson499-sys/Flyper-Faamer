@@ -269,6 +269,9 @@
   }
 
   function building(b) {
+    const footprint = P(b.x + b.w / 2, b.y + b.h / 2);
+    ellipse(footprint.x + 9, footprint.y + 11,
+      b.w * TW * 0.48, b.h * TH * 0.50, "#163c3440");
     const A = P(b.x, b.y);
     const B = P(b.x + b.w, b.y);
     const C = P(b.x + b.w, b.y + b.h);
@@ -348,6 +351,8 @@
         { x: x - 7, y: y + 11 }
       ], b.type === "central" ? "#243f79" : "#94c2bd");
     }
+
+    buildingDetails(b, A, B, C, D, z);
 
     if (b.type === "central") {
       const p = P(
@@ -429,13 +434,136 @@
       z + 30
     );
 
-    ctx.font = "bold 12px Arial";
+    ctx.save();
+    ctx.font = "bold 13px 'DM Sans', Arial, sans-serif";
     ctx.textAlign = "center";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#12372be6";
-    ctx.strokeText(b.name, center.x, center.y);
-    ctx.fillStyle = "#fff9e8";
-    ctx.fillText(b.name, center.x, center.y);
+    const label = b.short || b.name;
+    const labelWidth = ctx.measureText(label).width + 24;
+    ctx.shadowColor = "#0a221dc2";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = "#112a30e8";
+    ctx.strokeStyle = "#e8c272";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(center.x - labelWidth/2, center.y-20, labelWidth, 26, 8);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+    ctx.fillStyle = "#fff6de";
+    ctx.fillText(label, center.x, center.y-2);
+    ctx.restore();
+  }
+
+
+  // Fachadas inspiradas nas fotos do usuário, desenhadas em faces isométricas.
+  function buildingDetails(b, A, B, C, D, z) {
+    const wallAB = (t, depth) => ({
+      x: A.x + (B.x - A.x) * t,
+      y: A.y + (B.y - A.y) * t - z + depth
+    });
+    const wallBC = (t, depth) => ({
+      x: B.x + (C.x - B.x) * t,
+      y: B.y + (C.y - B.y) * t - z + depth
+    });
+
+    // Frisos de pavimentos e iluminação nas fachadas.
+    if (z > 40) {
+      const a = wallAB(0, z * .55);
+      const bEnd = wallAB(1, z * .55);
+      line(a, bEnd,
+        b.type === "male" ? "#6656bb" :
+        b.type === "central" ? "#134ca5" : "#ccd8d1", 6);
+      line(wallBC(0, z * .55), wallBC(1, z * .55), "#527c81", 3);
+      for (const depth of [z*.69, z*.86]) {
+        for (let i=1; i<Math.max(3, b.w); i++) {
+          const p = wallAB(i / Math.max(3,b.w), depth);
+          polygon([
+            {x:p.x-7,y:p.y-9},{x:p.x+6,y:p.y-2},
+            {x:p.x+6,y:p.y+5},{x:p.x-7,y:p.y-2}
+          ], "#315d77", "#e0ece6");
+        }
+      }
+    }
+
+    if (b.type === "female") {
+      // Vidraça panorâmica com moldura vermelha.
+      const frame = [wallAB(.05,8),wallAB(.95,8),
+        wallAB(.95,z-12),wallAB(.05,z-12)];
+      polygon(frame, "#79bbce", "#d83043");
+      line(wallAB(.05,8), wallAB(.95,8), "#cf293f", 8);
+      line(wallAB(.05,z-12), wallAB(.95,z-12), "#cf293f", 8);
+      for (let k=1;k<7;k++) {
+        line(wallAB(k/7,10), wallAB(k/7,z-14), "#dff6ffab", 2);
+      }
+      line(wallAB(.06,z*.51),wallAB(.94,z*.51),"#e8f6f1aa",2);
+    }
+
+    if (b.type === "male") {
+      line(wallAB(0,z*.47),wallAB(1,z*.47),"#6c4bba",8);
+      line(wallBC(0,z*.47),wallBC(1,z*.47),"#594ba8",6);
+      line(wallAB(0,z*.19),wallAB(1,z*.19),"#37a486",6);
+      // Coluna principal da entrada, inspirada na foto.
+      const p = wallAB(.52,z-8);
+      line({x:p.x-3,y:p.y-35},{x:p.x-3,y:p.y+5},"#72aaa0",9);
+    }
+
+    if (b.type === "school") {
+      const l=wallAB(0,15), r=wallAB(1,15);
+      line(l,r,"#236acc",12);
+      line(wallAB(0,22),wallAB(1,22),"#b7d9e1",3);
+      const p=wallAB(.72,z-5);
+      ctx.fillStyle="#e4a24a";
+      ctx.fillRect(p.x-10,p.y-17,20,16);
+    }
+
+    if (b.type === "restaurant") {
+      const l=wallAB(.15,25), r=wallAB(.85,25);
+      line(l,r,"#31393f",18);
+      const p=wallAB(.5,22);
+      ctx.font="bold 10px Arial";
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff8db";
+      ctx.fillText("RESTAURANTE",p.x,p.y+3);
+    }
+
+    if (b.type === "academic") {
+      line(wallAB(0,z*.5),wallAB(1,z*.5),"#63819a",6);
+      line(wallBC(0,z*.5),wallBC(1,z*.5),"#7298a4",5);
+    }
+
+    if (b.type === "sports") {
+      // Cobertura curvada com arcos azuis.
+      const center=P(b.x+b.w/2,b.y+b.h/2,z+22);
+      ctx.save();
+      ctx.strokeStyle="#1c68c1";
+      ctx.lineWidth=6;
+      ctx.beginPath();
+      ctx.moveTo(center.x-75,center.y+30);
+      ctx.quadraticCurveTo(center.x,center.y-62,center.x+75,center.y+30);
+      ctx.stroke();
+      ctx.strokeStyle="#e9e0c6";
+      ctx.lineWidth=4;
+      ctx.beginPath();
+      ctx.moveTo(center.x-65,center.y+22);
+      ctx.quadraticCurveTo(center.x,center.y-47,center.x+65,center.y+22);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (b.type === "central") {
+      // Marquise laranja e azul e sinalização brilhante da missão.
+      const door=wallAB(.52,z-4);
+      line({x:door.x-21,y:door.y-22},{x:door.x+21,y:door.y-2},
+           "#f29035",12);
+      const mark=P(b.x+b.w/2,b.y+b.h+1);
+      const pulse=1 + Math.sin(time*3)*.14;
+      ellipse(mark.x,mark.y,15*pulse,6*pulse,"#ffd65c55");
+      ellipse(mark.x,mark.y,8*pulse,3*pulse,"#ffe082");
+      ctx.font="bold 20px Arial";
+      ctx.textAlign="center";
+      ctx.fillStyle="#ffca48";
+      ctx.fillText("!",mark.x,mark.y-15-Math.sin(time*3)*3);
+    }
   }
 
   function tree(t) {
