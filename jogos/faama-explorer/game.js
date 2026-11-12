@@ -65,7 +65,52 @@
     obstacleAt: (x, y, radius) => landscapeBlocked(x, y, radius)
   });
   let nearTalker = null;
+  let nearQuestItem = null;
   let activeDialogue = null;
+
+  // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
+  let questStorage = null;
+  try {questStorage = window.localStorage;} catch (_error) {}
+  const quest = window.createFaamaQuest({ ctx, P, storage: questStorage });
+  const questUI = {
+    stage: document.getElementById("questStage"),
+    description: document.getElementById("questDescription"),
+    clueBilhete: document.getElementById("clue-bilhete"),
+    cluePegadas: document.getElementById("clue-pegadas"),
+    clueCaderno: document.getElementById("clue-caderno"),
+    key: document.getElementById("questKey"),
+    achievement: document.getElementById("questAchievement"),
+    xp: document.getElementById("xpLabel")
+  };
+
+  function refreshQuestUI() {
+    const q = quest.progress();
+    if (questUI.stage) {
+      const label = {
+        ready:"AGUARDANDO INÍCIO",clues:"INVESTIGAÇÃO",
+        key:"ENCONTRAR A CHAVE",return:"DEVOLVER A CHAVE",
+        completed:"MISSÃO CONCLUÍDA"
+      };
+      questUI.stage.textContent = label[q.stage];
+    }
+    if (questUI.description) questUI.description.textContent = q.objective;
+    if (questUI.xp) questUI.xp.textContent = q.xp+" XP";
+    for (const clue of q.clues) {
+      const element = questUI["clue"+clue.id[0].toUpperCase()+clue.id.slice(1)];
+      if(!element)continue;
+      element.textContent = (clue.done?"✓ ":"○ ")+clue.name;
+      element.classList.toggle("complete",clue.done);
+    }
+    if (questUI.key) {
+      questUI.key.textContent = q.hasKey?"🔑 Chave encontrada":"🔒 Chave não encontrada";
+      questUI.key.classList.toggle("complete",q.hasKey);
+    }
+    if (questUI.achievement) {
+      questUI.achievement.textContent = q.achievement
+        ?"🏆 "+q.achievement : "🏆 Conquista bloqueada";
+      questUI.achievement.classList.toggle("complete",q.completed);
+    }
+  }
   const dialogueUI = {
     root: document.getElementById("npcDialogue"),
     name: document.getElementById("npcName"),
@@ -1074,6 +1119,7 @@
       m.strokeRect(ox+b.x*sx,oy+b.y*sy,b.w*sx,b.h*sy);
     }
     life.drawMinimapMarkers(m,ox,oy,sx,sy);
+    quest.drawMinimapMarkers(m,ox,oy,sx,sy);
     const px=ox+player.x*sx,py=oy+player.y*sy;
     m.beginPath();m.arc(px,py,6,0,Math.PI*2);
     m.fillStyle="#f3dc65";m.fill();
@@ -1193,12 +1239,36 @@
   function interact() {
     if (activeDialogue) {
       advanceDialogue();
-    } else if (nearTalker) {
-      openDialogue(nearTalker.npc);
+      return;
+    }
+    // Itens da missão têm prioridade apenas quando o jogador está perto.
+    nearQuestItem = quest.nearItem(player.x,player.y);
+    if (nearQuestItem) {
+      const result=quest.collect(nearQuestItem.item.id);
+      if (result) {
+        show(result.message,6);
+        refreshQuestUI();
+      }
+      nearQuestItem = quest.nearItem(player.x,player.y);
+      return;
+    }
+
+    nearTalker = life.nearestTalker(player.x,player.y,1.85);
+    if (nearTalker) {
+      if (nearTalker.npc.id==="lia") {
+        const event=quest.talkToLia();
+        openDialogue({...nearTalker.npc,lines:event.lines});
+        if(event.changed) {
+          refreshQuestUI();
+          if(event.message)show(event.message,5);
+        }
+      } else {
+        openDialogue(nearTalker.npc);
+      }
     } else if (near) {
       show(near.info, 6);
     } else {
-      show("Aproxime-se de um aluno ou prédio para interagir.");
+      show("Aproxime-se de uma pista, estudante ou prédio para interagir.");
     }
   }
 
@@ -1247,6 +1317,7 @@
 
     near = nearest();
     nearTalker = life.nearestTalker(player.x, player.y, 1.85);
+    nearQuestItem = quest.nearItem(player.x,player.y);
 
     if (ui.location) {
       ui.location.textContent = near
@@ -1257,24 +1328,25 @@
     }
 
     if (ui.interact) {
-      ui.interact.disabled = !(nearTalker || near);
-      ui.interact.textContent = nearTalker
-        ? "CONVERSAR [E]" : "INTERAGIR [E]";
+      ui.interact.disabled = !(nearQuestItem || nearTalker || near);
+      ui.interact.textContent = nearQuestItem
+        ? "INVESTIGAR [E]" : nearTalker
+          ? "CONVERSAR [E]" : "INTERAGIR [E]";
     }
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = nearTalker
-        ? "[E] Conversar com " + nearTalker.npc.name
-        : "WASD / SETAS para caminhar";
+      hint.textContent = nearQuestItem
+        ? "[E] Investigar: "+nearQuestItem.item.name
+        : nearTalker
+          ? "[E] Conversar com " + nearTalker.npc.name
+          : near
+            ? "[E] Conhecer: "+(near.short || near.name)
+            : "WASD / SETAS para caminhar";
     }
 
     if (ui.objective) {
-      ui.objective.textContent = nearTalker
-        ? "[E] Conversar: " + nearTalker.npc.name
-        : near
-          ? "[E] Conhecer: " + (near.short || near.name)
-          : "Visite o Prédio Central e conheça a FAAMA";
+      ui.objective.textContent = quest.objective();
     }
   }
 
@@ -1336,6 +1408,7 @@
           draw: () => building(s)
         })),
         ...life.renderables(player),
+        ...quest.renderables(time,player),
         {
           depth: player.y + player.x * .02,
           draw: character
@@ -1465,6 +1538,7 @@
     zoomOut.addEventListener("click", () => changeZoom(-0.1));
   }
 
+  refreshQuestUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
