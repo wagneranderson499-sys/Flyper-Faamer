@@ -64,6 +64,7 @@
   const centralSite = sites.find(s => s.id === "central");
   const academicSite = sites.find(s => s.id === "academic");
   const sportsSite = sites.find(s => s.id === "sports");
+  const restaurantSite = sites.find(s => s.id === "restaurant");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
@@ -91,6 +92,13 @@
     const cx=sportsSite.x+sportsSite.w/2,y=sportsSite.y+sportsSite.h;
     return player.y>=y-.16&&player.y<=y+1.4&&
       Math.hypot(player.x-cx,player.y-(y+.65))<1.48;
+  }
+  function nearRestaurantEntrance(){
+    if(!restaurantSite)return false;
+    const cx=restaurantSite.x+restaurantSite.w/2;
+    const y=restaurantSite.y+restaurantSite.h;
+    return player.y>=y-.15 && player.y<=y+1.42 &&
+      Math.hypot(player.x-cx,player.y-(y+.67))<1.5;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -162,6 +170,32 @@
     refreshSportsUI();
     show("Você voltou ao campus. O recorde do circuito foi preservado.",4);
   }
+  function enterRestaurant(){
+    if(interiorUI.building)interiorUI.building.textContent="🍽️ RESTAURANTE DA FAAMA • INTERIOR";
+    restaurant.enter();
+    held.clear();
+    player.moving=false;
+    setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshRestaurantUI();
+    show(restaurant.phase==="paused"
+      ?"Seu pedido foi salvo! Converse com Clara para retomar de onde parou."
+      :"Bem-vindo ao Restaurante! Converse com a cozinheira Clara.",5);
+  }
+  function leaveRestaurant(){
+    if(!restaurant.active)return;
+    closeFood();
+    restaurant.leave();
+    held.clear();
+    player.x=restaurantSite.x+restaurantSite.w/2;
+    player.y=restaurantSite.y+restaurantSite.h+1.25;
+    player.moving=false;
+    nearTalker=null;
+    nearQuestItem=null;
+    setInteriorMode(false);
+    refreshRestaurantUI();
+    show("Você voltou ao campus. Os pedidos e o recorde foram preservados.",4);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -172,6 +206,7 @@
   let activeDialogue = null;
   let pendingQuestNotice = null;
   let pendingSportsStart=false;
+  let pendingRestaurantStart=false;
 
   // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
   let questStorage = null;
@@ -186,6 +221,118 @@
   const sports=window.createFaamaSports({
     ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
   });
+  const restaurant=window.createFaamaRestaurant({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const restaurantUI={
+    hud:document.getElementById("restaurantHUD"),
+    timer:document.getElementById("restaurantTimer"),
+    hudOrder:document.getElementById("restaurantHUDOrder"),
+    delivered:document.getElementById("restaurantDelivered"),
+    hudState:document.getElementById("restaurantHUDState"),
+    bar:document.getElementById("restaurantProgressBar"),
+    stage:document.getElementById("restaurantQuestStage"),
+    description:document.getElementById("restaurantQuestDescription"),
+    questOrders:document.getElementById("restaurantQuestOrders"),
+    questErrors:document.getElementById("restaurantQuestErrors"),
+    best:document.getElementById("restaurantBestTime"),
+    achievement:document.getElementById("restaurantQuestAchievement")
+  };
+  const foodUI={
+    root:document.getElementById("restaurantCooking"),
+    title:document.getElementById("restaurantCookingTitle"),
+    hint:document.getElementById("restaurantCookingHint"),
+    customer:document.getElementById("restaurantCookingCustomer"),
+    feedback:document.getElementById("restaurantCookingFeedback"),
+    count:document.getElementById("restaurantSelectedCount"),
+    close:document.getElementById("restaurantCookingClose"),
+    prepare:document.getElementById("restaurantPrepare"),
+    choices:[...document.querySelectorAll("[data-food-id]")]
+  };
+  let foodOpen=false;
+  let selectedFood=new Set();
+  function refreshRestaurantUI(){
+    const p=restaurant.progress();
+    const names={idle:"DISPONÍVEL",paused:"PAUSADA",running:"EM ANDAMENTO",
+      failed:"TEMPO ESGOTADO",finished:"CONCLUÍDA"};
+    if(restaurantUI.hud)restaurantUI.hud.classList.toggle("hidden",!restaurant.active);
+    if(restaurantUI.stage)restaurantUI.stage.textContent=
+      p.completed?"CONCLUÍDA":names[p.stage];
+    if(restaurantUI.description)restaurantUI.description.textContent=p.objective;
+    if(restaurantUI.questOrders)restaurantUI.questOrders.textContent=
+      "🍴 Pedidos entregues: "+p.served+" / "+p.total;
+    if(restaurantUI.questErrors)restaurantUI.questErrors.textContent="⚠️ Erros: "+p.errors;
+    if(restaurantUI.best)restaurantUI.best.textContent="⏱️ Recorde: "+p.bestLabel;
+    if(restaurantUI.achievement){
+      restaurantUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      restaurantUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(restaurantUI.timer)restaurantUI.timer.textContent=
+      (p.stage==="finished"?p.elapsed:p.timeLeft).toFixed(1).replace(".",",")+"s";
+    if(restaurantUI.hudOrder)restaurantUI.hudOrder.textContent=
+      p.order?(p.order.icon+" "+p.order.name+" • "+p.order.customer):"Todos os pedidos concluídos!";
+    if(restaurantUI.delivered)restaurantUI.delivered.textContent=p.served+" / 5 pedidos";
+    if(restaurantUI.hudState)restaurantUI.hudState.textContent=
+      p.stage==="running"?(p.prepared?"Entregue ao estudante":"Prepare na bancada"):
+      p.stage==="paused"?"Retome com Clara":p.stage==="failed"?"Tempo esgotado":
+      p.stage==="finished"?"Serviço concluído":"Fale com Clara";
+    if(restaurantUI.bar)restaurantUI.bar.style.width=(p.served/p.total*100)+"%";
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+
+        academic.progress().xp+sports.progress().xp+p.xp)+" XP";
+  }
+  function refreshFoodChoices(){
+    if(foodUI.count)foodUI.count.textContent=selectedFood.size+" de 3 ingredientes";
+    foodUI.choices.forEach(btn=>{
+      btn.setAttribute("aria-pressed",selectedFood.has(btn.dataset.foodId)?"true":"false");
+    });
+  }
+  function closeFood(){
+    if(!foodOpen)return;
+    foodOpen=false;
+    foodUI.root.classList.add("hidden");
+    selectedFood=new Set();
+    held.clear();
+  }
+  function openFood(){
+    const p=restaurant.progress();
+    if(p.stage!=="running"){show(p.objective,4);return;}
+    if(p.prepared){show("O prato já está pronto! Entregue-o ao estudante.",4);return;}
+    if(!p.order)return;
+    foodOpen=true;
+    selectedFood=new Set();
+    held.clear();
+    restaurant.pause();
+    foodUI.title.textContent=p.order.icon+" "+p.order.name;
+    foodUI.hint.textContent=p.order.hint+" Selecione exatamente três ingredientes.";
+    foodUI.customer.textContent="Pedido de "+p.order.customer+" • Os ingredientes devem combinar com o prato.";
+    foodUI.feedback.textContent="O tempo continua correndo durante o preparo!";
+    refreshFoodChoices();
+    foodUI.root.classList.remove("hidden");
+  }
+  function selectFood(id){
+    if(!foodOpen)return;
+    if(selectedFood.has(id))selectedFood.delete(id);
+    else if(selectedFood.size>=3){
+      foodUI.feedback.textContent="Limite de três ingredientes. Desmarque um para escolher outro.";
+      return;
+    }else selectedFood.add(id);
+    refreshFoodChoices();
+  }
+  function prepareFood(){
+    if(!foodOpen)return;
+    const result=restaurant.prepare([...selectedFood]);
+    if(result.correct){
+      closeFood();
+      show(result.message,6);
+    }else if(result.kind==="timeout"){
+      closeFood();
+      show(result.message,6);
+    }else if(result.message){
+      foodUI.feedback.textContent=result.message;
+    }
+    refreshRestaurantUI();
+  }
   const sportsUI={
     hud:document.getElementById("sportsHUD"),
     hudTimer:document.getElementById("sportsTimer"),
@@ -225,9 +372,7 @@
       p.stage==="failed"?"Tente novamente":
       p.stage==="finished"?"Circuito concluído":"Fale com Rafael";
     if(sportsUI.bar)sportsUI.bar.style.width=(p.medals/p.medalTotal*100)+"%";
-    if(questUI.xp)questUI.xp.textContent=
-      (quest.progress().xp+indoorQuest.progress().xp+
-        academic.progress().xp+p.xp)+" XP";
+    refreshRestaurantUI();
   }
   const academicUI={
     stage:document.getElementById("academicQuestStage"),
