@@ -2,7 +2,8 @@
    Personagens fictícios; nenhuma coordenada de prédio é alterada aqui. */
 "use strict";
 
-window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worldH}) {
+window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worldH,
+  obstacleAt=()=>false}) {
   const students = [
     {
       id: "lia", name: "Lia", role: "Estudante de Psicologia",
@@ -149,7 +150,7 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
       npc.wait=Math.max(npc.wait,.18);
       return;
     }
-    if(nearBuilding(nx,ny,.22)) {
+    if(nearBuilding(nx,ny,.22)||obstacleAt(nx,ny,.25)) {
       npc.wait=.5;
       npc.reverse=!npc.reverse;
       npc.target=Math.max(0,Math.min(npc.route.length-1,
@@ -169,7 +170,8 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
       const tx=animal.homeX+Math.cos(angle)*r;
       const ty=animal.homeY+Math.sin(angle)*r*.72;
       if(tx<.8||tx>worldW-.8||ty<.8||ty>worldH-.8)continue;
-      if(nearBuilding(tx,ty,capy?.48:.2))continue;
+      if(nearBuilding(tx,ty,capy?.48:.2)||
+         obstacleAt(tx,ty,capy?.52:.25))continue;
       if(distance(tx,ty,player.x,player.y)<1.5)continue;
       animal.targetX=tx;animal.targetY=ty;return;
     }
@@ -202,6 +204,7 @@ window.createCampusLife = function createCampusLife({ctx, P, sites, worldW, worl
     const nx=animal.x+dx/d*step,ny=animal.y+dy/d*step;
     const radius=animal.type==="capybara"?.45:.16;
     if(nearBuilding(nx,ny,radius) ||
+       obstacleAt(nx,ny,radius) ||
        distance(nx,ny,player.x,player.y)<radius+.32 ||
        students.some(n=>distance(nx,ny,n.x,n.y)<radius+.34)) {
       animal.timer=.4;
