@@ -402,3 +402,22 @@ body {
   .quest-inventory > span{font-size:10px;padding:7px 9px}
   .quest-inventory small{margin-left:0;width:100%}
 }
+
+.quest-restart{
+  margin-left:0;
+  padding:8px 12px;
+  border:1px solid #deb16a;
+  border-radius:9px;
+  background:#254559;
+  color:#ffe9b3;
+  font:800 10px 'DM Sans',sans-serif;
+  cursor:pointer;
+}
+.quest-restart:hover,.quest-restart:focus-visible{
+  background:#406275;
+  outline:2px solid #ffe8b3;
+  outline-offset:2px;
+}
+@media(max-width:800px){
+  .quest-restart{width:100%;text-align:center}
+}
