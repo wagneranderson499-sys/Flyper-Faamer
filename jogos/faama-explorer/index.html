@@ -42,11 +42,32 @@
                     <div class="hudright"><span id="hint">WASD / SETAS para caminhar</span><button id="interact"
                             disabled>INTERAGIR [E]</button></div>
                 </div>
+                <section id="npcDialogue" class="npc-dialogue hidden" role="dialog"
+                    aria-modal="false" aria-labelledby="npcName" aria-describedby="npcLine">
+                    <div class="dialogue-heading">
+                        <span>💬 CONVERSA NO CAMPUS</span>
+                        <button id="dialogClose" class="dialogue-close" aria-label="Fechar conversa" type="button">×</button>
+                    </div>
+                    <div class="dialogue-content">
+                        <div id="npcPortrait" class="dialogue-portrait" aria-hidden="true">🎓</div>
+                        <div class="dialogue-copy">
+                            <div class="dialogue-identity">
+                                <strong id="npcName">Estudante</strong>
+                                <span id="npcRole">FAAMA</span>
+                            </div>
+                            <p id="npcLine"></p>
+                        </div>
+                    </div>
+                    <div class="dialogue-footer">
+                        <small>Pressione E / Enter para avançar • Esc para fechar</small>
+                        <button id="dialogNext" type="button">Continuar <span>→</span></button>
+                    </div>
+                </section>
                 <div id="toast" class="toast hidden"></div>
                 <div id="fatal" class="fatal hidden"></div>
             </div>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer • Prévia jogável v2</span></div>
+                    você</span><span>FAAMA Explorer 2.2 • Campus Vivo</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -55,6 +76,7 @@
         <p class="disclaimer">Campus inspirado nas fotografias e no mapa que você marcou. As posições são uma adaptação jogável; as fases internas serão desenvolvidas depois.</p>
     </main>
     <script src="map-data.js"></script>
+    <script src="campus-life.js"></script>
     <script src="game.js"></script>
 </body>
 
