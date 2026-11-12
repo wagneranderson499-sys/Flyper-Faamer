@@ -621,31 +621,189 @@
     }
   }
 
+
   function character() {
-    const p = P(player.x, player.y);
-    const bob = held.size ? Math.sin(player.walk) * 2 : 0;
+    const p=P(player.x,player.y);
+    const step=player.moving ? Math.sin(player.walk) : 0;
+    const bob=player.moving ? Math.abs(Math.sin(player.walk))*2 : 0;
+    const side=player.facing==="left" ? -1 : 1;
+    ellipse(p.x+3,p.y+3,13,5,"#10282077");
 
-    ellipse(p.x + 2, p.y + 3, 12, 5, "#193e2d88");
+    ctx.save();
+    ctx.translate(p.x,p.y-bob);
+    ctx.scale(side,1);
+    ctx.lineCap="round";
+    ctx.lineJoin="round";
 
-    ctx.fillStyle = "#26374c";
-    ctx.fillRect(p.x - 7, p.y - 8 + bob, 6, 9);
-    ctx.fillRect(p.x + 2, p.y - 8 - bob, 6, 9);
+    // Pernas com deslocamento alternado e tênis brancos.
+    const leg=(x, swing)=>{
+      ctx.strokeStyle="#273c66";
+      ctx.lineWidth=7;
+      ctx.beginPath();
+      ctx.moveTo(x,-13);
+      ctx.lineTo(x+swing,-3);
+      ctx.stroke();
+      ctx.strokeStyle="#f2dfc4";
+      ctx.lineWidth=5;
+      ctx.beginPath();
+      ctx.moveTo(x+swing-2,-2);
+      ctx.lineTo(x+swing+6,-2);
+      ctx.stroke();
+    };
+    leg(-5,step*5);
+    leg(5,-step*5);
 
-    ctx.fillStyle = "#315da5";
-    ctx.fillRect(p.x - 10, p.y - 31 + bob, 20, 24);
+    // Mochila, braços e uniforme.
+    ctx.fillStyle="#1f394d";
+    ctx.beginPath();
+    ctx.roundRect(-15,-34,11,24,4); ctx.fill();
+    ctx.strokeStyle="#dca96f";
+    ctx.lineWidth=6;
+    for (const arm of [-1,1]) {
+      ctx.beginPath();
+      ctx.moveTo(arm*10,-30);
+      ctx.lineTo(arm*(12+step*3),-17+arm*step*3);
+      ctx.stroke();
+    }
+    const shirt=ctx.createLinearGradient(-12,-36,11,-13);
+    shirt.addColorStop(0,"#f6faf4");
+    shirt.addColorStop(1,"#b6d5df");
+    ctx.fillStyle=shirt;
+    ctx.strokeStyle="#2c5975";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.roundRect(-12,-36,24,24,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle="#326eac";
+    ctx.fillRect(-4,-26,8,3);
+    ctx.fillStyle="#233d60";
+    ctx.fillRect(-11,-15,22,4);
 
-    ctx.fillStyle = "#bb793f";
-    ctx.fillRect(p.x - 13, p.y - 29 + bob, 5, 17);
-
-    ctx.fillStyle = "#e9bd90";
-    ctx.fillRect(p.x - 9, p.y - 46 + bob, 18, 16);
-
-    ctx.fillStyle = "#44312c";
-    ctx.fillRect(p.x - 10, p.y - 49 + bob, 20, 7);
-
-    ctx.fillStyle = "#f8eac9";
-    ctx.fillRect(p.x + 3, p.y - 40 + bob, 3, 3);
+    // Pescoço e rosto em estilo RPG (em vez de blocos retangulares).
+    ctx.fillStyle="#d89c6d";
+    ctx.fillRect(-4,-43,8,9);
+    ellipse(0,-49,13,15,"#b46e47");
+    ellipse(0,-50,12,14,"#e4a67a");
+    ellipse(-12,-50,3,4,"#d59268");
+    ellipse(12,-50,3,4,"#d59268");
+    for (const [x,y,r] of [[-10,-61,6],[-4,-65,7],[4,-64,7],[10,-60,6],[-13,-57,4]]) {
+      ellipse(x,y,r,r*.8,"#3e2a28");
+    }
+    if(player.facing!=="up") {
+      ellipse(-4,-50,1.6,2.1,"#202d35");
+      ellipse(5,-50,1.6,2.1,"#202d35");
+      line({x:-2,y:-43},{x:3,y:-43},"#995943",1.5);
+      ellipse(-8,-46,3,1.5,"#ed917844");
+    }
+    ctx.restore();
   }
+
+  // Flores e relva: detalhes independentes das colisões e das construções.
+  function campusDecor() {
+    for (let y=2;y<H-2;y+=2.2) {
+      for (let x=2;x<W-2;x+=2.7) {
+        const n=seeded(x*83+y*37);
+        if (n<.45 || roadNear(x,y) ||
+            sites.some(b=>inside(x,y,b,1))) continue;
+        const p=P(x,y);
+        line({x:p.x,y:p.y},{x:p.x-3,y:p.y-6}, "#3a894a", 1.5);
+        line({x:p.x,y:p.y},{x:p.x+3,y:p.y-4}, "#4c9f50", 1.5);
+        if (n>.77) {
+          ellipse(p.x-2,p.y-7,3,2,n>.91?"#f0b2db":"#ffe59b");
+          ellipse(p.x+2,p.y-6,2,2,"#fff2ca");
+        }
+      }
+    }
+    // Luminárias nos caminhos principais.
+    [[13,37],[17,31],[12,30],[23,32],[12,21],[22,21],[26,20]]
+      .forEach(([x,y])=>{
+        const p=P(x,y);
+        ellipse(p.x+3,p.y+2,7,3,"#233d3644");
+        line(p,{x:p.x,y:p.y-29},"#34594e",3);
+        ellipse(p.x,p.y-30,6,6,"#ffd86b33");
+        ellipse(p.x,p.y-31,3,4,"#fff2ad");
+      });
+  }
+
+  function gateway() {
+    const p=P(14.5,42.7);
+    // Portaria com a cobertura azul translúcida e duas colunas.
+    ctx.save();
+    ctx.shadowColor="#193b4144";
+    ctx.shadowBlur=12;
+    for (const dx of [-49,49]) {
+      ctx.fillStyle="#e3ddbe";
+      ctx.fillRect(p.x+dx-6,p.y-64,12,66);
+      ctx.fillStyle="#2b7194";
+      ctx.fillRect(p.x+dx-6,p.y-10,12,6);
+    }
+    ctx.shadowBlur=0;
+    const roof=ctx.createLinearGradient(0,p.y-77,0,p.y-50);
+    roof.addColorStop(0,"#97e5ef");
+    roof.addColorStop(1,"#287ea5");
+    ctx.fillStyle=roof;
+    ctx.strokeStyle="#f6e5b2";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(p.x-63,p.y-67);
+    ctx.lineTo(p.x+63,p.y-67);
+    ctx.lineTo(p.x+52,p.y-52);
+    ctx.lineTo(p.x-52,p.y-52);
+    ctx.closePath(); ctx.fill();ctx.stroke();
+    ctx.fillStyle="#f6edd2";
+    ctx.fillRect(p.x-59,p.y-83,118,20);
+    ctx.fillStyle="#23446e";
+    ctx.textAlign="center";
+    ctx.font="bold 10px Arial";
+    ctx.fillText("FAAMA • ENTRADA",p.x,p.y-69);
+    ctx.restore();
+  }
+
+  const miniCanvas=document.getElementById("miniMap");
+  const miniCtx=miniCanvas?.getContext("2d");
+  function drawMinimap() {
+    if (!miniCtx) return;
+    const m=miniCtx, sx=4,sy=3.65,ox=14,oy=10;
+    m.clearRect(0,0,miniCanvas.width,miniCanvas.height);
+    const ground=m.createLinearGradient(0,0,160,190);
+    ground.addColorStop(0,"#79aa69");
+    ground.addColorStop(1,"#315f54");
+    m.fillStyle=ground;
+    m.fillRect(0,0,miniCanvas.width,miniCanvas.height);
+    m.strokeStyle="#d2be91";
+    m.lineWidth=4;
+    for (const road of roads) {
+      m.beginPath();
+      road.forEach(([x,y],i)=>{
+        if (i===0) m.moveTo(ox+x*sx,oy+y*sy);
+        else m.lineTo(ox+x*sx,oy+y*sy);
+      });
+      m.stroke();
+    }
+    for (const b of sites) {
+      m.fillStyle=
+        b.id==="pool"?"#49c5e4":
+        b.id==="female"?"#e55b6e":
+        b.id==="male"?"#8058b4":
+        b.id==="central"?"#e4b74e":
+        b.id==="restaurant"?"#6b7372":
+        b.id==="school"?"#44b2d1":
+        b.id==="academic"?"#c9dce1":
+        "#f1e0b5";
+      m.fillRect(ox+b.x*sx,oy+b.y*sy,b.w*sx,b.h*sy);
+      m.strokeStyle="#203d3a";
+      m.lineWidth=1;
+      m.strokeRect(ox+b.x*sx,oy+b.y*sy,b.w*sx,b.h*sy);
+    }
+    const px=ox+player.x*sx,py=oy+player.y*sy;
+    m.beginPath();m.arc(px,py,6,0,Math.PI*2);
+    m.fillStyle="#f3dc65";m.fill();
+    m.lineWidth=2;m.strokeStyle="#102d35";m.stroke();
+    m.font="bold 13px Arial";
+    m.textAlign="right";
+    m.fillStyle="#fcf7e7";
+    m.fillText("N ↑",158,17);
+  }
+
 
   function sky() {
     const g = ctx.createLinearGradient(0, 0, 0, SH);
