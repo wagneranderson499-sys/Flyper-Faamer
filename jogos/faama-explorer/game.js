@@ -39,7 +39,7 @@
   const sites = window.FAAMA_MAP.sites;
 
   const player = {
-    x: 15,
+    x: 20,
     y: 42,
     speed: 5,
     walk: 0,
@@ -49,20 +49,22 @@
 
   const held = new Set();
 
-  let zoom = 1;
+  let zoom = 0.8;
   let time = 0;
   let previous = 0;
   let toastUntil = 0;
   let near = null;
 
-  const camera = { x: 0, y: 0 };
+  const camera = iso(18, 24.5);
 
   const roads = window.FAAMA_MAP.roads;
 
+  // Projeção 2,5D: x representa posição horizontal e y a profundidade.
+  // A projeção anterior em losango invertia os setores esquerdo/direito.
   function iso(x, y, z = 0) {
     return {
-      x: (x - y) * TW / 2,
-      y: (x + y) * TH / 2 - z
+      x: x * TW * .73 - y * TW * .12,
+      y: x * TH * .18 + y * TH * .82 - z
     };
   }
 
@@ -116,14 +118,7 @@
   }
 
   function tile(x, y, color) {
-    const p = P(x, y);
-
-    polygon([
-      { x: p.x, y: p.y - TH / 2 },
-      { x: p.x + TW / 2, y: p.y },
-      { x: p.x, y: p.y + TH / 2 },
-      { x: p.x - TW / 2, y: p.y }
-    ], color);
+    polygon([P(x,y),P(x+1,y),P(x+1,y+1),P(x,y+1)],color);
   }
 
   function seeded(n) {
@@ -725,7 +720,7 @@
   }
 
   function gateway() {
-    const p=P(14.5,42.7);
+    const p=P(20,42.7);
     // Portaria com a cobertura azul translúcida e duas colunas.
     ctx.save();
     ctx.shadowColor="#193b4144";
@@ -930,9 +925,19 @@
       cloud((time * 6 + 1050) % (SW + 240) - 120, 64, 0.65);
 
       const focus = iso(player.x, player.y);
-
-      camera.x = focus.x;
-      camera.y = focus.y;
+      // Visão geral na entrada; a câmera segue quando o jogador
+      // se aproxima das bordas da região visível.
+      const overview = iso(18, 24.5);
+      const follow = (axis, safe) => {
+        const distance=focus[axis]-overview[axis];
+        return overview[axis] + Math.sign(distance) *
+          Math.max(0, Math.abs(distance)-safe/zoom);
+      };
+      const targetX=follow("x", SW*.39);
+      const targetY=follow("y", SH*.39);
+      const smoothing=1-Math.exp(-Math.min(dt,.05)*8);
+      camera.x += (targetX-camera.x)*smoothing;
+      camera.y += (targetY-camera.y)*smoothing;
 
       ctx.save();
 
@@ -947,23 +952,23 @@
 
       const objects = [
         ...trees.map(t => ({
-          depth: t.x + t.y,
+          depth: t.y + t.x * .02,
           draw: () => tree(t)
         })),
         ...palms.map(t => ({
-          depth: t.x + t.y,
+          depth: t.y + t.x * .02,
           draw: () => palm(t)
         })),
         ...sites.map(s => ({
-          depth: s.x + s.y + s.w + s.h,
+          depth: s.y + s.h + s.x * .02,
           draw: () => building(s)
         })),
         {
-          depth: player.x + player.y,
+          depth: player.y + player.x * .02,
           draw: character
         },
         {
-          depth: 14 + 43,
+          depth: 43.7,
           draw: gateway
         }
       ].sort((a, b) => a.depth - b.depth);
@@ -1043,7 +1048,7 @@
 
   if (reset) {
     reset.addEventListener("click", () => {
-      player.x = 15;
+      player.x = 20;
       player.y = 42;
       show("Você voltou à entrada da FAAMA.");
     });
