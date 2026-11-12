@@ -1510,22 +1510,27 @@
     dialogueUI.root.classList.remove("hidden");
   }
 
-  function closeDialogue() {
+  function closeDialogue(completed=false) {
     if (!activeDialogue) return;
+    const startSports=completed && pendingSportsStart && sports.active;
+    pendingSportsStart=false;
     activeDialogue = null;
     dialogueUI.root.classList.add("hidden");
     held.clear();
-    // A confirmação aparece depois do diálogo, sem cobrir as falas.
     if (pendingQuestNotice) {
       show(pendingQuestNotice,6);
       pendingQuestNotice = null;
+    }
+    if(startSports&&sports.start()){
+      refreshSportsUI();
+      show("Circuito iniciado! 90 segundos para pegar as cinco medalhas!",5);
     }
   }
 
   function advanceDialogue() {
     if (!activeDialogue) return;
     if (activeDialogue.index >= activeDialogue.npc.lines.length - 1) {
-      closeDialogue();
+      closeDialogue(true);
     } else {
       activeDialogue.index++;
       refreshDialogue();
@@ -1535,6 +1540,24 @@
   function interact() {
     if (activeDialogue) {
       advanceDialogue();
+      return;
+    }
+    if(sports.active){
+      const action=sports.nearest();
+      if(!action){show(sports.objective(),4);return;}
+      if(action.kind==="exit"){
+        leaveSports();
+      }else if(action.kind==="coach"){
+        const event=sports.talkCoach();
+        pendingSportsStart=event.startOnClose===true;
+        openDialogue({...sports.coach,lines:event.lines});
+      }else if(action.kind==="finish"){
+        if(sports.phase==="running"){
+          show("Pegue as cinco medalhas e cruze a linha de chegada!",4);
+        }else{
+          show(sports.objective(),4);
+        }
+      }
       return;
     }
     if(academic.active){
@@ -1591,6 +1614,10 @@
     }
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="sports"&&nearSportsEntrance()) {
+      enterSports();
+      return;
+    }
     if (near?.id==="academic"&&nearAcademicEntrance()) {
       enterAcademic();
       return;
@@ -1626,6 +1653,8 @@
       show("Para entrar no Prédio Central, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
     } else if (near?.id==="academic") {
       show("Para entrar no Prédio Acadêmico, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
+    } else if (near?.id==="sports") {
+      show("Para entrar no Complexo Esportivo, vá até a porta principal do ginásio.",5);
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1634,6 +1663,33 @@
   }
 
   function update(dt) {
+    if(sports.active){
+      if(activeDialogue){
+        held.clear();
+        sports.pause();
+        if(ui.interact){
+          ui.interact.disabled=false;
+          ui.interact.textContent="CONTINUAR [E]";
+        }
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        const event=sports.update(dt,held);
+        if(event?.message)show(event.message,event.kind==="medal"?3:7);
+        const spot=sports.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="coach"?"CONVERSAR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=sports.objective();
+      }
+      if(ui.location)ui.location.textContent="COMPLEXO ESPORTIVO • GINÁSIO";
+      if(interiorUI.room)interiorUI.room.textContent="Circuito dos Campeões";
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E interagir • colete 5 medalhas";
+      refreshSportsUI();
+      return;
+    }
     if(academic.active){
       if(activeAcademicQuiz){
         held.clear();
@@ -1764,7 +1820,8 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="academic"&&nearAcademicEntrance()
+      ui.interact.textContent = near?.id==="sports"&&nearSportsEntrance()
+        ? "ENTRAR [E]" : near?.id==="academic"&&nearAcademicEntrance()
         ? "ENTRAR [E]" : near?.id==="central"&&nearCentralEntrance()
           ? "ENTRAR [E]" : nearQuestItem
           ? "INVESTIGAR [E]" : nearTalker
@@ -1773,7 +1830,9 @@
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="academic"&&nearAcademicEntrance()
+      hint.textContent = near?.id==="sports"&&nearSportsEntrance()
+        ? "[E] Entrar no Complexo Esportivo"
+        : near?.id==="academic"&&nearAcademicEntrance()
         ? "[E] Entrar no Prédio Acadêmico"
         : near?.id==="central"&&nearCentralEntrance()
           ? "[E] Entrar no Prédio Central"
@@ -1792,7 +1851,9 @@
           ? "Missão 02 liberada! Entre no Prédio Central e converse com Marina."
           : indoorQuest.stage()==="completed"
             ? academic.stage()==="completed"
-              ? "Três missões concluídas! Explore o campus."
+              ? sports.progress().completed
+                ? "Quatro missões concluídas! Explore o campus."
+                : "Próximo desafio: Circuito dos Campeões no Complexo Esportivo."
               : "Prédio Acadêmico: converse com a professora Helena."
             : "Missão 02: continue a investigação no Prédio Central.")
         : quest.objective();
@@ -1806,11 +1867,17 @@
       previous = ms;
       time += dt;
 
-      if(!interior.active&&!academic.active){
+      if(!interior.active&&!academic.active&&!sports.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
 
+      if(sports.active){
+        sports.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);
+        return;
+      }
       if(academic.active){
         academic.draw(time,zoom);
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
