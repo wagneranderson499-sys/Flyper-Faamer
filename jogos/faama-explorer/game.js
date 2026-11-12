@@ -611,7 +611,7 @@
         ctx.fillRect(p.x-6,p.y-9,13,15);
         ctx.fillStyle=i%2?"#77bfd2":"#88c4d5";
         ctx.fillRect(p.x-4,p.y-7,9,10);
-        line({x:p.x,pY:p.y-7,y:p.y-7},{x:p.x,y:p.y+3},
+        line({x:p.x,y:p.y-7},{x:p.x,y:p.y+3},
           "#e2f4e7",1);
         line({x:p.x-6,y:p.y+7},{x:p.x+7,y:p.y+7},
           "#e7dfc7",2.4);
@@ -944,35 +944,79 @@
 
   function gateway() {
     const p=P(20,42.7);
-    // Portaria com a cobertura azul translúcida e duas colunas.
     ctx.save();
-    ctx.shadowColor="#193b4144";
-    ctx.shadowBlur=12;
-    for (const dx of [-49,49]) {
-      ctx.fillStyle="#e3ddbe";
-      ctx.fillRect(p.x+dx-6,p.y-64,12,66);
-      ctx.fillStyle="#2b7194";
-      ctx.fillRect(p.x+dx-6,p.y-10,12,6);
+    // Entrada baseada na foto: estrutura branca, cobertura azul e guarita.
+    ellipse(p.x+9,p.y+8,108,16,"#1a35434b");
+    // Faixa de pedestre que liga a PA-391 à entrada.
+    for(let i=0;i<7;i++){
+      const x=p.x-51+i*16;
+      line({x,y:p.y+10},{x:x+9,y:p.y+10},"#f5e9d0",7);
     }
-    ctx.shadowBlur=0;
-    const roof=ctx.createLinearGradient(0,p.y-77,0,p.y-50);
-    roof.addColorStop(0,"#97e5ef");
-    roof.addColorStop(1,"#287ea5");
-    ctx.fillStyle=roof;
-    ctx.strokeStyle="#f6e5b2";
+    const columns=[-82,82];
+    columns.forEach(dx=>{
+      const cx=p.x+dx;
+      ctx.fillStyle="#cbd1c6";
+      ctx.fillRect(cx-9,p.y-89,18,91);
+      ctx.fillStyle="#f3ecd9";
+      ctx.fillRect(cx-9,p.y-89,12,88);
+      ctx.fillStyle="#31719a";
+      ctx.fillRect(cx-9,p.y-25,18,22);
+      ctx.fillStyle="#d3b875";
+      ctx.fillRect(cx-10,p.y-91,20,7);
+      // Banners Adventistas nos dois pilares.
+      polygon([
+        {x:cx-7,y:p.y-69},{x:cx+7,y:p.y-69},
+        {x:cx+7,y:p.y-41},{x:cx,y:p.y-36},
+        {x:cx-7,y:p.y-41}
+      ],"#2966ac","#e3ecdc");
+      ctx.fillStyle="#e4f4fa";
+      ctx.font="bold 14px Arial";
+      ctx.textAlign="center";
+      ctx.fillText("A",cx,p.y-49);
+    });
+    const gradient=ctx.createLinearGradient(0,p.y-93,0,p.y-61);
+    gradient.addColorStop(0,"#bbf4f0");
+    gradient.addColorStop(.3,"#76c7d8");
+    gradient.addColorStop(1,"#2a6e9a");
+    polygon([
+      {x:p.x-103,y:p.y-85},{x:p.x+103,y:p.y-85},
+      {x:p.x+92,y:p.y-60},{x:p.x-92,y:p.y-60}
+    ],gradient,"#dff2e5");
+    for(let i=-4;i<=4;i++){
+      line({x:p.x+i*19,y:p.y-85},{x:p.x+i*17,y:p.y-60},
+        "#2b7b9f",1.4);
+    }
+    // Placa longa com o nome da instituição.
+    ctx.fillStyle="#fff5df";
+    ctx.fillRect(p.x-104,p.y-110,208,24);
+    ctx.strokeStyle="#b4aa85";
     ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.moveTo(p.x-63,p.y-67);
-    ctx.lineTo(p.x+63,p.y-67);
-    ctx.lineTo(p.x+52,p.y-52);
-    ctx.lineTo(p.x-52,p.y-52);
-    ctx.closePath(); ctx.fill();ctx.stroke();
-    ctx.fillStyle="#f6edd2";
-    ctx.fillRect(p.x-59,p.y-83,118,20);
-    ctx.fillStyle="#23446e";
-    ctx.textAlign="center";
+    ctx.strokeRect(p.x-104,p.y-110,208,24);
     ctx.font="bold 10px Arial";
-    ctx.fillText("FAAMA • ENTRADA",p.x,p.y-69);
+    ctx.textAlign="center";
+    ctx.fillStyle="#1a486c";
+    ctx.fillText("FACULDADE ADVENTISTA DA AMAZÔNIA",p.x,p.y-94);
+
+    // Guarita sob a cobertura, separada da passagem lateral.
+    ctx.fillStyle="#879c94";
+    ctx.fillRect(p.x-17,p.y-42,34,39);
+    ctx.fillStyle="#efead7";
+    ctx.fillRect(p.x-15,p.y-42,30,34);
+    ctx.fillStyle="#477f92";
+    ctx.fillRect(p.x-12,p.y-34,24,17);
+    ctx.fillStyle="#d4f5eb";
+    ctx.fillRect(p.x-10,p.y-32,20,13);
+    line({x:p.x,y:p.y-32},{x:p.x,y:p.y-19},"#edf7eb",2);
+    // Cancelas, sem fechar o caminho do jogador.
+    for(const dx of [-52,52]){
+      const sign=dx<0?-1:1;
+      ctx.fillStyle="#e19b43";
+      ctx.fillRect(p.x+dx,p.y-10,7,14);
+      line({x:p.x+dx+3,y:p.y-10},
+        {x:p.x+dx+sign*21,y:p.y-17},"#f8e4cf",4);
+      line({x:p.x+dx+3,y:p.y-10},
+        {x:p.x+dx+sign*21,y:p.y-17},"#da5c4d",1);
+    }
     ctx.restore();
   }
 
