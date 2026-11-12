@@ -536,3 +536,45 @@ body {
   .riddle-choices{gap:5px}
   .riddle-choices button{font-size:13px;padding:9px 3px}
 }
+
+/* FAAMA Explorer 2.6 — missão e desafios do Prédio Acadêmico */
+.quest-academic{
+  margin-top:13px;
+  border-color:#88b3df;
+  background:linear-gradient(122deg,#193448,#31465e 58%,#253b53);
+}
+.quest-academic .quest-medallion{border-color:#a9ccee}
+.quest-academic .quest-title strong{color:#b6d9ff}
+.quest-academic .quest-stage{border-color:#a9ccee;color:#d6ebff}
+.academic-quiz{border-color:#9fc9e8}
+.academic-choices{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin:14px 0;
+}
+.academic-choices button{
+  display:flex;
+  align-items:center;
+  width:100%;
+  min-height:43px;
+  padding:10px 13px;
+  text-align:left;
+  border:1px solid #adcbd8;
+  border-radius:9px;
+  color:#f9f3df;
+  background:linear-gradient(100deg,#345975,#29475b);
+  cursor:pointer;
+  font:700 12px Arial,sans-serif;
+  line-height:1.45;
+  transition:background .12s ease;
+}
+.academic-choices button:hover,.academic-choices button:focus-visible{
+  background:#456f81;
+  outline:2px solid #c6e5b0;
+  outline-offset:1px;
+}
+.academic-quiz .riddle-feedback{font-size:12px}
+@media(max-width:800px){
+  .academic-choices button{min-height:37px;padding:8px 9px;font-size:11px}
+}
