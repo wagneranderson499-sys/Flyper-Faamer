@@ -1222,10 +1222,12 @@
     const nx = Math.max(0.5, Math.min(W - 0.5, player.x + dx));
     const ny = Math.max(0.5, Math.min(H - 0.5, player.y + dy));
 
+    const previousX=player.x, previousY=player.y;
     if (!blocked(nx, player.y)) player.x = nx;
     if (!blocked(player.x, ny)) player.y = ny;
 
-    player.moving = Boolean(dx || dy);
+    // Só animar passos quando houver deslocamento real, sem atravessar NPCs.
+    player.moving = Math.hypot(player.x-previousX,player.y-previousY) > .0001;
     if (player.moving) {
       player.walk += dt * 12;
       player.facing = Math.abs(dx) > Math.abs(dy)
