@@ -135,6 +135,15 @@ window.createFaamaQuest = function createFaamaQuest({ ctx, P, storage }) {
     return "Missão concluída! Explore o campus e descubra novas aventuras.";
   }
 
+  function restart() {
+    const clean=defaultState();
+    state.started=clean.started;
+    state.found=clean.found;
+    state.hasKey=clean.hasKey;
+    state.completed=clean.completed;
+    persist();
+  }
+
   function progress(){
     return {stage:stage(),started:state.started,
       found:[...state.found],hasKey:state.hasKey,completed:state.completed,
@@ -208,5 +217,5 @@ window.createFaamaQuest = function createFaamaQuest({ ctx, P, storage }) {
   }
 
   return {stage,progress,objective,talkToLia,availableItems,
-    nearItem,collect,renderables,drawMinimapMarkers};
+    nearItem,collect,renderables,drawMinimapMarkers,restart};
 };
