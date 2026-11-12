@@ -209,6 +209,7 @@
     if(sportsUI.best)sportsUI.best.textContent="⏱️ Recorde: "+p.bestLabel;
     if(sportsUI.remaining)sportsUI.remaining.textContent=
       p.stage==="running"?"⏳ Restante: "+p.timeLeft.toFixed(1).replace(".",",")+"s":
+      p.stage==="finished"?"⏱️ Última corrida: "+p.elapsed.toFixed(1).replace(".",",")+"s":
       "⏳ Limite: "+p.timeLimit+" segundos";
     if(sportsUI.achievement){
       sportsUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
@@ -216,7 +217,7 @@
     }
     if(sportsUI.hud)sportsUI.hud.classList.toggle("hidden",!sports.active);
     if(sportsUI.hudTimer)sportsUI.hudTimer.textContent=
-      p.timeLeft.toFixed(1).replace(".",",")+"s";
+      (p.stage==="finished"?p.elapsed:p.timeLeft).toFixed(1).replace(".",",")+"s";
     if(sportsUI.hudMedals)sportsUI.hudMedals.textContent=
       p.medals+" / "+p.medalTotal+" medalhas";
     if(sportsUI.hudState)sportsUI.hudState.textContent=
