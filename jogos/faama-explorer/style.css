@@ -421,3 +421,52 @@ body {
 @media(max-width:800px){
   .quest-restart{width:100%;text-align:center}
 }
+
+/* FAAMA Explorer 2.4 — sinalização do interior */
+.interior-status {
+  position:absolute;
+  z-index:7;
+  top:15px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(350px,45%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+  padding:9px 12px;
+  border:2px solid #e4be7f;
+  border-radius:12px;
+  text-align:center;
+  color:#fff6df;
+  background:linear-gradient(145deg,#153347f0,#25445bf0);
+  box-shadow:0 10px 25px #0b1f3280;
+  pointer-events:none;
+}
+.interior-status small{
+  color:#ffe0a2;
+  letter-spacing:.1em;
+  font-size:9px;
+  font-weight:800;
+}
+.interior-status strong{
+  font-size:18px;
+  line-height:1.2;
+}
+.interior-status span{
+  color:#d7e8dc;
+  font-size:10px;
+  line-height:1.25;
+}
+@media(max-width:800px){
+  .interior-status {
+    top:5px;
+    width:min(275px,54%);
+    padding:4px 5px;
+    gap:2px;
+    border-width:1px;
+  }
+  .interior-status small{font-size:7px}
+  .interior-status strong{font-size:10px}
+  .interior-status span{display:none}
+}
