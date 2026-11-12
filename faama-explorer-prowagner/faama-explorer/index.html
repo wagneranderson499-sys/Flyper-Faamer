@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>FAAMA Explorer • FLYPER FAAMER</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="app">
+        <header class="top"><a href="../../index.html" class="back">← FLYPER FAAMER</a>
+            <div class="brand"><small>UMA AVENTURA PELA AMAZÔNIA</small>
+                <h1>FAAMA <em>EXPLORER</em></h1>
+            </div><span class="edition">CAMPUS • EXPLORAÇÃO</span>
+        </header>
+        <section class="game">
+            <div class="toolbar">
+                <div class="tag"><span class="dot"></span><span id="location">ENTRADA DA FAAMA</span></div>
+                <div class="tools"><button id="zoomOut" title="Diminuir zoom">−</button><span
+                        id="zoomLabel">100%</span><button id="zoomIn" title="Aumentar zoom">+</button><button id="reset"
+                        title="Voltar à entrada">↺ Reiniciar</button></div>
+            </div>
+            <div class="viewport"><canvas id="world" width="1200" height="760"
+                    aria-label="Mapa isométrico explorável do campus da FAAMA"></canvas>
+                <div class="hud">
+                    <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
+                            o Prédio Central</strong></div>
+                    <div class="hudright"><span id="hint">WASD / SETAS para caminhar</span><button id="interact"
+                            disabled>INTERAGIR [E]</button></div>
+                </div>
+                <div id="toast" class="toast hidden"></div>
+                <div id="fatal" class="fatal hidden"></div>
+            </div>
+            <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
+                    você</span><span>Visual isométrico • Protótipo externo</span></div>
+        </section>
+        <section class="mobile"><button data-key="ArrowUp">▲</button>
+            <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
+                    data-key="ArrowRight">▶</button></div>
+        </section>
+        <p class="disclaimer">A distribuição dos edifícios segue sua marcação no satélite. O desenho dos prédios é
+            estilizado; as fases internas serão desenvolvidas depois.</p>
+    </main>
+    <script src="game.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7154ad">
+    <title>Jogo da Memória</title>
+    <link rel="stylesheet" href="memoria.css">
+</head>
+<body>
+    <main class="container">
+
+        <!-- TELA INICIAL -->
+        <section id="telaInicial" class="tela">
+            <div class="icone-principal">🧠</div>
+            <h1>Jogo da Memória</h1>
+            <p>Teste sua memória e avance por todas as fases!</p>
+
+            <div class="configuracoes">
+                <label for="tema">Escolha seu tema:</label>
+                <select id="tema">
+                    <option value="animais">🐶 Animais</option>
+                    <option value="frutas">🍓 Frutas</option>
+                    <option value="espaco">🚀 Espaço</option>
+                </select>
+
+                <label class="som-opcao">
+                    <input type="checkbox" id="somInicial" checked>
+                    Ativar efeitos sonoros
+                </label>
+            </div>
+
+            <div class="recorde-inicial">
+                🏆 Seu recorde: <strong id="recordeInicial">0 pontos</strong>
+            </div>
+
+            <button id="botaoJogar" class="botao-principal">
+                Jogar agora
+            </button>
+        </section>
+
+        <!-- TELA DO JOGO -->
+        <section id="telaJogo" class="tela escondida">
+
+            <button id="botaoVoltarMenu" class="botao-voltar-menu" type="button">
+                ← Voltar ao menu
+            </button>
+
+            <div class="cabecalho-jogo">
+                <h1>🧠 Jogo da Memória</h1>
+                <span id="nivelAtual" class="nivel">Nível Fácil</span>
+            </div>
+
+            <div class="estatisticas">
+                <div class="estatistica">
+                    <span>⏱️ Tempo</span>
+                    <strong id="tempo">00:00</strong>
+                </div>
+
+                <div class="estatistica">
+                    <span>🎯 Tentativas</span>
+                    <strong id="tentativas">0</strong>
+                </div>
+
+                <div class="estatistica">
+                    <span>⭐ Pontos</span>
+                    <strong id="pontos">0</strong>
+                </div>
+            </div>
+
+            <div class="progresso">
+                <div class="progresso-texto">
+                    <span id="faseAtual">Fase 1 de 9</span>
+                    <span id="pares">0/3 pares</span>
+                </div>
+
+                <div class="barra-fundo">
+                    <div id="barraProgresso"></div>
+                </div>
+            </div>
+
+            <div id="tabuleiro" class="tabuleiro"></div>
+
+            <div class="botoes-jogo">
+                <button id="botaoSom" class="botao-secundario" type="button">
+                    🔊 Som ligado
+                </button>
+
+                <button id="botaoReiniciar" class="botao-secundario" type="button">
+                    ↻ Reiniciar
+                </button>
+            </div>
+        </section>
+
+        <!-- MODAL DE TRANSIÇÃO -->
+        <div id="modal" class="modal escondida" role="dialog" aria-modal="true">
+            <div class="modal-conteudo">
+                <div id="modalEmoji" class="modal-emoji">🎉</div>
+                <h2 id="modalTitulo">Parabéns!</h2>
+                <p id="modalMensagem"></p>
+
+                <button id="botaoContinuar" class="botao-principal" type="button">
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA FINAL -->
+        <section id="telaFinal" class="tela escondida">
+            <div class="icone-principal">🏆</div>
+            <h1>Você conseguiu!</h1>
+            <p>Você completou todas as fases do Jogo da Memória!</p>
+
+            <div class="resultado">
+                <div>
+                    <span>Pontuação</span>
+                    <strong id="resultadoPontos">0</strong>
+                </div>
+
+                <div>
+                    <span>Tempo total</span>
+                    <strong id="resultadoTempo">00:00</strong>
+                </div>
+
+                <div>
+                    <span>Tentativas</span>
+                    <strong id="resultadoTentativas">0</strong>
+                </div>
+
+                <div>
+                    <span>Recorde</span>
+                    <strong id="resultadoRecorde">0</strong>
+                </div>
+            </div>
+
+            <button id="botaoJogarNovamente" class="botao-principal" type="button">
+                Jogar novamente
+            </button>
+
+            <button id="botaoVoltar" class="botao-secundario botao-inicio" type="button">
+                Voltar ao início
+            </button>
+        </section>
+
+    </main>
+
+    <script src="memoria.js"></script>
+</body>
+</html>

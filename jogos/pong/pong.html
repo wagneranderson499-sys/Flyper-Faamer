@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080d18">
+    <title>Pong Neon | FLYPER FAAMER</title>
+    <link rel="stylesheet" href="pong.css">
+</head>
+<body>
+
+    <header class="cabecalho">
+        <a href="../../index.html" class="logo">FLYPER <span>FAAMER</span></a>
+        <button class="botao-voltar" id="botaoVoltar">← MENU</button>
+    </header>
+
+    <main class="container">
+
+        <section class="introducao">
+            <span class="categoria">ARCADE CLASSIC</span>
+            <h1>PONG <span>NEON</span></h1>
+            <p>Prepare-se para uma disputa de reflexos!</p>
+        </section>
+
+        <!-- MENU DE ESCOLHA -->
+        <section class="menu-jogo" id="menuJogo">
+            <div class="icone-menu">🏓</div>
+
+            <h2>ESCOLHA SEU MODO</h2>
+            <p>Como você quer jogar?</p>
+
+            <div class="opcoes-modo">
+                <button class="modo-card" id="modoSolo">
+                    <span class="modo-icone">👤</span>
+                    <strong>1 JOGADOR</strong>
+                    <small>Você contra o computador</small>
+                </button>
+
+                <button class="modo-card" id="modoDupla">
+                    <span class="modo-icone">👥</span>
+                    <strong>2 JOGADORES</strong>
+                    <small>Jogue com outra pessoa</small>
+                </button>
+            </div>
+
+            <p class="dica-menu">PRIMEIRO A FAZER 5 PONTOS VENCE!</p>
+        </section>
+
+        <!-- ÁREA DO JOGO -->
+        <section class="area-jogo escondida" id="areaJogo">
+
+            <div class="placar">
+                <div class="jogador jogador-1">
+                    <span id="nomeJogador1">JOGADOR 1</span>
+                    <strong id="pontosJogador1">00</strong>
+                </div>
+
+                <div class="separador-placar">:</div>
+
+                <div class="jogador jogador-2">
+                    <span id="nomeJogador2">COMPUTADOR</span>
+                    <strong id="pontosJogador2">00</strong>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="tabuleiro" width="800" height="500">
+                    Seu navegador não suporta Canvas.
+                </canvas>
+
+                <div class="mensagem-jogo escondida" id="mensagemJogo">
+                    <div class="mensagem-conteudo">
+                        <span id="mensagemEmoji">⏸️</span>
+                        <h2 id="mensagemTitulo">JOGO PAUSADO</h2>
+                        <p id="mensagemTexto">Continue quando estiver pronto.</p>
+                        <button id="botaoMensagem" class="botao-principal">
+                            CONTINUAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="botoes-partida">
+                <button id="botaoPausar" class="botao-secundario">
+                    ⏸ PAUSAR
+                </button>
+
+                <button id="botaoReiniciar" class="botao-secundario">
+                    ↻ REINICIAR
+                </button>
+            </div>
+
+            <!-- CONTROLES PARA CELULAR -->
+            <div class="controles-mobile" id="controlesMobile">
+
+                <div class="controle-jogador">
+                    <span id="tituloControle1">JOGADOR 1</span>
+
+                    <div class="botoes-direcao">
+                        <button class="botao-direcao"
+                            data-controle="j1-cima">▲</button>
+
+                        <button class="botao-direcao"
+                            data-controle="j1-baixo">▼</button>
+                    </div>
+                </div>
+
+                <div class="controle-jogador" id="controleJogador2">
+                    <span id="tituloControle2">COMPUTADOR</span>
+
+                    <div class="botoes-direcao">
+                        <button class="botao-direcao"
+                            data-controle="j2-cima">▲</button>
+
+                        <button class="botao-direcao"
+                            data-controle="j2-baixo">▼</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="instrucoes" id="instrucoes">
+                JOGADOR 1: W / S
+            </p>
+
+        </section>
+
+        <footer class="rodape">
+            <p>FLYPER FAAMER • RETRO GAMES</p>
+        </footer>
+
+    </main>
+
+    <script src="pong.js"></script>
+</body>
+</html>

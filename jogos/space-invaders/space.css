@@ -1,0 +1,472 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --fundo: #080d18;
+    --painel: #101a2b;
+    --verde: #39ff88;
+    --rosa: #ff3cac;
+    --azul: #36c5ff;
+    --roxo: #a970ff;
+    --texto: #f4f7ff;
+    --cinza: #8b98ad;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 50% 20%, #19213e 0%, transparent 45%),
+        var(--fundo);
+    color: var(--texto);
+    font-family: 'Inter', sans-serif;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cabecalho {
+    width: 100%;
+    padding: 22px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ffffff12;
+}
+
+.logo {
+    color: white;
+    text-decoration: none;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+}
+
+.logo span {
+    color: var(--verde);
+}
+
+.botao-voltar {
+    padding: 11px 17px;
+    border: 1px solid #ffffff30;
+    background: transparent;
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.botao-voltar:hover {
+    border-color: var(--verde);
+    color: var(--verde);
+}
+
+.container {
+    width: min(760px, 94%);
+    margin: 0 auto;
+    padding: 35px 0;
+}
+
+.introducao {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.categoria {
+    color: var(--verde);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 4px;
+}
+
+.introducao h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(20px, 4vw, 34px);
+    line-height: 1.8;
+    margin: 15px 0;
+}
+
+.introducao h1 span {
+    color: var(--azul);
+    text-shadow: 0 0 18px #36c5ff60;
+}
+
+.introducao p {
+    color: var(--cinza);
+    font-size: 14px;
+}
+
+/* MENU INICIAL */
+
+.menu-jogo {
+    max-width: 550px;
+    margin: 0 auto;
+    padding: 35px 25px;
+    background: var(--painel);
+    border: 1px solid #a970ff40;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 0 35px #a970ff0c;
+}
+
+.icone-menu {
+    font-size: 55px;
+    margin-bottom: 20px;
+}
+
+.menu-jogo h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 12px;
+}
+
+.menu-jogo > p {
+    color: var(--cinza);
+    font-size: 13px;
+}
+
+.informacoes-menu {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 28px 0;
+}
+
+.informacoes-menu div {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px 8px;
+    background: #0a1322;
+    border: 1px solid #ffffff15;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.informacoes-menu span {
+    font-size: 25px;
+}
+
+.informacoes-menu strong {
+    font-size: 9px;
+    color: var(--azul);
+}
+
+.botao-principal {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 8px;
+    background: var(--verde);
+    color: #07120c;
+    font-size: 12px;
+    font-weight: 900;
+    transition: .2s;
+}
+
+.botao-principal:hover {
+    box-shadow: 0 0 22px #39ff8880;
+    transform: translateY(-2px);
+}
+
+.menu-jogo .dica-menu {
+    margin-top: 25px;
+    color: var(--verde);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    line-height: 1.8;
+}
+
+/* ÁREA DO JOGO */
+
+.escondida {
+    display: none !important;
+}
+
+.area-jogo {
+    width: 100%;
+}
+
+.painel-status {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.status-item {
+    padding: 13px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: var(--painel);
+    border: 1px solid #ffffff15;
+    border-radius: 10px;
+}
+
+.status-item span {
+    color: var(--cinza);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.status-item strong {
+    color: var(--verde);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+}
+
+#fase {
+    color: var(--azul);
+}
+
+#vidas {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    letter-spacing: 2px;
+}
+
+.canvas-container {
+    position: relative;
+    width: min(100%, 480px);
+    margin: 0 auto;
+    overflow: hidden;
+    border: 2px solid #a970ff70;
+    border-radius: 12px;
+    background: #050814;
+    box-shadow:
+        0 0 25px #a970ff20,
+        inset 0 0 30px #36c5ff08;
+}
+
+#tabuleiro {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    touch-action: none;
+}
+
+.mensagem-jogo {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: #050814e8;
+    backdrop-filter: blur(5px);
+    text-align: center;
+}
+
+.mensagem-conteudo span {
+    font-size: 42px;
+}
+
+.mensagem-conteudo h2 {
+    margin: 18px 0 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(12px, 3vw, 18px);
+    line-height: 1.9;
+    color: var(--verde);
+}
+
+.mensagem-conteudo p {
+    color: var(--cinza);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.botoes-partida {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 17px 0;
+}
+
+.botao-secundario {
+    padding: 12px 18px;
+    border: 1px solid #ffffff30;
+    border-radius: 8px;
+    background: var(--painel);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.botao-secundario:hover {
+    border-color: var(--azul);
+    color: var(--azul);
+}
+
+/* CONTROLES PARA CELULAR */
+
+.controles-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 18px;
+}
+
+.movimentacao {
+    display: flex;
+    gap: 12px;
+}
+
+.botao-controle,
+.botao-atirar {
+    min-width: 65px;
+    height: 55px;
+    border: 1px solid #36c5ff70;
+    border-radius: 10px;
+    background: #101c30;
+    color: var(--azul);
+    font-size: 23px;
+    touch-action: none;
+    user-select: none;
+}
+
+.botao-atirar {
+    flex: 1;
+    max-width: 180px;
+    border-color: #ff3cac70;
+    background: #241022;
+    color: var(--rosa);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.botao-controle:active,
+.botao-atirar:active {
+    transform: scale(.95);
+    background: #29364d;
+}
+
+.instrucoes {
+    margin-top: 18px;
+    text-align: center;
+    color: var(--cinza);
+    font-size: 10px;
+    line-height: 1.8;
+}
+
+.rodape {
+    margin-top: 40px;
+    text-align: center;
+    color: #647087;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 600px) {
+    .cabecalho {
+        padding: 18px 5%;
+    }
+
+    .logo {
+        font-size: 9px;
+    }
+
+    .container {
+        padding: 28px 0;
+    }
+
+    .introducao {
+        margin-bottom: 23px;
+    }
+
+    .introducao p {
+        font-size: 12px;
+    }
+
+    .menu-jogo {
+        padding: 28px 15px;
+    }
+
+    .menu-jogo h2 {
+        font-size: 11px;
+    }
+
+    .informacoes-menu {
+        gap: 7px;
+    }
+
+    .informacoes-menu div {
+        min-width: 90px;
+        padding: 12px 5px;
+    }
+
+    .informacoes-menu strong {
+        font-size: 8px;
+    }
+
+    .status-item {
+        padding: 10px 4px;
+    }
+
+    .status-item span {
+        font-size: 8px;
+    }
+
+    .status-item strong {
+        font-size: 11px;
+    }
+
+    #vidas {
+        font-size: 14px;
+    }
+
+    .botoes-partida {
+        gap: 8px;
+    }
+
+    .botao-secundario {
+        flex: 1;
+        padding: 12px 5px;
+        font-size: 10px;
+    }
+
+    .botao-controle {
+        min-width: 58px;
+        height: 52px;
+    }
+
+    .botao-atirar {
+        height: 52px;
+    }
+}
+
+@media (max-width: 360px) {
+    .movimentacao {
+        gap: 7px;
+    }
+
+    .botao-controle {
+        min-width: 48px;
+    }
+
+    .botao-atirar {
+        font-size: 10px;
+    }
+
+    .status-item strong {
+        font-size: 9px;
+    }
+}

@@ -1,0 +1,507 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: light;
+    --roxo: #7154ad;
+    --roxo-escuro: #57418b;
+    --lavanda: #eeeafa;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #eeeafa, #dcd3f2);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+button, select {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.container {
+    background: white;
+    width: 100%;
+    max-width: 680px;
+    padding: 30px;
+    border-radius: 22px;
+    box-shadow: 0 10px 35px rgba(65, 43, 100, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.tela {
+    text-align: center;
+}
+
+.escondida {
+    display: none !important;
+}
+
+.icone-principal {
+    font-size: clamp(48px, 12vw, 65px);
+    margin-bottom: 15px;
+}
+
+h1, h2 {
+    color: var(--roxo-escuro);
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+p {
+    color: #777;
+    line-height: 1.5;
+}
+
+.configuracoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 30px 0 20px;
+    text-align: left;
+}
+
+.configuracoes label {
+    color: var(--roxo-escuro);
+    font-weight: bold;
+}
+
+select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d8cdec;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #faf9fd;
+    color: #333;
+}
+
+.som-opcao {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal !important;
+}
+
+.som-opcao input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--roxo);
+}
+
+.recorde-inicial {
+    background: #f4f0fa;
+    padding: 15px;
+    border-radius: 12px;
+    color: var(--roxo-escuro);
+    margin-bottom: 20px;
+}
+
+.botao-principal,
+.botao-secundario,
+.botao-voltar-menu {
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    font-size: 15px;
+    min-height: 46px;
+}
+
+.botao-principal {
+    width: 100%;
+    padding: 15px;
+    background: var(--roxo);
+    color: white;
+    font-weight: bold;
+}
+
+.botao-principal:hover {
+    background: var(--roxo-escuro);
+    transform: translateY(-2px);
+}
+
+.botao-secundario {
+    padding: 11px 15px;
+    background: var(--lavanda);
+    color: var(--roxo-escuro);
+}
+
+.botao-secundario:hover,
+.botao-voltar-menu:hover {
+    background: #ded5f0;
+}
+
+/* BOTÃO VOLTAR AO MENU */
+
+.botao-voltar-menu {
+    display: block;
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--roxo-escuro);
+    background: #f4f0fa;
+    font-weight: bold;
+}
+
+/* CABEÇALHO */
+
+.cabecalho-jogo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.cabecalho-jogo h1 {
+    font-size: 22px;
+    margin: 0;
+}
+
+.nivel {
+    background: #e4f4e8;
+    color: #327447;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* ESTATÍSTICAS */
+
+.estatisticas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.estatistica {
+    background: #f4f0fa;
+    padding: 12px 5px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--roxo);
+    min-width: 0;
+}
+
+.estatistica span {
+    font-size: 12px;
+}
+
+.estatistica strong {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+
+/* PROGRESSO */
+
+.progresso {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.progresso-texto {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--roxo-escuro);
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.barra-fundo {
+    height: 9px;
+    background: var(--lavanda);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#barraProgresso {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #a48bda, var(--roxo));
+    border-radius: 20px;
+    transition: width 0.4s;
+}
+
+/* CARTAS */
+
+.tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(var(--colunas, 3), minmax(0, 1fr));
+    gap: clamp(5px, 1.5vw, 9px);
+    width: 100%;
+}
+
+.carta {
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    min-height: 0;
+    border: none;
+    border-radius: 12px;
+    background: #8065bd;
+    color: white;
+    font-size: clamp(18px, 5vw, 34px);
+    cursor: pointer;
+    transition: transform 0.25s, background 0.25s;
+    animation: aparecer 0.3s ease;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    user-select: none;
+}
+
+.carta:hover:not(.combinada) {
+    transform: scale(1.04);
+}
+
+.carta.revelada {
+    background: #e6e0f5;
+    transform: rotateY(180deg);
+}
+
+.carta.combinada {
+    background: #d9f0df;
+    cursor: default;
+    animation: acerto 0.4s ease;
+}
+
+/* BOTÕES DO JOGO */
+
+.botoes-jogo {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.botoes-jogo button {
+    flex: 1;
+}
+
+/* MODAL */
+
+.modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(40, 30, 65, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10;
+}
+
+.modal-conteudo {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 22px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    animation: aparecer 0.3s ease;
+}
+
+.modal-emoji {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.modal-conteudo p {
+    margin: 15px 0 22px;
+}
+
+/* RESULTADO FINAL */
+
+.resultado {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 25px 0;
+}
+
+.resultado div {
+    background: #f4f0fa;
+    padding: 18px 10px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--roxo);
+    min-width: 0;
+}
+
+.resultado span {
+    font-size: 13px;
+}
+
+.resultado strong {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+}
+
+.botao-inicio {
+    width: 100%;
+    margin-top: 12px;
+}
+
+/* ACESSIBILIDADE */
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 3px solid #b8a5e2;
+    outline-offset: 3px;
+}
+
+/* ANIMAÇÕES */
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes acerto {
+    50% {
+        transform: scale(1.12);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* AJUSTES PARA CELULARES */
+
+@media (max-width: 600px) {
+    body {
+        align-items: flex-start;
+        padding: 12px;
+    }
+
+    .container {
+        padding: 22px 14px;
+        border-radius: 18px;
+        margin: auto 0;
+    }
+
+    .cabecalho-jogo {
+        align-items: flex-start;
+    }
+
+    .cabecalho-jogo h1 {
+        font-size: clamp(17px, 4.5vw, 21px);
+        text-align: left;
+    }
+
+    .nivel {
+        font-size: 12px;
+        padding: 7px 9px;
+    }
+
+    .estatisticas {
+        gap: 6px;
+    }
+
+    .estatistica {
+        padding: 10px 3px;
+        gap: 6px;
+    }
+
+    .estatistica span {
+        font-size: 11px;
+    }
+
+    .estatistica strong {
+        font-size: 16px;
+    }
+
+    .progresso-texto {
+        font-size: 12px;
+    }
+
+    .carta {
+        border-radius: 8px;
+        font-size: clamp(17px, 6vw, 29px);
+    }
+
+    .botoes-jogo {
+        margin-top: 16px;
+    }
+
+    .botoes-jogo button {
+        padding: 10px 8px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 360px) {
+    .container {
+        padding: 18px 10px;
+    }
+
+    .cabecalho-jogo {
+        flex-direction: column;
+    }
+
+    .nivel {
+        align-self: flex-start;
+    }
+
+    .estatistica span {
+        font-size: 10px;
+    }
+
+    .estatistica strong {
+        font-size: 14px;
+    }
+
+    .progresso-texto {
+        font-size: 11px;
+    }
+
+    .botoes-jogo {
+        flex-direction: column;
+    }
+
+    .botoes-jogo button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

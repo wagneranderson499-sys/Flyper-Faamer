@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080d18">
+    <title>Space Invaders | FLYPER FAAMER</title>
+    <link rel="stylesheet" href="space.css">
+</head>
+<body>
+
+    <header class="cabecalho">
+        <a href="../../index.html" class="logo">FLYPER <span>FAAMER</span></a>
+        <button class="botao-voltar" id="botaoVoltar">← MENU</button>
+    </header>
+
+    <main class="container">
+
+        <section class="introducao">
+            <span class="categoria">ARCADE CLASSIC</span>
+            <h1>SPACE <span>INVADERS</span></h1>
+            <p>Defenda a galáxia e destrua os invasores!</p>
+        </section>
+
+        <!-- MENU INICIAL -->
+        <section class="menu-jogo" id="menuJogo">
+            <div class="icone-menu">👾</div>
+
+            <h2>DEFENDA A GALÁXIA!</h2>
+            <p>Prepare sua nave para a batalha espacial.</p>
+
+            <div class="informacoes-menu">
+                <div>
+                    <span>🚀</span>
+                    <strong>3 VIDAS</strong>
+                </div>
+
+                <div>
+                    <span>👾</span>
+                    <strong>ONDAS DE INIMIGOS</strong>
+                </div>
+
+                <div>
+                    <span>⭐</span>
+                    <strong>FASES CRESCENTES</strong>
+                </div>
+            </div>
+
+            <button class="botao-principal" id="botaoIniciar">
+                INICIAR JOGO
+            </button>
+
+            <p class="dica-menu">DESTRUA OS INVASORES E SOBREVIVA!</p>
+        </section>
+
+        <!-- ÁREA DO JOGO -->
+        <section class="area-jogo escondida" id="areaJogo">
+
+            <div class="painel-status">
+                <div class="status-item">
+                    <span>PONTOS</span>
+                    <strong id="pontuacao">0000</strong>
+                </div>
+
+                <div class="status-item">
+                    <span>FASE</span>
+                    <strong id="fase">01</strong>
+                </div>
+
+                <div class="status-item">
+                    <span>VIDAS</span>
+                    <strong id="vidas">❤️❤️❤️</strong>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="tabuleiro" width="480" height="640">
+                    Seu navegador não suporta Canvas.
+                </canvas>
+
+                <div class="mensagem-jogo escondida" id="mensagemJogo">
+                    <div class="mensagem-conteudo">
+                        <span id="mensagemEmoji">⏸️</span>
+                        <h2 id="mensagemTitulo">JOGO PAUSADO</h2>
+                        <p id="mensagemTexto">Continue quando estiver pronto.</p>
+
+                        <button class="botao-principal" id="botaoMensagem">
+                            CONTINUAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="botoes-partida">
+                <button class="botao-secundario" id="botaoPausar">
+                    ⏸ PAUSAR
+                </button>
+
+                <button class="botao-secundario" id="botaoReiniciar">
+                    ↻ REINICIAR
+                </button>
+            </div>
+
+            <!-- CONTROLES MOBILE -->
+            <div class="controles-mobile">
+
+                <div class="movimentacao">
+                    <button class="botao-controle" data-controle="esquerda">◀</button>
+                    <button class="botao-controle" data-controle="direita">▶</button>
+                </div>
+
+                <button class="botao-atirar" data-controle="atirar">
+                    🔫 ATIRAR
+                </button>
+
+            </div>
+
+            <p class="instrucoes">
+                COMPUTADOR: ← → OU A/D PARA MOVER • ESPAÇO PARA ATIRAR
+            </p>
+
+        </section>
+
+        <footer class="rodape">
+            <p>FLYPER FAAMER • RETRO GAMES</p>
+        </footer>
+
+    </main>
+
+    <script src="space.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#100d20">
+    <title>FLYPER FAAMER | Jogos Retrô</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- TELA DE CARREGAMENTO -->
+    <section id="telaCarregamento" class="tela-carregamento">
+        <div class="loading-conteudo">
+            <div class="loading-icone">👾</div>
+
+            <h1>FLYPER<span>FAAMER</span></h1>
+            <p class="loading-subtitulo">PREPARE-SE PARA JOGAR!</p>
+
+            <div class="loading-texto">
+                <span id="mensagemLoading">Inicializando sistema...</span>
+                <span id="porcentagem">0%</span>
+            </div>
+
+            <div class="loading-barra">
+                <div id="progressoLoading"></div>
+            </div>
+
+            <p class="loading-rodape">INSERT COIN TO START</p>
+        </div>
+    </section>
+
+
+    <!-- MENU PRINCIPAL -->
+    <main id="telaPrincipal" class="tela-principal escondida">
+
+        <header class="cabecalho">
+            <a href="#" class="logo">
+                <span class="logo-icone">👾</span>
+                FLYPER<span>FAAMER</span>
+            </a>
+
+            <div class="status">
+                <span class="status-ponto"></span>
+                SISTEMA ONLINE
+            </div>
+        </header>
+
+        <section class="apresentacao">
+            <span class="etiqueta">✦ SEU UNIVERSO DE JOGOS ✦</span>
+
+            <h1>PRONTO PARA<br><span>JOGAR?</span></h1>
+
+            <p>
+                Escolha seu jogo favorito, desafie suas habilidades
+                e divirta-se nessa viagem pelo mundo dos games retrô.
+            </p>
+
+            <a href="#jogos" class="botao-explorar">
+                EXPLORAR JOGOS <span>↓</span>
+            </a>
+        </section>
+
+        <section id="jogos" class="secao-jogos">
+
+            <div class="titulo-secao">
+                <div>
+                    <span class="etiqueta">FAAMER COLLECTION</span>
+                    <h2>ESCOLHA SEU JOGO</h2>
+                </div>
+
+                <span class="contador-jogos">01 JOGO DISPONÍVEL</span>
+            </div>
+
+            <div class="grade-jogos">
+
+                <!-- JOGO DA MEMÓRIA -->
+                <article class="card-jogo memoria">
+                    <div class="imagem-jogo">
+                        <span class="jogo-emoji">🃏</span>
+                        <span class="selo-disponivel">DISPONÍVEL</span>
+                    </div>
+
+                    <div class="informacoes-jogo">
+                        <span class="categoria">RACIOCÍNIO</span>
+                        <h3>Jogo da Memória</h3>
+                        <p>Encontre os pares e teste sua capacidade de memorização.</p>
+
+                        <a href="jogos/memoria/memoria.html" class="botao-jogar">
+                            JOGAR AGORA <span>➜</span>
+                        </a>
+                    </div>
+                </article>
+
+              
+<!-- COBRINHA -->
+<article class="card-jogo cobrinha">
+    <div class="imagem-jogo">
+        <span class="jogo-emoji">🐍</span>
+        <span class="selo-disponivel">DISPONÍVEL</span>
+    </div>
+
+    <div class="informacoes-jogo">
+        <span class="categoria">ARCADE</span>
+        <h3>Snake</h3>
+        <p>Coma, cresça e tente não bater em si mesmo.</p>
+
+        <a href="jogos/cobrinha/cobrinha.html" class="botao-jogar">
+            JOGAR AGORA <span>➜</span>
+        </a>
+    </div>
+</article>
+
+
+               
+<!-- PONG -->
+<article class="card-jogo pong">
+    <div class="imagem-jogo">
+        <span class="jogo-emoji">🏓</span>
+        <span class="selo-disponivel">DISPONÍVEL</span>
+    </div>
+
+    <div class="informacoes-jogo">
+        <span class="categoria">COMPETIÇÃO</span>
+        <h3>Pong</h3>
+        <p>Mostre suas habilidades nesse clássico dos videogames.</p>
+
+        <a href="jogos/pong/pong.html" class="botao-jogar">
+            JOGAR AGORA <span>➜</span>
+        </a>
+    </div>
+</article>
+
+
+             
+<!-- SPACE INVADERS -->
+<article class="card-jogo space-invaders">
+    <div class="imagem-jogo">
+        <span class="jogo-emoji">👾</span>
+        <span class="selo-disponivel">DISPONÍVEL</span>
+    </div>
+
+    <div class="informacoes-jogo">
+        <span class="categoria">AÇÃO</span>
+        <h3>Space Invaders</h3>
+        <p>Defenda a galáxia e destrua os invasores espaciais.</p>
+
+        <a href="jogos/space-invaders/space-invaders.html" class="botao-jogar">
+            JOGAR AGORA <span>➜</span>
+        </a>
+    </div>
+</article>
+
+
+            </div>
+        </section>
+
+        <footer>
+            <p>RETRO ARCADE © 2026</p>
+            <p>FEITO PARA QUEM AMA JOGAR <span>♥</span></p>
+        </footer>
+
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

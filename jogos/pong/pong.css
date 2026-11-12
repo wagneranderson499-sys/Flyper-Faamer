@@ -1,0 +1,500 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --fundo: #080d18;
+    --painel: #101a2b;
+    --verde: #39ff88;
+    --rosa: #ff3cac;
+    --azul: #36c5ff;
+    --texto: #f4f7ff;
+    --cinza: #8b98ad;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 50% 20%, #14243a 0%, transparent 45%),
+        var(--fundo);
+    color: var(--texto);
+    font-family: 'Inter', sans-serif;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cabecalho {
+    width: 100%;
+    padding: 22px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ffffff12;
+}
+
+.logo {
+    color: white;
+    text-decoration: none;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+}
+
+.logo span {
+    color: var(--verde);
+}
+
+.botao-voltar {
+    padding: 11px 17px;
+    border: 1px solid #ffffff30;
+    background: transparent;
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.botao-voltar:hover {
+    border-color: var(--verde);
+    color: var(--verde);
+}
+
+.container {
+    width: min(900px, 92%);
+    margin: 0 auto;
+    padding: 40px 0;
+}
+
+.introducao {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.categoria {
+    color: var(--verde);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 4px;
+}
+
+.introducao h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(25px, 5vw, 42px);
+    margin: 20px 0;
+    text-shadow: 0 0 18px #36c5ff55;
+}
+
+.introducao h1 span {
+    color: var(--azul);
+}
+
+.introducao p {
+    color: var(--cinza);
+    font-size: 14px;
+}
+
+/* MENU */
+
+.menu-jogo {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 35px 25px;
+    background: var(--painel);
+    border: 1px solid #36c5ff35;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 0 35px #36c5ff0c;
+}
+
+.icone-menu {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.menu-jogo h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 12px;
+}
+
+.menu-jogo > p {
+    color: var(--cinza);
+    font-size: 13px;
+}
+
+.opcoes-modo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.modo-card {
+    min-height: 165px;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 1px solid #ffffff20;
+    border-radius: 12px;
+    background: #0a1322;
+    color: white;
+    transition: .2s;
+}
+
+.modo-card:first-child:hover {
+    border-color: var(--verde);
+    box-shadow: 0 0 20px #39ff8830;
+    transform: translateY(-3px);
+}
+
+.modo-card:last-child:hover {
+    border-color: var(--rosa);
+    box-shadow: 0 0 20px #ff3cac30;
+    transform: translateY(-3px);
+}
+
+.modo-icone {
+    font-size: 30px;
+}
+
+.modo-card strong {
+    font-size: 12px;
+}
+
+.modo-card small {
+    color: var(--cinza);
+    font-size: 11px;
+}
+
+.menu-jogo .dica-menu {
+    color: var(--verde);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    line-height: 1.8;
+}
+
+/* PARTIDA */
+
+.escondida {
+    display: none !important;
+}
+
+.area-jogo {
+    width: 100%;
+}
+
+.placar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+    margin-bottom: 20px;
+}
+
+.jogador {
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.jogador span {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--cinza);
+}
+
+.jogador strong {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 30px;
+}
+
+.jogador-1 strong {
+    color: var(--verde);
+    text-shadow: 0 0 15px #39ff8870;
+}
+
+.jogador-2 strong {
+    color: var(--rosa);
+    text-shadow: 0 0 15px #ff3cac70;
+}
+
+.separador-placar {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 22px;
+    color: white;
+    margin-top: 18px;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border: 2px solid #36c5ff70;
+    border-radius: 12px;
+    background: #060b14;
+    box-shadow:
+        0 0 20px #36c5ff18,
+        inset 0 0 25px #36c5ff08;
+}
+
+#tabuleiro {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 8 / 5;
+    touch-action: none;
+}
+
+.mensagem-jogo {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: #050a14dd;
+    backdrop-filter: blur(5px);
+    text-align: center;
+}
+
+.mensagem-conteudo span {
+    font-size: 35px;
+}
+
+.mensagem-conteudo h2 {
+    margin: 18px 0 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(13px, 3vw, 19px);
+    line-height: 1.8;
+    color: var(--verde);
+}
+
+.mensagem-conteudo p {
+    color: var(--cinza);
+    font-size: 13px;
+    margin-bottom: 22px;
+}
+
+.botao-principal {
+    padding: 15px 22px;
+    border: none;
+    border-radius: 8px;
+    background: var(--verde);
+    color: #07120c;
+    font-weight: 900;
+    font-size: 12px;
+}
+
+.botao-principal:hover {
+    box-shadow: 0 0 20px #39ff8880;
+}
+
+.botoes-partida {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.botao-secundario {
+    padding: 12px 18px;
+    border: 1px solid #ffffff30;
+    border-radius: 8px;
+    background: var(--painel);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.botao-secundario:hover {
+    border-color: var(--azul);
+    color: var(--azul);
+}
+
+/* CONTROLES MOBILE */
+
+.controles-mobile {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.controle-jogador {
+    flex: 1;
+    padding: 14px;
+    background: var(--painel);
+    border: 1px solid #ffffff18;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.controle-jogador > span {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--cinza);
+}
+
+.botoes-direcao {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.botao-direcao {
+    width: 65px;
+    height: 48px;
+    border: 1px solid #39ff8860;
+    border-radius: 9px;
+    background: #0b1b1a;
+    color: var(--verde);
+    font-size: 20px;
+    touch-action: none;
+    user-select: none;
+}
+
+.controle-jogador:last-child .botao-direcao {
+    border-color: #ff3cac60;
+    background: #201020;
+    color: var(--rosa);
+}
+
+.botao-direcao:active {
+    background: #26384a;
+    transform: scale(.96);
+}
+
+.instrucoes {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--cinza);
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.rodape {
+    margin-top: 50px;
+    text-align: center;
+    color: #647087;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 600px) {
+    .cabecalho {
+        padding: 18px 5%;
+    }
+
+    .logo {
+        font-size: 9px;
+    }
+
+    .container {
+        width: 94%;
+        padding: 30px 0;
+    }
+
+    .introducao {
+        margin-bottom: 25px;
+    }
+
+    .introducao p {
+        font-size: 12px;
+    }
+
+    .menu-jogo {
+        padding: 28px 15px;
+    }
+
+    .menu-jogo h2 {
+        font-size: 11px;
+    }
+
+    .opcoes-modo {
+        gap: 10px;
+    }
+
+    .modo-card {
+        min-height: 145px;
+        padding: 12px 7px;
+    }
+
+    .modo-card strong {
+        font-size: 10px;
+    }
+
+    .modo-card small {
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .placar {
+        gap: 20px;
+    }
+
+    .jogador strong {
+        font-size: 23px;
+    }
+
+    .jogador span {
+        font-size: 9px;
+    }
+
+    .botoes-partida {
+        gap: 8px;
+    }
+
+    .botao-secundario {
+        flex: 1;
+        padding: 12px 5px;
+        font-size: 10px;
+    }
+
+    .controle-jogador {
+        padding: 12px 5px;
+    }
+
+    .botao-direcao {
+        width: 48px;
+        height: 45px;
+    }
+
+    .rodape {
+        margin-top: 35px;
+    }
+}
+
+@media (max-width: 360px) {
+    .controles-mobile {
+        gap: 7px;
+    }
+
+    .botao-direcao {
+        width: 42px;
+        height: 42px;
+    }
+
+    .jogador strong {
+        font-size: 19px;
+    }
+}

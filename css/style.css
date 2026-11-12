@@ -1,0 +1,509 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --fundo: #100d20;
+    --fundo-card: #1c1830;
+    --roxo: #9b6cff;
+    --rosa: #ff5ec4;
+    --azul: #4edcff;
+    --branco: #f7f4ff;
+    --texto: #aaa4bd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--fundo);
+    color: var(--branco);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+/* TELA DE CARREGAMENTO */
+
+.tela-carregamento {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:
+        radial-gradient(ellipse at center, #29204b 0%, #100d20 65%);
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.tela-carregamento.finalizado {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-conteudo {
+    width: min(90%, 430px);
+    text-align: center;
+}
+
+.loading-icone {
+    font-size: 65px;
+    margin-bottom: 25px;
+    animation: flutuar 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px var(--roxo));
+}
+
+.loading-conteudo h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(20px, 5vw, 32px);
+    line-height: 1.7;
+    letter-spacing: -2px;
+}
+
+.loading-conteudo h1 span,
+.logo span:last-child {
+    color: var(--rosa);
+}
+
+.loading-subtitulo {
+    margin-top: 15px;
+    color: var(--azul);
+    font-size: 11px;
+    letter-spacing: 4px;
+}
+
+.loading-texto {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 55px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--texto);
+}
+
+#porcentagem {
+    color: var(--azul);
+    font-weight: 700;
+}
+
+.loading-barra {
+    height: 9px;
+    width: 100%;
+    background: #302846;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #554578;
+}
+
+#progressoLoading {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--roxo), var(--rosa), var(--azul));
+    border-radius: 20px;
+    box-shadow: 0 0 15px var(--roxo);
+    transition: width 0.1s linear;
+}
+
+.loading-rodape {
+    margin-top: 30px;
+    color: #716987;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    animation: piscar 1s infinite;
+}
+
+/* MENU PRINCIPAL */
+
+.escondida {
+    display: none !important;
+}
+
+.tela-principal {
+    width: min(1150px, 90%);
+    margin: 0 auto;
+    animation: aparecer 0.8s ease;
+}
+
+/* CABEÇALHO */
+
+.cabecalho {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #302846;
+}
+
+.logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 15px;
+    color: var(--branco);
+    text-decoration: none;
+}
+
+.logo-icone {
+    font-size: 25px;
+    margin-right: 8px;
+}
+
+.status {
+    font-size: 10px;
+    color: var(--texto);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.status-ponto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #54e99b;
+    box-shadow: 0 0 10px #54e99b;
+}
+
+/* APRESENTAÇÃO */
+
+.apresentacao {
+    padding: 85px 0 75px;
+    text-align: center;
+    background:
+        radial-gradient(ellipse at center, #29204b55 0%, transparent 70%);
+}
+
+.etiqueta {
+    display: inline-block;
+    color: var(--azul);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+}
+
+.apresentacao h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(30px, 6vw, 58px);
+    line-height: 1.5;
+    text-shadow: 4px 4px 0 #4b286e;
+}
+
+.apresentacao h1 span {
+    color: var(--rosa);
+    text-shadow: 0 0 20px #ff5ec466;
+}
+
+.apresentacao p {
+    max-width: 520px;
+    margin: 25px auto;
+    color: var(--texto);
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.botao-explorar {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px;
+    padding: 16px 25px;
+    border-radius: 7px;
+    background: linear-gradient(100deg, var(--roxo), #7650d4);
+    color: white;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    transition: 0.3s;
+    box-shadow: 0 0 20px #9b6cff33;
+}
+
+.botao-explorar:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 25px #9b6cff88;
+}
+
+/* SEÇÃO DOS JOGOS */
+
+.secao-jogos {
+    padding: 25px 0 90px;
+}
+
+.titulo-secao {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 15px;
+}
+
+.titulo-secao .etiqueta {
+    margin-bottom: 10px;
+}
+
+.titulo-secao h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 3vw, 21px);
+    line-height: 1.7;
+}
+
+.contador-jogos {
+    color: var(--texto);
+    font-size: 10px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.grade-jogos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px;
+}
+
+.card-jogo {
+    background: var(--fundo-card);
+    border: 1px solid #342b4c;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.card-jogo:hover {
+    transform: translateY(-6px);
+    border-color: var(--roxo);
+    box-shadow: 0 10px 30px #00000044;
+}
+
+/* IMAGENS DOS CARDS */
+
+.imagem-jogo {
+    height: 190px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.memoria .imagem-jogo {
+    background: linear-gradient(135deg, #34245e, #6445a2);
+}
+
+.cobrinha .imagem-jogo {
+    background: linear-gradient(135deg, #174b40, #287b58);
+}
+
+.pong .imagem-jogo {
+    background: linear-gradient(135deg, #59305b, #9a477e);
+}
+
+.space .imagem-jogo {
+    background: linear-gradient(135deg, #17375e, #286b9b);
+}
+
+.jogo-emoji {
+    font-size: 75px;
+    filter: drop-shadow(0 0 15px #ffffff55);
+    transition: 0.3s;
+}
+
+.card-jogo:hover .jogo-emoji {
+    transform: scale(1.15) rotate(-5deg);
+}
+
+.selo-disponivel,
+.selo-breve {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 7px 10px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.selo-disponivel {
+    background: #54e99b;
+    color: #102b20;
+}
+
+.selo-breve {
+    background: #302846;
+    color: #c3b8db;
+}
+
+/* INFORMAÇÕES DOS JOGOS */
+
+.informacoes-jogo {
+    padding: 23px;
+}
+
+.categoria {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--azul);
+    letter-spacing: 2px;
+}
+
+.informacoes-jogo h3 {
+    font-size: 19px;
+    margin: 10px 0;
+}
+
+.informacoes-jogo p {
+    min-height: 45px;
+    color: var(--texto);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.botao-jogar,
+.botao-breve {
+    width: 100%;
+    margin-top: 20px;
+    padding: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+.botao-jogar {
+    background: var(--roxo);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.botao-jogar:hover {
+    background: var(--rosa);
+    transform: scale(1.02);
+}
+
+.botao-breve {
+    background: #302846;
+    color: #827994;
+    cursor: not-allowed;
+}
+
+/* RODAPÉ */
+
+footer {
+    padding: 25px 0;
+    border-top: 1px solid #302846;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    color: #777087;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+footer span {
+    color: var(--rosa);
+}
+
+/* ANIMAÇÕES */
+
+@keyframes flutuar {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes piscar {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 650px) {
+    .tela-principal {
+        width: 92%;
+    }
+
+    .cabecalho {
+        height: 75px;
+    }
+
+    .logo {
+        font-size: 11px;
+    }
+
+    .logo-icone {
+        font-size: 20px;
+    }
+
+    .status {
+        font-size: 8px;
+    }
+
+    .apresentacao {
+        padding: 65px 0;
+    }
+
+    .apresentacao p {
+        font-size: 13px;
+        max-width: 390px;
+    }
+
+    .grade-jogos {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .imagem-jogo {
+        height: 170px;
+    }
+
+    .titulo-secao {
+        align-items: start;
+        flex-direction: column;
+    }
+
+    footer {
+        flex-direction: column;
+        text-align: center;
+        line-height: 1.7;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

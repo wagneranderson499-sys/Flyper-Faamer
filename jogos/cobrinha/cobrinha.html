@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1020">
+    <title>Snake Neon | FLYPER FAAMER</title>
+    <link rel="stylesheet" href="cobrinha.css">
+</head>
+<body>
+
+    <main class="container">
+
+        <header class="cabecalho">
+            <a href="../../index.html" class="logo">FLYPER <span>FAAMER</span></a>
+            <button id="botaoVoltar" class="botao-voltar">← MENU PRINCIPAL</button>
+        </header>
+
+        <section class="introducao">
+            <span class="etiqueta">ARCADE CLASSIC</span>
+            <h1>SNAKE <span>NEON</span></h1>
+            <p>Coma, cresça e tente bater seu próprio recorde!</p>
+        </section>
+
+        <section class="painel">
+            <div class="placar">
+                <div class="placar-item">
+                    <span>PONTUAÇÃO</span>
+                    <strong id="pontuacao">000</strong>
+                </div>
+
+                <div class="placar-item">
+                    <span>RECORDE</span>
+                    <strong id="recorde">000</strong>
+                </div>
+            </div>
+
+            <div class="area-jogo">
+                <canvas id="tabuleiro" width="400" height="400"></canvas>
+
+                <div id="telaMensagem" class="tela-mensagem">
+                    <div class="mensagem-conteudo">
+                        <span id="mensagemEmoji" class="mensagem-emoji">🐍</span>
+                        <h2 id="mensagemTitulo">SNAKE NEON</h2>
+                        <p id="mensagemTexto">Prepare-se para jogar!</p>
+                        <button id="botaoIniciar" class="botao-acao">COMEÇAR JOGO</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controles-jogo">
+                <button id="botaoPausar" class="botao-secundario" disabled>Ⅱ PAUSAR</button>
+                <span class="dica-teclado">USE AS SETAS OU WASD PARA SE MOVER</span>
+            </div>
+
+            <div class="controles-mobile">
+                <button class="direcional vazio" disabled aria-hidden="true"></button>
+                <button class="direcional" data-direcao="cima" aria-label="Mover para cima">▲</button>
+                <button class="direcional vazio" disabled aria-hidden="true"></button>
+
+                <button class="direcional" data-direcao="esquerda" aria-label="Mover para esquerda">◀</button>
+                <button class="direcional" data-direcao="baixo" aria-label="Mover para baixo">▼</button>
+                <button class="direcional" data-direcao="direita" aria-label="Mover para direita">▶</button>
+            </div>
+
+            <p class="dica-mobile">No celular, utilize os botões direcionais.</p>
+        </section>
+
+        <footer>
+            <p>FLYPER FAAMER © 2026</p>
+            <p>GOOD LUCK, PLAYER! <span>♥</span></p>
+        </footer>
+
+    </main>
+
+    <script src="cobrinha.js"></script>
+</body>
+</html>
