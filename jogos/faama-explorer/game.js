@@ -1522,6 +1522,26 @@
     });
   }
 
+  const questRestart = document.getElementById("questRestart");
+  if (questRestart) {
+    questRestart.addEventListener("click", () => {
+      if (typeof window.confirm === "function" &&
+          !window.confirm("Recomeçar A Chave Desaparecida? Isso apaga as pistas, a chave e os 100 XP desta missão.")) {
+        return;
+      }
+      pendingQuestNotice = null;
+      closeDialogue();
+      held.clear();
+      quest.restart();
+      player.x=20;
+      player.y=42;
+      nearQuestItem=null;
+      nearTalker=life.nearestTalker(player.x,player.y,1.85);
+      refreshQuestUI();
+      show("Missão reiniciada! Converse com Lia perto da entrada.",5);
+    });
+  }
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
