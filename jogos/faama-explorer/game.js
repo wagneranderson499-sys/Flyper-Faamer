@@ -67,6 +67,7 @@
   let nearTalker = null;
   let nearQuestItem = null;
   let activeDialogue = null;
+  let pendingQuestNotice = null;
 
   // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
   let questStorage = null;
@@ -1224,6 +1225,11 @@
     activeDialogue = null;
     dialogueUI.root.classList.add("hidden");
     held.clear();
+    // A confirmação aparece depois do diálogo, sem cobrir as falas.
+    if (pendingQuestNotice) {
+      show(pendingQuestNotice,6);
+      pendingQuestNotice = null;
+    }
   }
 
   function advanceDialogue() {
@@ -1260,7 +1266,7 @@
         openDialogue({...nearTalker.npc,lines:event.lines});
         if(event.changed) {
           refreshQuestUI();
-          if(event.message)show(event.message,5);
+          pendingQuestNotice = event.message || null;
         }
       } else {
         openDialogue(nearTalker.npc);
