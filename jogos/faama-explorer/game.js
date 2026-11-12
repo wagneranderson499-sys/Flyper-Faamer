@@ -115,6 +115,80 @@
   let questStorage = null;
   try {questStorage = window.localStorage;} catch (_error) {}
   const quest = window.createFaamaQuest({ ctx, P, storage: questStorage });
+  const indoorQuest = window.createFaamaIndoorQuest({
+    storage:questStorage,firstQuest:quest
+  });
+  const indoorQuestUI = {
+    stage:document.getElementById("indoorQuestStage"),
+    description:document.getElementById("indoorQuestDescription"),
+    clueMural:document.getElementById("indoorClueMural"),
+    clueQuadro:document.getElementById("indoorClueQuadro"),
+    clueEstante:document.getElementById("indoorClueEstante"),
+    document:document.getElementById("indoorDocument"),
+    achievement:document.getElementById("indoorAchievement")
+  };
+  const riddleUI = {
+    root:document.getElementById("indoorRiddle"),
+    feedback:document.getElementById("riddleFeedback"),
+    close:document.getElementById("riddleClose")
+  };
+  let riddleOpen=false;
+  function refreshIndoorQuestUI() {
+    const progress=indoorQuest.progress();
+    if(indoorQuestUI.stage){
+      const names={locked:"BLOQUEADA",ready:"NOVA MISSÃO",
+        clues:"INVESTIGAR PISTAS",riddle:"RESOLVER ENIGMA",
+        document:"BUSCAR DOCUMENTO",return:"ENTREGAR DOCUMENTO",
+        completed:"CONCLUÍDA"};
+      indoorQuestUI.stage.textContent=names[progress.stage];
+    }
+    if(indoorQuestUI.description)indoorQuestUI.description.textContent=progress.objective;
+    for(const c of progress.clues){
+      const dest=indoorQuestUI["clue"+c.id[0].toUpperCase()+c.id.slice(1)];
+      if(dest){
+        dest.textContent=(c.found?"✓ ":"○ ")+c.name;
+        dest.classList.toggle("complete",c.found);
+      }
+    }
+    if(indoorQuestUI.document){
+      indoorQuestUI.document.textContent=progress.hasDocument?
+        "📄 Documento recuperado":"🔒 Documento não encontrado";
+      indoorQuestUI.document.classList.toggle("complete",progress.hasDocument);
+    }
+    if(indoorQuestUI.achievement){
+      indoorQuestUI.achievement.textContent=progress.achievement?
+        "🏆 "+progress.achievement:"🏆 Conquista bloqueada";
+      indoorQuestUI.achievement.classList.toggle("complete",progress.completed);
+    }
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+progress.xp)+" XP";
+  }
+  function closeRiddle(){
+    if(!riddleOpen)return;
+    riddleOpen=false;
+    riddleUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function openRiddle(){
+    if(riddleOpen)return;
+    riddleOpen=true;
+    held.clear();
+    interior.pause();
+    if(riddleUI.feedback)riddleUI.feedback.textContent=
+      "Escolha a combinação usando as três pistas na ordem: mural, quadro e estante.";
+    riddleUI.root.classList.remove("hidden");
+  }
+  function answerRiddle(code){
+    if(!riddleOpen)return;
+    const result=indoorQuest.answer(code);
+    if(result.correct){
+      closeRiddle();
+      refreshIndoorQuestUI();
+      show(result.message,6);
+    } else if(riddleUI.feedback && !result.ignored){
+      riddleUI.feedback.textContent=result.message;
+    }
+  }
   const questUI = {
     stage: document.getElementById("questStage"),
     description: document.getElementById("questDescription"),
@@ -137,7 +211,7 @@
       questUI.stage.textContent = label[q.stage];
     }
     if (questUI.description) questUI.description.textContent = q.objective;
-    if (questUI.xp) questUI.xp.textContent = q.xp+" XP";
+    refreshIndoorQuestUI();
     for (const clue of q.clues) {
       const element = questUI["clue"+clue.id[0].toUpperCase()+clue.id.slice(1)];
       if(!element)continue;
@@ -1290,6 +1364,7 @@
       return;
     }
     if (interior.active) {
+      if(riddleOpen)return;
       const action=interior.interact();
       if(!action){
         show("Explore a recepção, as duas salas e os objetos do Prédio Central.",4);
@@ -1298,9 +1373,22 @@
       if(action.kind==="exit"){
         leaveCentral();
       } else if(action.kind==="npc"){
-        openDialogue(action.npc);
+        const event=indoorQuest.talkToMarina();
+        openDialogue({...action.npc,lines:event.lines});
+        if(event.changed){
+          refreshIndoorQuestUI();
+          pendingQuestNotice=event.message||null;
+        }
       } else if(action.kind==="object"){
-        show(action.text,6);
+        const event=indoorQuest.inspect(action.id);
+        if(event?.openRiddle){
+          openRiddle();
+        }else if(event){
+          show(event.message,6);
+          if(event.changed)refreshIndoorQuestUI();
+        }else{
+          show(action.text,6);
+        }
       }
       return;
     }
@@ -1344,6 +1432,13 @@
 
   function update(dt) {
     if(interior.active){
+      if(riddleOpen){
+        held.clear();
+        interior.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="Resolva o enigma do armário";
+        return;
+      }
       if(activeDialogue){
         held.clear();
         interior.pause();
@@ -1365,7 +1460,9 @@
         if(ui.objective){
           ui.objective.textContent=spot
             ? "[E] "+(spot.kind==="exit"?"Voltar ao campus":spot.name)
-            : "Explore a recepção, o corredor e as duas salas";
+            : indoorQuest.stage()==="locked"
+              ? "Explore o Prédio Central • conclua a Missão 01 para novas aventuras"
+              : indoorQuest.objective();
         }
       }
       if(ui.location)ui.location.textContent=
@@ -1452,7 +1549,13 @@
     }
 
     if (ui.objective) {
-      ui.objective.textContent = quest.objective();
+      ui.objective.textContent=quest.stage()==="completed"?
+        (indoorQuest.stage()==="ready"
+          ? "Missão 02 liberada! Entre no Prédio Central e converse com Marina."
+          : indoorQuest.stage()==="completed"
+            ? "Duas missões concluídas! Explore o campus."
+            : "Missão 02: continue a investigação no Prédio Central.")
+        : quest.objective();
     }
   }
 
@@ -1469,7 +1572,7 @@
       update(dt);
 
       if(interior.active){
-        interior.draw(time,zoom);
+        interior.draw(time,zoom,indoorQuest.markers());
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
         requestAnimationFrame(render);
         return;
@@ -1565,6 +1668,15 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(riddleOpen){
+      if(k==="Escape")closeRiddle();
+      else if(["1","2","3"].includes(k)){
+        answerRiddle({"1":"231","2":"312","3":"123"}[k]);
+      } else return;
+      e.preventDefault();
+      return;
+    }
+
     if ((k === "e" || (k === "Enter" && activeDialogue)) && !e.repeat) {
       e.preventDefault();
       interact();
@@ -1623,6 +1735,7 @@
   if (reset) {
     reset.addEventListener("click", () => {
       closeDialogue();
+      closeRiddle();
       if(interior.active)leaveCentral();
       player.x = 20;
       player.y = 42;
@@ -1636,7 +1749,7 @@
   if (questRestart) {
     questRestart.addEventListener("click", () => {
       if (typeof window.confirm === "function" &&
-          !window.confirm("Recomeçar A Chave Desaparecida? Isso apaga as pistas, a chave e os 100 XP desta missão.")) {
+          !window.confirm("Recomeçar A Chave Desaparecida? A Missão 02 também será reiniciada, pois depende da primeira. As recompensas das duas serão apagadas.")) {
         return;
       }
       pendingQuestNotice = null;
@@ -1644,6 +1757,9 @@
       if(interior.active)leaveCentral();
       held.clear();
       quest.restart();
+      // Missão 02 depende da primeira: reiniciar a primeira reinicia ambas.
+      indoorQuest.reset();
+      refreshIndoorQuestUI();
       player.x=20;
       player.y=42;
       nearQuestItem=null;
@@ -1652,6 +1768,24 @@
       show("Missão reiniciada! Converse com Lia perto da entrada.",5);
     });
   }
+
+  const indoorQuestRestart=document.getElementById("indoorQuestRestart");
+  if(indoorQuestRestart){
+    indoorQuestRestart.addEventListener("click",()=>{
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar somente O Mistério do Prédio Central? A Missão 01 será preservada."))return;
+      closeDialogue();
+      closeRiddle();
+      pendingQuestNotice=null;
+      indoorQuest.reset();
+      refreshIndoorQuestUI();
+      show("Missão 02 reiniciada. Converse com Marina para começar novamente.",5);
+    });
+  }
+  if(riddleUI.close)riddleUI.close.addEventListener("click",closeRiddle);
+  document.querySelectorAll("[data-riddle-answer]").forEach(btn=>{
+    btn.addEventListener("click",()=>answerRiddle(btn.dataset.riddleAnswer));
+  });
 
   function changeZoom(d) {
     zoom = Math.max(
@@ -1676,6 +1810,7 @@
   }
 
   refreshQuestUI();
+  refreshIndoorQuestUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
