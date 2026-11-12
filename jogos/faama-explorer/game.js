@@ -2056,6 +2056,7 @@
       closeDialogue();
       closeRiddle();
       closeAcademicQuiz();
+      if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
       if(academic.active)leaveAcademic();
       player.x = 20;
@@ -2077,6 +2078,7 @@
       closeDialogue();
       closeRiddle();
       closeAcademicQuiz();
+      if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
       if(academic.active)leaveAcademic();
       held.clear();
@@ -2129,6 +2131,19 @@
     btn.addEventListener("click",()=>answerAcademicQuiz(index));
   });
 
+  const sportsQuestRestart=document.getElementById("sportsQuestRestart");
+  if(sportsQuestRestart){
+    sportsQuestRestart.addEventListener("click",()=>{
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar o Circuito dos Campeões? Isso apaga os 200 XP, a conquista e o recorde esportivo, mas preserva as Missões 01–03."))return;
+      pendingSportsStart=false;
+      closeDialogue();
+      sports.restartProgress();
+      refreshSportsUI();
+      show("Missão 04 reiniciada. Converse com Rafael para começar.",5);
+    });
+  }
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
@@ -2154,6 +2169,7 @@
   refreshQuestUI();
   refreshIndoorQuestUI();
   refreshAcademicUI();
+  refreshSportsUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
