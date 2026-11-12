@@ -59,6 +59,22 @@
 
   const roads = window.FAAMA_MAP.roads;
 
+  // Os atores são independentes da planta aprovada dos prédios.
+  const life = window.createCampusLife({
+    ctx, P, sites, worldW: W, worldH: H
+  });
+  let nearTalker = null;
+  let activeDialogue = null;
+  const dialogueUI = {
+    root: document.getElementById("npcDialogue"),
+    name: document.getElementById("npcName"),
+    role: document.getElementById("npcRole"),
+    line: document.getElementById("npcLine"),
+    portrait: document.getElementById("npcPortrait"),
+    next: document.getElementById("dialogNext"),
+    close: document.getElementById("dialogClose")
+  };
+
   // Projeção 2,5D: x representa posição horizontal e y a profundidade.
   // A projeção anterior em losango invertia os setores esquerdo/direito.
   function iso(x, y, z = 0) {
@@ -1056,6 +1072,7 @@
       m.lineWidth=1;
       m.strokeRect(ox+b.x*sx,oy+b.y*sy,b.w*sx,b.h*sy);
     }
+    life.drawMinimapMarkers(m,ox,oy,sx,sy);
     const px=ox+player.x*sx,py=oy+player.y*sy;
     m.beginPath();m.arc(px,py,6,0,Math.PI*2);
     m.fillStyle="#f3dc65";m.fill();
@@ -1095,7 +1112,8 @@
   }
 
   function blocked(x, y) {
-    return sites.some(s => inside(x, y, s, 0.2));
+    return sites.some(s => inside(x, y, s, 0.2)) ||
+      life.solidAt(x, y, .33);
   }
 
   function nearest() {
@@ -1117,15 +1135,77 @@
     return found;
   }
 
+  function dialoguePortrait(npc) {
+    const icon = {
+      lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
+      daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫"
+    };
+    return icon[npc.id] || "🧑‍🎓";
+  }
+
+  function refreshDialogue() {
+    if (!activeDialogue) return;
+    const { npc, index } = activeDialogue;
+    dialogueUI.name.textContent = npc.name;
+    dialogueUI.role.textContent = npc.role;
+    dialogueUI.line.textContent = npc.lines[index];
+    dialogueUI.portrait.textContent = dialoguePortrait(npc);
+    dialogueUI.next.textContent =
+      index === npc.lines.length - 1 ? "Encerrar" : "Continuar";
+  }
+
+  function openDialogue(npc) {
+    activeDialogue = { npc, index: 0 };
+    held.clear();
+    player.moving = false;
+    if (ui.toast) ui.toast.classList.add("hidden");
+    refreshDialogue();
+    dialogueUI.root.classList.remove("hidden");
+  }
+
+  function closeDialogue() {
+    if (!activeDialogue) return;
+    activeDialogue = null;
+    dialogueUI.root.classList.add("hidden");
+    held.clear();
+  }
+
+  function advanceDialogue() {
+    if (!activeDialogue) return;
+    if (activeDialogue.index >= activeDialogue.npc.lines.length - 1) {
+      closeDialogue();
+    } else {
+      activeDialogue.index++;
+      refreshDialogue();
+    }
+  }
+
   function interact() {
-    if (near) {
+    if (activeDialogue) {
+      advanceDialogue();
+    } else if (nearTalker) {
+      openDialogue(nearTalker.npc);
+    } else if (near) {
       show(near.info, 6);
     } else {
-      show("Aproxime-se de um prédio para conhecer a missão.");
+      show("Aproxime-se de um aluno ou prédio para interagir.");
     }
   }
 
   function update(dt) {
+    if (activeDialogue) {
+      held.clear();
+      player.moving = false;
+      if (ui.interact) {
+        ui.interact.disabled = false;
+        ui.interact.textContent = "CONTINUAR [E]";
+      }
+      if (ui.objective) {
+        ui.objective.textContent = "Conversa com " + activeDialogue.npc.name;
+      }
+      return;
+    }
+
     let dx =
       Number(held.has("ArrowRight") || held.has("d")) -
       Number(held.has("ArrowLeft") || held.has("a"));
@@ -1154,6 +1234,7 @@
     }
 
     near = nearest();
+    nearTalker = life.nearestTalker(player.x, player.y, 1.85);
 
     if (ui.location) {
       ui.location.textContent = near
@@ -1164,13 +1245,24 @@
     }
 
     if (ui.interact) {
-      ui.interact.disabled = !near;
+      ui.interact.disabled = !(nearTalker || near);
+      ui.interact.textContent = nearTalker
+        ? "CONVERSAR [E]" : "INTERAGIR [E]";
+    }
+
+    const hint = document.getElementById("hint");
+    if (hint) {
+      hint.textContent = nearTalker
+        ? "[E] Conversar com " + nearTalker.npc.name
+        : "WASD / SETAS para caminhar";
     }
 
     if (ui.objective) {
-      ui.objective.textContent = near
-        ? "[E] Conhecer: " + (near.short || near.name)
-        : "Visite o Prédio Central e conheça a FAAMA";
+      ui.objective.textContent = nearTalker
+        ? "[E] Conversar: " + nearTalker.npc.name
+        : near
+          ? "[E] Conhecer: " + (near.short || near.name)
+          : "Visite o Prédio Central e conheça a FAAMA";
     }
   }
 
@@ -1181,6 +1273,7 @@
       previous = ms;
       time += dt;
 
+      life.update(dt, player, activeDialogue?.npc.id || null);
       update(dt);
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1230,6 +1323,7 @@
           depth: s.y + s.h + s.x * .02,
           draw: () => building(s)
         })),
+        ...life.renderables(player),
         {
           depth: player.y + player.x * .02,
           draw: character
@@ -1271,8 +1365,15 @@
       ? e.key.toLowerCase()
       : e.key;
 
-    if (k === "e" && !e.repeat) {
+    if ((k === "e" || (k === "Enter" && activeDialogue)) && !e.repeat) {
+      e.preventDefault();
       interact();
+      return;
+    }
+    if (k === "Escape" && activeDialogue) {
+      e.preventDefault();
+      closeDialogue();
+      return;
     }
 
     if (allowed.has(k)) {
@@ -1310,13 +1411,22 @@
   if (ui.interact) {
     ui.interact.addEventListener("click", interact);
   }
+  if (dialogueUI.next) {
+    dialogueUI.next.addEventListener("click", advanceDialogue);
+  }
+  if (dialogueUI.close) {
+    dialogueUI.close.addEventListener("click", closeDialogue);
+  }
 
   const reset = document.getElementById("reset");
 
   if (reset) {
     reset.addEventListener("click", () => {
+      closeDialogue();
       player.x = 20;
       player.y = 42;
+      near = nearest();
+      nearTalker = life.nearestTalker(player.x, player.y, 1.85);
       show("Você voltou à entrada da FAAMA.");
     });
   }
