@@ -241,17 +241,17 @@ window.createFaamaSports=function createFaamaSports({ctx,storage,canvasWidth=120
     ctx.save();ctx.translate(canvasWidth/2,canvasHeight/2);ctx.scale(factor,factor);
     ctx.translate(-camX,-camY);
     const base=pt(2.1,2.0);
-    round(base.x-13,base.y-18,24*T+27,17.2*T+29,13,"#536372","#e3cb8f");
+    round(base.x-13,base.y-18,24*TILE+27,17.2*TILE+29,13,"#536372","#e3cb8f");
     const court=pt(2.4,2.2);
-    fill(court.x,court.y,23.2*T,16.75*T,"#c99660");
+    fill(court.x,court.y,23.2*TILE,16.75*TILE,"#c99660");
     for(let y=0;y<17;y++)for(let x=0;x<24;x++){
-      if((x+y)%2===0)fill(court.x+x*T,court.y+y*T,T,T,"#ffebc314");
+      if((x+y)%2===0)fill(court.x+x*TILE,court.y+y*TILE,TILE,TILE,"#ffebc314");
     }
     for(let x=0;x<=24;x++)
-      line({x:court.x+x*T,y:court.y},{x:court.x+x*T,y:court.y+16.75*T},"#b27c5155",.8);
+      line({x:court.x+x*TILE,y:court.y},{x:court.x+x*TILE,y:court.y+16.75*TILE},"#b27c5155",.8);
     for(let y=0;y<=17;y++)
-      line({x:court.x,y:court.y+y*T},{x:court.x+23.2*T,y:court.y+y*T},"#b27c5155",.8);
-    const edge=pt(5.1,3.6),innerW=18*T,innerH=11.8*T;
+      line({x:court.x,y:court.y+y*TILE},{x:court.x+23.2*TILE,y:court.y+y*TILE},"#b27c5155",.8);
+    const edge=pt(5.1,3.6),innerW=18*TILE,innerH=11.8*TILE;
     ctx.strokeStyle="#fff1d6";ctx.lineWidth=5;
     ctx.strokeRect(edge.x,edge.y,innerW,innerH);
     line(pt(14,3.6),pt(14,15.4),"#ffe4aa",3);
@@ -260,9 +260,9 @@ window.createFaamaSports=function createFaamaSports({ctx,storage,canvasWidth=120
     ctx.strokeStyle="#fff0d3";ctx.lineWidth=4;ctx.stroke();
     // Faixas esportivas e cones em posições fixas.
     const track=pt(6,12.25);
-    round(track.x,track.y,16.3*T,3.15*T,12,"#426e8c48","#fff2d655");
+    round(track.x,track.y,16.3*TILE,3.15*TILE,12,"#426e8c48","#fff2d655");
     for(const b of bleachers){
-      const p=pt(b.x,b.y),w=b.w*T,h=b.h*T;
+      const p=pt(b.x,b.y),w=b.w*TILE,h=b.h*TILE;
       round(p.x,p.y,w,h,7,"#435a6a","#d6c19a");
       const rows=b.w>b.h?2:6;
       for(let n=0;n<rows;n++){
