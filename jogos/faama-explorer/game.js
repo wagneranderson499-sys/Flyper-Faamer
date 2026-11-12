@@ -1754,6 +1754,7 @@
       }
       pendingQuestNotice = null;
       closeDialogue();
+      closeRiddle();
       if(interior.active)leaveCentral();
       held.clear();
       quest.restart();
