@@ -26,7 +26,7 @@ window.createFaamaSports=function createFaamaSports({ctx,storage,canvasWidth=120
     x:10.0,y:16.3,skin:"#bd8b66",hair:"#2d2b30",shirt:"#f1af3e"
   };
   const exit={x:14,y:18.45},finish={x:22.2,y:16.1,w:2.3};
-  const player={x:14,y:17.7,walk:0,moving:false,facing:"up"};
+  const player={x:14,y:16.85,walk:0,moving:false,facing:"up"};
   let active=false,elapsedAnim=0,phase="idle",raceTime=0;
   let heldMedals=new Set(),camX=canvasWidth/2,camY=canvasHeight/2;
   function load(){
@@ -65,7 +65,7 @@ window.createFaamaSports=function createFaamaSports({ctx,storage,canvasWidth=120
   }
   function enter(){
     active=true;elapsedAnim=0;
-    player.x=14;player.y=17.7;player.walk=0;player.moving=false;player.facing="up";
+    player.x=14;player.y=16.85;player.walk=0;player.moving=false;player.facing="up";
     resetRun();
   }
   function leave(){
@@ -75,7 +75,7 @@ window.createFaamaSports=function createFaamaSports({ctx,storage,canvasWidth=120
   }
   function start(){
     if(!active)return false;
-    player.x=14;player.y=17.0;player.facing="up";player.walk=0;
+    player.x=14;player.y=16.85;player.facing="up";player.walk=0;
     player.moving=false;
     raceTime=0;heldMedals=new Set();phase="running";
     return true;
