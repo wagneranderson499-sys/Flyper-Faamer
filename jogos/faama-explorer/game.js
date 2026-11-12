@@ -286,6 +286,17 @@
 
 
   function building(b) {
+    if (b.type === "pool") {
+      drawPool(b);
+      drawSiteLabel(b);
+      return;
+    }
+    if (b.type === "sports") {
+      drawSports(b);
+      drawSiteLabel(b);
+      return;
+    }
+
     const footprint = P(b.x + b.w / 2, b.y + b.h / 2);
     ellipse(footprint.x + 9, footprint.y + 11,
       b.w * TW * 0.48, b.h * TH * 0.50, "#163c3440");
@@ -335,7 +346,7 @@
 
     polygon(
       [roofA, roofB, roofC, roofD],
-      b.type === "church" ? "#4e6673" :
+      b.type === "church" ? "#b8673c" :
       b.type === "central" ? "#1e817a" :
       b.roof
     );
@@ -445,6 +456,14 @@
       );
     }
 
+    architecturalFinish(b);
+    drawSiteLabel(b);
+  }
+
+
+
+  // Texto com fundo de alto contraste, reutilizado por todas as estruturas.
+  function drawSiteLabel(b) {
     const center = P(
       b.x + b.w / 2,
       b.y + b.h / 2,
@@ -471,6 +490,159 @@
     ctx.restore();
   }
 
+  function drawPool(b) {
+    // Piscina ao ar livre: deck claro, água translúcida e raias.
+    const margin=.27;
+    const corners=[
+      P(b.x,b.y),P(b.x+b.w,b.y),
+      P(b.x+b.w,b.y+b.h),P(b.x,b.y+b.h)
+    ];
+    polygon(corners,"#b9c7b3","#e6dfb9");
+    polygon([
+      P(b.x+margin,b.y+margin),P(b.x+b.w-margin,b.y+margin),
+      P(b.x+b.w-margin,b.y+b.h-margin),P(b.x+margin,b.y+b.h-margin)
+    ],"#eff1dc","#799f93");
+    polygon([
+      P(b.x+.55,b.y+.52),P(b.x+b.w-.55,b.y+.52),
+      P(b.x+b.w-.55,b.y+b.h-.52),P(b.x+.55,b.y+b.h-.52)
+    ],"#2b9dcd","#b4ebf6");
+    for(let i=1;i<=3;i++) {
+      const t=i/4;
+      line(P(b.x+.65,b.y+.52+(b.h-1.04)*t),
+        P(b.x+b.w-.65,b.y+.52+(b.h-1.04)*t),"#dcfaffb5",1.8);
+    }
+    for(let i=0;i<11;i++) {
+      const x=b.x+.65+seeded(i*5)* (b.w-1.3);
+      const y=b.y+.64+seeded(i*8+4)*(b.h-1.25);
+      const p=P(x,y);
+      const shimmer=Math.sin(time*2.2+i)*2;
+      line({x:p.x-5,y:p.y+shimmer},{x:p.x+6,y:p.y+shimmer},
+        "#d5f5f4a0",1.3);
+    }
+    // Guarda-sóis e espreguiçadeiras afastados da água.
+    for(const [x,y] of [[b.x+.32,b.y+.32],[b.x+b.w-.35,b.y+b.h-.3]]) {
+      const p=P(x,y);
+      ellipse(p.x+2,p.y+2,9,3,"#1f5f6177");
+      line(p,{x:p.x,y:p.y-20},"#f0ead1",2);
+      polygon([{x:p.x-13,y:p.y-17},{x:p.x,y:p.y-26},
+        {x:p.x+13,y:p.y-17}],"#fff7d9","#e4b866");
+      line({x:p.x-6,y:p.y+1},{x:p.x+7,y:p.y+1},"#e9e2cb",4);
+    }
+  }
+
+  function drawSports(b) {
+    const A=P(b.x,b.y),B=P(b.x+b.w,b.y),
+          C=P(b.x+b.w,b.y+b.h),D=P(b.x,b.y+b.h);
+    ellipse(P(b.x+b.w/2,b.y+b.h/2).x+7,
+      P(b.x+b.w/2,b.y+b.h/2).y+9,b.w*TW*.47,14,"#26494555");
+    polygon([A,B,C,D],"#3b9f92","#daf2de");
+    const inner=[
+      P(b.x+.25,b.y+.28),P(b.x+b.w-.25,b.y+.28),
+      P(b.x+b.w-.25,b.y+b.h-.28),P(b.x+.25,b.y+b.h-.28)
+    ];
+    polygon(inner,"#2e86b9","#f7f1dc");
+    line(P(b.x+.2,b.y+b.h/2),P(b.x+b.w-.2,b.y+b.h/2),
+      "#e9f3e8",2.3);
+    for(const x of [b.x+.2,b.x+b.w-.2]) {
+      line(P(x,b.y+.3),P(x,b.y+b.h-.3),"#eaf9f2",1.5);
+    }
+    // Pilares metálicos azuis sustentam o telhado em arco.
+    for(const [x,y] of [[b.x,b.y],[b.x+b.w,b.y],
+                        [b.x,b.y+b.h],[b.x+b.w,b.y+b.h]]) {
+      const p=P(x,y);
+      line(p,{x:p.x,y:p.y-66},"#2263ac",6);
+      ellipse(p.x,p.y,3,2,"#e6f7ff");
+    }
+    const frontLeft=P(b.x,b.y+b.h),frontRight=P(b.x+b.w,b.y+b.h);
+    const backLeft=P(b.x,b.y),backRight=P(b.x+b.w,b.y);
+    const lift=61;
+    const roof=[
+      {x:backLeft.x,y:backLeft.y-lift},
+      {x:backRight.x,y:backRight.y-lift},
+      {x:frontRight.x,y:frontRight.y-lift},
+      {x:frontLeft.x,y:frontLeft.y-lift}
+    ];
+    polygon(roof,"#efe8cb","#296bac");
+    const left={x:frontLeft.x,y:frontLeft.y-15},
+          right={x:frontRight.x,y:frontRight.y-15};
+    ctx.beginPath();
+    ctx.moveTo(left.x,left.y);
+    ctx.quadraticCurveTo((left.x+right.x)/2,
+      Math.min(left.y,right.y)-135,right.x,right.y);
+    ctx.lineTo(right.x,right.y-15);
+    ctx.quadraticCurveTo((left.x+right.x)/2,
+      Math.min(left.y,right.y)-155,left.x,left.y-15);
+    ctx.closePath();
+    ctx.fillStyle="#f0e5c5";
+    ctx.fill();
+    ctx.strokeStyle="#2772b5";
+    ctx.lineWidth=5;ctx.stroke();
+    for(let i=1;i<5;i++) {
+      const t=i/5;
+      const x=left.x+(right.x-left.x)*t;
+      const y=left.y+(right.y-left.y)*t
+        - 4*135*t*(1-t);
+      line({x,y:y-17},{x,y:y+2},"#3170af",2);
+    }
+  }
+
+  function architecturalFinish(b) {
+    // Pisos, portas e linhas de telhado na fachada frontal.
+    const front = (t,h=0)=>P(b.x+b.w*t,b.y+b.h,h);
+    const frontA=front(0),frontB=front(1);
+    if(b.type==="church") {
+      line(front(0,b.z),front(1,b.z),"#a34b2d",5);
+      for(let i=1;i<7;i++) {
+        const t=i/7;
+        line(front(t,b.z+3),front(t+.04,b.z+7),"#e09d62",2);
+      }
+    } else {
+      line(front(0,b.z),front(1,b.z),
+        b.type==="central"?"#287eb2":"#dbe5d0",6);
+      line(front(0,b.z+2),front(1,b.z+2),"#a2c7bf",2);
+    }
+    const levels=b.z>55?[.67,.33]:[.57];
+    for(const level of levels) {
+      for(let i=1;i<=Math.max(2,Math.floor(b.w));i++){
+        const t=i/(Math.max(2,Math.floor(b.w))+1);
+        if(Math.abs(t-.5)<.14 && level<.5)continue;
+        const p=front(t,b.z*level);
+        ctx.fillStyle="#173e5c";
+        ctx.fillRect(p.x-6,p.y-9,13,15);
+        ctx.fillStyle=i%2?"#77bfd2":"#88c4d5";
+        ctx.fillRect(p.x-4,p.y-7,9,10);
+        line({x:p.x,pY:p.y-7,y:p.y-7},{x:p.x,y:p.y+3},
+          "#e2f4e7",1);
+        line({x:p.x-6,y:p.y+7},{x:p.x+7,y:p.y+7},
+          "#e7dfc7",2.4);
+      }
+    }
+    const door=front(.5);
+    const doorColor=b.type==="restaurant"?"#314f59":"#1f5b6f";
+    ctx.fillStyle="#293e3d77";
+    ctx.fillRect(door.x-16,door.y-34,35,36);
+    ctx.fillStyle=doorColor;
+    ctx.fillRect(door.x-14,door.y-34,30,31);
+    ctx.fillStyle="#8ecbd4";
+    ctx.fillRect(door.x-11,door.y-30,24,23);
+    line({x:door.x+2,y:door.y-30},
+      {x:door.x+2,y:door.y-7},"#d2e9e8",1.6);
+    ellipse(door.x+5,door.y-14,1.7,1.7,"#fff5cc");
+    line({x:door.x-19,y:door.y+1},
+      {x:door.x+20,y:door.y+1},"#dcd2b9",4);
+    if(b.type==="central"){
+      ctx.beginPath();
+      ctx.moveTo(door.x-30,door.y-35);
+      ctx.quadraticCurveTo(door.x+1,door.y-68,door.x+33,door.y-35);
+      ctx.strokeStyle="#e27c2f";ctx.lineWidth=11;ctx.stroke();
+      ctx.strokeStyle="#306eaa";ctx.lineWidth=5;ctx.stroke();
+    }
+    if(b.type==="female") {
+      // Grande pórtico avermelhado na entrada envidraçada.
+      const left=front(.1,b.z-.5),right=front(.9,b.z-.5);
+      line(left,right,"#d44a56",7);
+    }
+  }
 
   // Fachadas inspiradas nas fotos do usuário, desenhadas em faces isométricas.
   function buildingDetails(b, A, B, C, D, z) {
