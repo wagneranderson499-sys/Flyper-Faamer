@@ -1,2 +1,160 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root{color-scheme:dark;--bg:#091a1b;--ink:#f1f5e9;--muted:#abc2b6;--line:#35554a;--accent:#d5ee9e}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 55% -20%,#24584a 0%,#102d2b 46%,#071717 100%);color:var(--ink);font-family:'DM Sans',sans-serif}.app{width:min(1360px,96%);margin:auto;padding:20px 0 35px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 17px}.back{text-decoration:none;color:#b6d0be;font-size:12px;font-weight:800;letter-spacing:.07em}.brand{text-align:center}.brand small{font-size:10px;letter-spacing:.3em;color:#adc5b5;font-weight:800}.brand h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(23px,3.2vw,38px);letter-spacing:-.06em;margin:2px 0 0;font-weight:700}.brand em{font-style:normal;color:var(--accent)}.edition{font-size:11px;letter-spacing:.12em;color:#a8c5b7;font-weight:700}.game{background:#173a32;border:1px solid #4a6b55;border-radius:18px;padding:10px;box-shadow:0 22px 70px #0008}.toolbar{display:flex;align-items:center;justify-content:space-between;padding:3px 8px 11px;gap:10px}.tag{font-size:12px;letter-spacing:.08em;font-weight:800}.dot{display:inline-block;background:#a8e47c;width:8px;height:8px;border-radius:50%;margin-right:9px;box-shadow:0 0 12px #b9e48a}.tools{display:flex;align-items:center;gap:7px}.tools button,.hud button{background:#2b5546;border:1px solid #5b8068;border-radius:8px;color:#f2f9ec;font:800 12px 'DM Sans';padding:7px 12px;cursor:pointer}.tools button:hover,.hud button:hover:not(:disabled){background:#47735b}.tools span{font-size:11px;min-width:38px;text-align:center}.viewport{position:relative;overflow:hidden;border:2px solid #69896e;border-radius:12px;background:#a6dbe2}.viewport canvas{display:block;width:100%;height:auto;image-rendering:auto}.hud{position:absolute;bottom:13px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:end;gap:12px;pointer-events:none}.objective{background:#102e2bdc;backdrop-filter:blur(8px);border:1px solid #d5efaa44;padding:12px 15px;border-radius:10px;max-width:380px}.objective small{display:block;color:#b8dc9d;font-weight:800;letter-spacing:.13em;font-size:10px;margin-bottom:4px}.objective strong{font-size:13px;line-height:1.35}.hudright{display:flex;align-items:center;gap:12px}.hudright span{background:#0c2c2cbd;padding:10px;border-radius:8px;font-size:11px}.hud button{pointer-events:auto;background:#d4ef9d;color:#18362a;border-color:#d4ef9d}.hud button:disabled{opacity:.6;cursor:default}.toast{position:absolute;top:18px;left:50%;transform:translateX(-50%);background:#112f2be8;color:#f7ffef;border:1px solid #b2d79a;padding:13px 18px;border-radius:10px;text-align:center;font-size:13px;font-weight:700;max-width:90%;box-shadow:0 10px 30px #0004}.hidden{display:none!important}.fatal{position:absolute;top:20%;left:10%;right:10%;background:#5b1e20;color:#fff;padding:20px;border-radius:12px;z-index:20}.bottom{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:11px 7px 2px;color:#b6d0c0;font-size:11px}.mobile{display:none;text-align:center;margin:15px auto}.mobile button{background:#315d48;color:#fff;border:1px solid #72927b;border-radius:12px;width:62px;height:54px;margin:3px;font-size:20px;touch-action:none;user-select:none}.disclaimer{text-align:center;color:#a8c4b4;font-size:11px;margin-top:15px}@media(max-width:800px){.top{flex-wrap:wrap;justify-content:center}.back,.edition{font-size:10px}.brand{order:-1;width:100%}.hud{left:7px;right:7px;bottom:7px}.objective{padding:7px;max-width:55%}.objective strong{font-size:9px}.objective small{font-size:8px}.hudright{display:block;text-align:right}.hudright span{display:none}.hud button{font-size:9px;padding:7px}.mobile{display:block}.bottom{font-size:10px}.toolbar{font-size:10px}}
+
+/* FAAMA Explorer — HUD da fase visual 2 */
+:root {
+  --bg:#101e2a;
+  --ink:#fff9e9;
+  --muted:#d6d9c2;
+  --accent:#ffda70;
+}
+body {
+  background:radial-gradient(ellipse at 50% -20%,#31586b 0%,#132c33 48%,#0a1926 100%);
+}
+.game {
+  border-color:#c6a05e;
+  background:#18373b;
+  box-shadow:0 25px 75px #020e18aa,inset 0 1px 0 #ffe6ab44;
+}
+.brand em {color:#ffd979}
+.brand h1 {text-shadow:0 3px 15px #050f1677}
+.toolbar {padding:5px 10px 12px}
+.tag {color:#f2dda4}
+.dot {background:#ffdd82;box-shadow:0 0 12px #ffcb63}
+.tools button,.hud button {
+  background:#1b3549;
+  border-color:#d3ac71;
+  color:#fff1ce;
+}
+.tools button:hover,.hud button:hover:not(:disabled) {background:#346176}
+.viewport {
+  border:2px solid #d9b06a;
+  background:#78b7b6;
+  box-shadow:inset 0 0 45px #0b212233;
+}
+.viewport #world {
+  display:block;
+  width:100%;
+  height:auto;
+}
+.player-status,.minimap-panel {
+  position:absolute;
+  z-index:5;
+  top:16px;
+  border:2px solid #e1b66a;
+  border-radius:13px;
+  box-shadow:0 8px 23px #0c22367f;
+  background:linear-gradient(145deg,#16273de8,#101b2de8);
+  color:#fff6d9;
+  pointer-events:none;
+}
+.player-status {
+  left:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:220px;
+  padding:8px 12px 8px 8px;
+}
+.player-avatar {
+  width:58px;height:58px;
+  display:grid;
+  place-items:center;
+  font-size:34px;
+  border-radius:50%;
+  border:2px solid #f2cb7f;
+  background:linear-gradient(140deg,#8bb7a3,#315f75);
+  box-shadow:inset 0 -4px 12px #091b2440;
+}
+.player-stats {display:grid;gap:7px;flex:1}
+.player-stats strong {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;font-size:10px;letter-spacing:.04em
+}
+.player-stats small {font-size:9px;color:#e8b958}
+.stat-line {display:flex;align-items:center;gap:6px;font-weight:800;font-size:16px}
+.stat-line:first-of-type {color:#ff7376}
+.health-bar,.energy-bar {
+  height:10px;
+  border-radius:20px;
+  width:102px;
+  background:#13232b;
+  border:1px solid #e6d5a3;
+  overflow:hidden;
+}
+.health-bar i,.energy-bar i {display:block;width:100%;height:100%;border-radius:20px}
+.health-bar i {background:linear-gradient(90deg,#dc364d,#ff7d73)}
+.energy-bar i {background:linear-gradient(90deg,#258cc5,#72e0f8)}
+.minimap-panel {
+  right:16px;
+  padding:7px 9px 9px;
+  width:185px;
+  text-align:center;
+}
+.minimap-title {
+  display:block;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.14em;
+  padding:2px 0 6px;
+  color:#ffe0a0;
+}
+.viewport .minimap-panel canvas {
+  display:block;
+  width:164px;
+  height:182px;
+  max-width:none;
+  border:1px solid #b8bd8c;
+  border-radius:6px;
+  margin:auto;
+}
+.objective {
+  background:linear-gradient(135deg,#132337ed,#1d3448ed);
+  border:2px solid #c6a15e;
+  box-shadow:0 8px 20px #05172280;
+  border-radius:12px;
+}
+.objective small {color:#f4cf72}
+.objective strong {color:#fffaeb}
+.hudright span {background:#15293be8;border:1px solid #d3af654d}
+.hud button {
+  color:#202f3d;
+  background:linear-gradient(180deg,#ffe19a,#f2bc61);
+  border:1px solid #fff0bc;
+}
+.hud button:hover:not(:disabled) {background:#ffe6ad}
+.toast {
+  top:auto;
+  bottom:92px;
+  z-index:6;
+  background:#12283deb;
+  border-color:#ffd17b;
+  color:#fff9df;
+}
+.bottom {color:#c7d5d0}
+.mobile button {
+  background:#243b51;
+  border-color:#e7be80;
+}
+@media (max-width:800px) {
+  .player-status {
+    top:7px;left:7px;
+    transform:scale(.68);
+    transform-origin:top left;
+  }
+  .minimap-panel {
+    top:7px;right:7px;
+    transform:scale(.62);
+    transform-origin:top right;
+  }
+  .hud {bottom:8px;left:7px;right:7px}
+  .objective {max-width:62%}
+  .objective strong {font-size:9px}
+  .toast {bottom:55px;font-size:11px}
+}
+@media (max-width:430px) {
+  .player-status {transform:scale(.53)}
+  .minimap-panel {transform:scale(.48)}
+  .objective {max-width:66%;padding:6px}
+  .hud button {font-size:8px;padding:5px}
+}
