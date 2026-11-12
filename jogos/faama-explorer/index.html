@@ -27,7 +27,7 @@
                 <aside class="player-status" aria-label="Estado do explorador">
                     <span class="player-avatar" aria-hidden="true">🧑🏻‍🎓</span>
                     <div class="player-stats">
-                        <strong>EXPLORADOR <small>NV. 1</small></strong>
+                        <strong>EXPLORADOR <small>NV. 1 · <span id="xpLabel">0 XP</span></small></strong>
                         <div class="stat-line"><span aria-hidden="true">♥</span><div class="health-bar"><i></i></div></div>
                         <div class="stat-line"><span aria-hidden="true">⚡</span><div class="energy-bar"><i></i></div></div>
                     </div>
@@ -66,8 +66,33 @@
                 <div id="toast" class="toast hidden"></div>
                 <div id="fatal" class="fatal hidden"></div>
             </div>
+            <section class="quest-tracker" aria-label="Diário da Missão 01">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🔑</span>
+                        <div>
+                            <small>MISSÃO 01 · AVENTURA NO CAMPUS</small>
+                            <strong>A Chave Desaparecida</strong>
+                        </div>
+                    </div>
+                    <span class="quest-stage" id="questStage">AGUARDANDO INÍCIO</span>
+                </div>
+                <p class="quest-description" id="questDescription">
+                    Converse com Lia, perto da entrada, para começar.
+                </p>
+                <div class="quest-clues" aria-label="Pistas">
+                    <span id="clue-bilhete">○ Bilhete amassado</span>
+                    <span id="clue-pegadas">○ Pegadas na calçada</span>
+                    <span id="clue-caderno">○ Caderno esquecido</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="questKey">🔒 Chave não encontrada</span>
+                    <span id="questAchievement">🏆 Conquista bloqueada</span>
+                    <small>Progresso salvo neste navegador</small>
+                </div>
+            </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.2 • Campus Vivo</span></div>
+                    você</span><span>FAAMA Explorer 2.3 • A Chave Desaparecida</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -77,6 +102,7 @@
     </main>
     <script src="map-data.js"></script>
     <script src="campus-life.js"></script>
+    <script src="quests.js"></script>
     <script src="game.js"></script>
 </body>
 
