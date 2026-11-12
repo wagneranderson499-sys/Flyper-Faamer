@@ -58,6 +58,45 @@
   const camera = iso(18, 24.5);
 
   const roads = window.FAAMA_MAP.roads;
+  const interior = window.createFaamaInterior({
+    ctx,canvasWidth:SW,canvasHeight:SH
+  });
+  const centralSite = sites.find(s => s.id === "central");
+  const interiorUI = {
+    panel:document.getElementById("interiorStatus"),
+    room:document.getElementById("interiorRoom"),
+    minimap:document.getElementById("minimapPanel")
+  };
+  function nearCentralEntrance(){
+    if(!centralSite)return false;
+    return player.y >= centralSite.y+centralSite.h-.3 &&
+      Math.hypot(player.x-(centralSite.x+centralSite.w/2),
+        player.y-(centralSite.y+centralSite.h+.65))<2.3;
+  }
+  function setInteriorMode(enabled){
+    if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
+    if(interiorUI.minimap)interiorUI.minimap.classList.toggle("hidden",enabled);
+  }
+  function enterCentral(){
+    interior.enter();
+    held.clear();
+    player.moving=false;
+    setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    show("Você entrou no Prédio Central. Explore as salas e converse com Marina!",5);
+  }
+  function leaveCentral(){
+    if(!interior.active)return;
+    interior.leave();
+    held.clear();
+    player.x=centralSite.x+centralSite.w/2;
+    player.y=centralSite.y+centralSite.h+1.30;
+    player.moving=false;
+    nearTalker=null;
+    nearQuestItem=null;
+    setInteriorMode(false);
+    show("Você saiu do Prédio Central e voltou ao campus.",4);
+  }
 
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
@@ -1195,7 +1234,7 @@
   function dialoguePortrait(npc) {
     const icon = {
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
-      daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫"
+      daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -1247,6 +1286,21 @@
       advanceDialogue();
       return;
     }
+    if (interior.active) {
+      const action=interior.interact();
+      if(!action){
+        show("Explore a recepção, as duas salas e os objetos do Prédio Central.",4);
+        return;
+      }
+      if(action.kind==="exit"){
+        leaveCentral();
+      } else if(action.kind==="npc"){
+        openDialogue(action.npc);
+      } else if(action.kind==="object"){
+        show(action.text,6);
+      }
+      return;
+    }
     // Itens da missão têm prioridade apenas quando o jogador está perto.
     nearQuestItem = quest.nearItem(player.x,player.y);
     if (nearQuestItem) {
@@ -1271,6 +1325,12 @@
       } else {
         openDialogue(nearTalker.npc);
       }
+    } else if (near?.id==="central") {
+      if(nearCentralEntrance()){
+        enterCentral();
+      } else {
+        show("Para entrar no Prédio Central, vá até a porta principal, na fachada voltada para a entrada do campus.",5);
+      }
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1279,6 +1339,39 @@
   }
 
   function update(dt) {
+    if(interior.active){
+      if(activeDialogue){
+        held.clear();
+        interior.pause();
+        if(ui.interact){
+          ui.interact.disabled=false;
+          ui.interact.textContent="CONTINUAR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=
+          "Conversa com "+activeDialogue.npc.name;
+      } else {
+        interior.update(dt,held);
+        const spot=interior.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="npc"?"CONVERSAR [E]":
+            spot?.kind==="object"?"EXAMINAR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective){
+          ui.objective.textContent=spot
+            ? "[E] "+(spot.kind==="exit"?"Voltar ao campus":spot.name)
+            : "Explore a recepção, o corredor e as duas salas";
+        }
+      }
+      if(ui.location)ui.location.textContent=
+        "PRÉDIO CENTRAL • "+interior.roomName().toUpperCase();
+      if(interiorUI.room)interiorUI.room.textContent=interior.roomName();
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E interagir • porta de saída";
+      return;
+    }
+
     if (activeDialogue) {
       held.clear();
       player.moving = false;
@@ -1337,7 +1430,8 @@
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
       ui.interact.textContent = nearQuestItem
         ? "INVESTIGAR [E]" : nearTalker
-          ? "CONVERSAR [E]" : "INTERAGIR [E]";
+          ? "CONVERSAR [E]" : near?.id==="central" && nearCentralEntrance()
+            ? "ENTRAR [E]" : "INTERAGIR [E]";
     }
 
     const hint = document.getElementById("hint");
@@ -1363,8 +1457,17 @@
       previous = ms;
       time += dt;
 
-      life.update(dt, player, activeDialogue?.npc.id || null);
+      if(!interior.active){
+        life.update(dt, player, activeDialogue?.npc.id || null);
+      }
       update(dt);
+
+      if(interior.active){
+        interior.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);
+        return;
+      }
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -1514,6 +1617,7 @@
   if (reset) {
     reset.addEventListener("click", () => {
       closeDialogue();
+      if(interior.active)leaveCentral();
       player.x = 20;
       player.y = 42;
       near = nearest();
@@ -1531,6 +1635,7 @@
       }
       pendingQuestNotice = null;
       closeDialogue();
+      if(interior.active)leaveCentral();
       held.clear();
       quest.restart();
       player.x=20;
