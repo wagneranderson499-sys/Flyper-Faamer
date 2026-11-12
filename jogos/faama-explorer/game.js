@@ -168,104 +168,122 @@
     return false;
   }
 
-  const trees = [];
 
+  // A mata é mais densa ao redor do campus, sem tampar o centro e os caminhos.
+  const trees = [];
   for (let y = 1; y < H - 1; y++) {
     for (let x = 1; x < W - 1; x++) {
-      const n = seeded(x * 23 + y * 79);
-
-      const pertoDePredio = sites.some(s =>
-        inside(x, y, s, 1.8)
-      );
-
-      if (n > 0.77 && !pertoDePredio && !roadNear(x, y)) {
+      const noise = seeded(x * 23 + y * 79);
+      const perimeter = x < 4 || x > W-5 || y < 6 || y > H-6;
+      const occupied = sites.some(s => inside(x, y, s, perimeter ? 1 : 2.1));
+      if (occupied || roadNear(x, y)) continue;
+      if (noise > (perimeter ? 0.63 : 0.93)) {
         trees.push({
-          x: x + 0.25,
-          y: y + 0.25,
-          size: 0.75 + seeded(x * 41 + y * 13) * 0.5
+          x: x + 0.15 + seeded(x * 17 + y) * .35,
+          y: y + 0.15 + seeded(y * 13 + x) * .35,
+          size: .72 + seeded(x * 41 + y * 13) * .54,
+          flowering: noise > .981,
+          seed: x * 33 + y * 19
         });
       }
     }
   }
 
   const palms = [
-    { x: 12, y: 25 },
-    { x: 13, y: 29 },
-    { x: 22, y: 24 },
-    { x: 24, y: 28 },
-    { x: 12, y: 35 }
+    {x:12.3,y:25.6},{x:24.4,y:27.9},{x:12.1,y:33.4},
+    {x:24.7,y:35.2},{x:13.1,y:17},{x:22.6,y:17.5},
+    {x:10.5,y:37.3},{x:27,y:23},{x:9.5,y:22.6}
   ];
 
   function ground() {
+    // Diferentes tons de grama criam volume, mesmo sem texturas externas.
+    const colors = ["#7ea85d","#80af62","#8fba68","#75a95b","#97bb6c"];
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
         const n = seeded(x * 7 + y * 47);
-
-        const color =
-          n > 0.91 ? "#8fbf6a" :
-          n > 0.5 ? "#83b962" :
-          "#7caf5c";
-
+        const color = colors[Math.min(colors.length-1,Math.floor(n*colors.length))];
         tile(x, y, color);
+        if (n > .89) {
+          const p=P(x+.36,y+.36);
+          line({x:p.x-3,y:p.y},{x:p.x-1,y:p.y-4},"#65984d",1);
+          line({x:p.x+2,y:p.y},{x:p.x+1,y:p.y-3},"#b0d17b",1);
+        }
       }
     }
-
-    line(P(0, H), P(W, H), "#668c5c", 7);
+    // Margem arborizada do perímetro.
+    line(P(0,H),P(W,H),"#6a995b",7);
   }
 
   function drawRoads() {
+    // Três camadas fazem as calçadas parecerem lajes em vez de traços planos.
     for (const road of roads) {
-      for (let i = 0; i < road.length - 1; i++) {
-        const a = P(...road[i]);
-        const b = P(...road[i + 1]);
-
-        line(a, b, "#7c866e", 30);
-        line(a, b, "#c5bfa4", 24);
-        line(a, b, "#d8ceb3", 19);
+      for (let i=0; i<road.length-1; i++) {
+        const a=P(...road[i]), b=P(...road[i+1]);
+        line({x:a.x+2,y:a.y+3},{x:b.x+2,y:b.y+3},"#33594355",36);
+        line(a,b,"#829b79",32);
+        line(a,b,"#f7e5ba",27);
+        line(a,b,"#d8bfa0",24);
+        line(a,b,"#e9d6b4",20);
+        // Riscos regulares imitam divisões de pedra/piso.
+        const dx=b.x-a.x,dy=b.y-a.y, len=Math.hypot(dx,dy);
+        const nx=-dy/(len||1),ny=dx/(len||1);
+        for(let t=11; t<len-5; t+=13) {
+          const px=a.x+dx*t/len,py=a.y+dy*t/len;
+          line({x:px+nx*7,y:py+ny*7},{x:px-nx*7,y:py-ny*7},
+            "#b9997a55",1);
+        }
       }
     }
-
-    // PA-391 horizontal na base do mapa, como na foto aprovada.
-    const roadY = P(18, 45).y;
-    const a = { x: P(-4, 45).x, y: roadY };
-    const b = { x: P(48, 45).x, y: roadY };
-
-    line(a, b, "#334a53", 58);
-    line(a, b, "#c7c7b6", 52);
-    line(a, b, "#566674", 46);
-    // Linha central segmentada da rodovia.
-    for (let x = a.x + 16; x < b.x - 18; x += 58) {
-      line({x, y: roadY}, {x:x+28, y:roadY}, "#f4d980", 2.5);
+    // Rodovia PA-391 ao sul do portão.
+    const yRoad=P(18,45).y;
+    const start=P(-4,45).x, end=P(48,45).x;
+    line({x:start,y:yRoad},{x:end,y:yRoad},"#34454b",64);
+    line({x:start,y:yRoad},{x:end,y:yRoad},"#d7d9c8",57);
+    line({x:start,y:yRoad},{x:end,y:yRoad},"#65717b",51);
+    line({x:start,y:yRoad-21},{x:end,y:yRoad-21},"#eee7b9",1.6);
+    line({x:start,y:yRoad+21},{x:end,y:yRoad+21},"#eee7b9",1.6);
+    for(let x=start+18;x<end-18;x+=58) {
+      line({x,y:yRoad},{x:x+28,y:yRoad},"#f4da87",3);
     }
   }
 
-  function garden(x, y, r = 1) {
-    const p = P(x, y);
+  function garden(x,y,r=1) {
+    const p=P(x,y);
+    ellipse(p.x+2,p.y+4,18*r,7*r,"#315f3b66");
+    ellipse(p.x,p.y,18*r,8*r,"#f8dfa7");
+    ellipse(p.x,p.y-2,15*r,6*r,"#418c50");
+    for(let i=0;i<11;i++){
+      const n=seeded(i*33+x*9+y*13),a=i*Math.PI*2/11;
+      const xx=p.x+Math.cos(a)*12*r*n;
+      const yy=p.y-2+Math.sin(a)*4*r*n;
+      ellipse(xx,yy,2.5*r,1.8*r,
+        i%3===0?"#f9f5b6":i%3===1?"#f7a2c5":"#f5c66e");
+      ellipse(xx-.7,yy-.8,.65*r,.65*r,"#fff6df");
+    }
+  }
 
-    ellipse(p.x, p.y, r * TW * 0.5, r * TH * 0.55, "#cfc7a4");
-    ellipse(p.x, p.y - 2, r * TW * 0.39, r * TH * 0.42, "#438a50");
-
-    for (let i = 0; i < 5; i++) {
-      const a = i * 1.256;
-
-      ellipse(
-        p.x + Math.cos(a) * r * 7,
-        p.y - 2 + Math.sin(a) * r * 3,
-        2.6,
-        1.8,
-        i % 2 ? "#edc978" : "#f6e8c2"
-      );
+  function plazaPaving(x1,y1,x2,y2) {
+    polygon([P(x1,y1),P(x2,y1),P(x2,y2),P(x1,y2)],"#f0d7b1","#bb9975");
+    for(let y=y1+.6;y<y2;y+=.95){
+      line(P(x1+.15,y),P(x2-.15,y),"#cda88577",.9);
+    }
+    for(let x=x1+.5;x<x2;x+=1.35){
+      line(P(x,y1+.2),P(x,y2-.2),"#cda88550",.8);
     }
   }
 
   function plazas() {
-    garden(16, 29, 2.5);
-    garden(17, 30, 1.1);
-    garden(14, 32, 1.2);
-    garden(18, 33, 1.1);
-    garden(10, 24, 1.1);
-    garden(12, 22, 1.1);
+    // Praça central e caminhos de entrada; sem mudar os edifícios.
+    plazaPaving(14.7,29.2,23.3,36.1);
+    garden(13.7,30.2,1.1);
+    garden(24.4,30.1,1.1);
+    garden(14.4,34.8,.95);
+    garden(23.6,34.6,.95);
+    garden(12.1,24.1,.85);
+    garden(25.3,24.4,.95);
+    garden(10.6,19.9,.9);
   }
+
 
   function building(b) {
     const footprint = P(b.x + b.w / 2, b.y + b.h / 2);
