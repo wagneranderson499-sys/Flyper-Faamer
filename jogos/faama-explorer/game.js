@@ -2285,6 +2285,8 @@
       closeDialogue();
       closeRiddle();
       closeAcademicQuiz();
+      closeFood();
+      if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
       if(academic.active)leaveAcademic();
@@ -2307,6 +2309,8 @@
       closeDialogue();
       closeRiddle();
       closeAcademicQuiz();
+      closeFood();
+      if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
       if(academic.active)leaveAcademic();
@@ -2373,6 +2377,25 @@
     });
   }
 
+  const restaurantQuestRestart=document.getElementById("restaurantQuestRestart");
+  if(restaurantQuestRestart){
+    restaurantQuestRestart.addEventListener("click",()=>{
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar O Restaurante Misterioso? O andamento dos pedidos, o recorde, os 200 XP e a conquista serão apagados. As Missões 01–04 serão preservadas."))return;
+      pendingRestaurantStart=false;
+      closeDialogue();
+      closeFood();
+      restaurant.reset();
+      refreshRestaurantUI();
+      show("Missão 05 reiniciada. Converse com Clara para começar novamente.",5);
+    });
+  }
+  if(foodUI.close)foodUI.close.addEventListener("click",closeFood);
+  if(foodUI.prepare)foodUI.prepare.addEventListener("click",prepareFood);
+  foodUI.choices.forEach(btn=>{
+    btn.addEventListener("click",()=>selectFood(btn.dataset.foodId));
+  });
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
@@ -2399,6 +2422,7 @@
   refreshIndoorQuestUI();
   refreshAcademicUI();
   refreshSportsUI();
+  refreshRestaurantUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
