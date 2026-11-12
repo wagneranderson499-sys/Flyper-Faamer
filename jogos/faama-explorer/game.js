@@ -225,14 +225,18 @@
       }
     }
 
-    // PA-391 ao sul da entrada
-    const a = P(-2, 45);
-    const b = P(36, 45);
+    // PA-391 horizontal na base do mapa, como na foto aprovada.
+    const roadY = P(18, 45).y;
+    const a = { x: P(-4, 45).x, y: roadY };
+    const b = { x: P(48, 45).x, y: roadY };
 
-    line(a, b, "#6c7372", 48);
-    line(a, b, "#d0d1bc", 43);
-    line(a, b, "#626b70", 35);
-    line(a, b, "#e3d6a3", 2);
+    line(a, b, "#334a53", 58);
+    line(a, b, "#c7c7b6", 52);
+    line(a, b, "#566674", 46);
+    // Linha central segmentada da rodovia.
+    for (let x = a.x + 16; x < b.x - 18; x += 58) {
+      line({x, y: roadY}, {x:x+28, y:roadY}, "#f4d980", 2.5);
+    }
   }
 
   function garden(x, y, r = 1) {
