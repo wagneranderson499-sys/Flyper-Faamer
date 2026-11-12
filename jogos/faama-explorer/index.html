@@ -52,6 +52,12 @@
                     </div>
                     <div class="sports-progress"><i id="sportsMedalBar"></i></div>
                 </aside>
+                <aside id="restaurantHUD" class="restaurant-hud hidden" aria-label="Pedidos do Restaurante">
+                    <div class="restaurant-hud-top"><span>🍽️ RESTAURANTE MISTERIOSO</span><strong id="restaurantTimer">180,0s</strong></div>
+                    <p id="restaurantHUDOrder">Converse com Clara para começar</p>
+                    <div class="restaurant-hud-row"><strong id="restaurantDelivered">0 / 5 pedidos</strong><span id="restaurantHUDState">Aguardando</span></div>
+                    <div class="restaurant-progress"><i id="restaurantProgressBar"></i></div>
+                </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
                             o Prédio Central</strong></div>
@@ -107,6 +113,24 @@
                     </div>
                     <p id="academicQuizFeedback" class="riddle-feedback" aria-live="polite">Selecione uma das opções. Use 1, 2 ou 3.</p>
                 </section>
+                <section id="restaurantCooking" class="restaurant-cooking hidden" role="dialog" aria-modal="true"
+                  aria-labelledby="restaurantCookingTitle" aria-describedby="restaurantCookingHint">
+                    <div class="restaurant-cooking-header">
+                      <div>
+                        <small>🍳 COZINHA DO RESTAURANTE</small>
+                        <strong id="restaurantCookingTitle">Preparar o pedido</strong>
+                      </div>
+                      <button id="restaurantCookingClose" type="button" aria-label="Fechar preparo">×</button>
+                    </div>
+                    <p id="restaurantCookingHint">Selecione exatamente três ingredientes.</p>
+                    <p id="restaurantCookingCustomer" class="restaurant-customer">Pedido do estudante</p>
+                    <div id="restaurantIngredients" class="restaurant-ingredients" role="group" aria-label="Escolher ingredientes"></div>
+                    <div class="restaurant-cooking-bottom">
+                      <span id="restaurantSelectedCount">0 de 3 ingredientes</span>
+                      <button id="restaurantPrepare" type="button">Preparar prato</button>
+                    </div>
+                    <p id="restaurantCookingFeedback" class="restaurant-feedback" aria-live="polite"></p>
+                  </section>
                 <div id="toast" class="toast hidden"></div>
                 <div id="fatal" class="fatal hidden"></div>
             </div>
@@ -216,8 +240,32 @@
                       title="Apagar recorde e recompensa do circuito">Recomeçar missão 04</button>
                 </div>
             </section>
+            <section class="quest-tracker quest-restaurant" aria-label="Diário da Missão 05">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🍽️</span>
+                        <div>
+                            <small>MISSÃO 05 · RESTAURANTE DA FAAMA</small>
+                            <strong>O Restaurante Misterioso</strong>
+                        </div>
+                    </div>
+                    <span class="quest-stage" id="restaurantQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="restaurantQuestDescription" class="quest-description">Converse com Clara para preparar cinco pedidos vegetarianos.</p>
+                <div class="quest-clues">
+                    <span id="restaurantQuestOrders">🍴 Pedidos entregues: 0 / 5</span>
+                    <span id="restaurantQuestErrors">⚠️ Erros: 0</span>
+                    <span id="restaurantBestTime">⏱️ Recorde: —</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="restaurantQuestAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP na primeira vitória · Tempo limite: 180s</small>
+                    <button id="restaurantQuestRestart" class="quest-restart" type="button"
+                      title="Apagar o recorde, o progresso e a recompensa da Missão 05">Recomeçar missão 05</button>
+                </div>
+            </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.7 • Circuito dos Campeões</span></div>
+                    você</span><span>FAAMA Explorer 2.8 • O Restaurante Misterioso</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -232,6 +280,7 @@
     <script src="indoor-quest.js"></script>
     <script src="academic.js"></script>
     <script src="sports.js"></script>
+    <script src="restaurant.js"></script>
     <script src="game.js"></script>
 </body>
 
