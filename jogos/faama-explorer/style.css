@@ -158,3 +158,139 @@ body {
   .objective {max-width:66%;padding:6px}
   .hud button {font-size:8px;padding:5px}
 }
+
+/* FAAMA Explorer 2.2 — conversas com NPCs */
+.npc-dialogue {
+  position:absolute;
+  z-index:20;
+  left:50%;
+  bottom:102px;
+  transform:translateX(-50%);
+  width:min(620px,calc(100% - 30px));
+  color:#fff7df;
+  border:2px solid #e5bd79;
+  border-radius:16px;
+  overflow:hidden;
+  background:linear-gradient(145deg,#213c50f5,#142b3ef7);
+  box-shadow:0 22px 60px #07141bce, inset 0 1px 0 #ffecc544;
+  pointer-events:auto;
+  animation:dialogue-pop .18s ease-out;
+}
+.dialogue-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#0e2435a9;
+  border-bottom:1px solid #cba56777;
+  padding:9px 15px;
+  color:#ffe09c;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.dialogue-close {
+  border:1px solid #dbbb8188;
+  border-radius:8px;
+  background:#28445a;
+  color:#fdf3d6;
+  width:30px;
+  height:30px;
+  cursor:pointer;
+  font-size:21px;
+  line-height:1;
+}
+.dialogue-close:hover,.dialogue-close:focus-visible {
+  background:#40637a;
+  outline:2px solid #fce0a5;
+  outline-offset:1px;
+}
+.dialogue-content {
+  display:flex;
+  align-items:center;
+  gap:17px;
+  padding:18px;
+  min-height:130px;
+}
+.dialogue-portrait {
+  flex:none;
+  width:83px;
+  height:83px;
+  display:grid;
+  place-items:center;
+  font-size:46px;
+  border:2px solid #edc780;
+  border-radius:14px;
+  background:linear-gradient(135deg,#66938e,#315675);
+  box-shadow:inset 0 -6px 18px #132a3a55;
+}
+.dialogue-copy {flex:1;min-width:0}
+.dialogue-identity {
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-bottom:10px;
+}
+.dialogue-identity strong {font-size:19px;line-height:1.25}
+.dialogue-identity span {
+  color:#c8e3d7;
+  font-size:10px;
+  letter-spacing:.04em;
+}
+.dialogue-copy p {
+  margin:0;
+  color:#f3efe0;
+  font-size:14px;
+  line-height:1.6;
+}
+.dialogue-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-top:1px solid #cba5675f;
+  padding:10px 15px;
+}
+.dialogue-footer small {
+  color:#c9d9d1;
+  font-size:10px;
+  line-height:1.4;
+}
+.dialogue-footer button {
+  flex:none;
+  border:1px solid #ffeeaf;
+  border-radius:9px;
+  padding:10px 17px;
+  background:linear-gradient(180deg,#ffe7a5,#e8b96a);
+  color:#20313f;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.dialogue-footer button:hover,.dialogue-footer button:focus-visible{
+  background:#fff0bc;
+  outline:2px solid #fff0bc;
+  outline-offset:2px;
+}
+@keyframes dialogue-pop {
+  from {opacity:0;transform:translate(-50%,12px) scale(.98)}
+  to {opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@media(max-width:800px){
+  .npc-dialogue {bottom:46px;width:calc(100% - 14px);border-radius:11px}
+  .dialogue-heading {padding:6px 9px;font-size:8px}
+  .dialogue-content {gap:8px;padding:9px;min-height:90px}
+  .dialogue-portrait {width:47px;height:52px;font-size:27px;border-radius:9px}
+  .dialogue-identity {gap:5px;margin-bottom:4px}
+  .dialogue-identity strong {font-size:13px}
+  .dialogue-identity span {font-size:8px}
+  .dialogue-copy p {font-size:10px;line-height:1.45}
+  .dialogue-footer {padding:6px 9px;gap:7px}
+  .dialogue-footer small {font-size:8px}
+  .dialogue-footer button {padding:7px 9px;font-size:9px}
+}
+@media(max-width:450px){
+  .dialogue-portrait {display:none}
+  .dialogue-footer small {max-width:52%}
+}
