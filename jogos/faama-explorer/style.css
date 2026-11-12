@@ -294,3 +294,111 @@ body {
   .dialogue-portrait {display:none}
   .dialogue-footer small {max-width:52%}
 }
+
+/* FAAMA Explorer 2.3 — diário de missão independente do Canvas */
+.quest-tracker{
+  display:grid;
+  gap:11px;
+  margin:13px 2px 3px;
+  padding:15px 18px;
+  border:1px solid #b8945e;
+  border-radius:15px;
+  background:linear-gradient(125deg,#163444,#263f4b 56%,#1b3440);
+  box-shadow:inset 0 1px 0 #f9ddb233,0 7px 24px #07161e44;
+}
+.quest-tracker-heading{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.quest-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.quest-medallion{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  font-size:23px;
+  border:2px solid #e5bc6b;
+  border-radius:13px;
+  background:#3a5262;
+}
+.quest-title small{
+  display:block;
+  margin-bottom:3px;
+  font-weight:800;
+  font-size:9px;
+  letter-spacing:.12em;
+  color:#cbd9ca;
+}
+.quest-title strong{color:#ffdfa1;font-size:17px;letter-spacing:-.02em}
+.quest-stage{
+  display:inline-flex;
+  border:1px solid #d9be7b;
+  padding:7px 10px;
+  border-radius:30px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.07em;
+  background:#273c42;
+  color:#fff0c2;
+}
+.quest-description{
+  margin:0;
+  font-size:12px;
+  line-height:1.55;
+  color:#e6eddc;
+}
+.quest-clues{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+.quest-clues span,
+.quest-inventory > span{
+  display:block;
+  padding:9px 12px;
+  border-radius:9px;
+  border:1px solid #c9d1b447;
+  background:#112c38b8;
+  color:#e4ebda;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.5;
+}
+.quest-clues span.complete,
+.quest-inventory > span.complete{
+  color:#e3ffdb;
+  border-color:#8ec68399;
+  background:#345c4a;
+}
+.quest-inventory{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+.quest-inventory > span{flex:0 0 auto}
+.quest-inventory small{
+  margin-left:auto;
+  color:#b7ceba;
+  font-size:10px;
+}
+.player-stats #xpLabel{
+  color:#ffdf8b;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:800px){
+  .quest-tracker{padding:11px;gap:9px}
+  .quest-title strong{font-size:14px}
+  .quest-medallion{width:36px;height:36px;font-size:19px}
+  .quest-clues{grid-template-columns:1fr}
+  .quest-clues span{padding:6px 9px;font-size:10px}
+  .quest-inventory > span{font-size:10px;padding:7px 9px}
+  .quest-inventory small{margin-left:0;width:100%}
+}
