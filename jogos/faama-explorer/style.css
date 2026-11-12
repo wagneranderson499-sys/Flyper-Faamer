@@ -470,3 +470,69 @@ body {
   .interior-status strong{font-size:10px}
   .interior-status span{display:none}
 }
+
+/* FAAMA Explorer 2.5 — enigma interativo e diário da Missão 02 */
+.quest-two{
+  margin-top:13px;
+  border-color:#72ae9f;
+  background:linear-gradient(120deg,#163c46,#28464e 55%,#183745);
+}
+.quest-two .quest-medallion {border-color:#83d6c5}
+.quest-two .quest-title strong {color:#a4eee0}
+.quest-two .quest-stage {border-color:#83d6c5;color:#b8f7e8}
+.riddle-modal {
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  z-index:30;
+  width:min(490px,calc(100% - 24px));
+  padding:18px;
+  border:2px solid #f4c97e;
+  border-radius:16px;
+  background:linear-gradient(145deg,#172f41,#294756);
+  box-shadow:0 17px 80px #06151de9;
+  color:#fff4d7;
+}
+.riddle-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.riddle-heading strong{font-size:18px}
+.riddle-heading button{
+  width:30px;height:30px;border-radius:7px;
+  border:1px solid #b9cad0;
+  background:#254257;color:#fff0cf;
+  font-size:20px;cursor:pointer;
+}
+.riddle-modal p{font-size:13px;line-height:1.6;color:#e0ebe5}
+.riddle-choices{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin:16px 0;
+}
+.riddle-choices button{
+  display:flex;flex-direction:column;align-items:center;
+  padding:14px 8px;
+  border:1px solid #edc67b;
+  border-radius:9px;
+  background:linear-gradient(180deg,#f6dc9a,#d9ab67);
+  color:#283e4b;
+  font-weight:900;font-size:16px;
+  cursor:pointer;
+}
+.riddle-choices button small{font-size:9px;margin-top:4px;opacity:.75}
+.riddle-choices button:hover,.riddle-choices button:focus-visible {
+  background:#fff0c2;outline:2px solid #b6f3dc;outline-offset:1px;
+}
+.riddle-feedback {min-height:24px;margin:8px 0 0;color:#ffdfaa!important}
+@media(max-width:800px){
+  .riddle-modal{padding:12px;border-radius:11px}
+  .riddle-heading strong{font-size:14px}
+  .riddle-modal p{font-size:11px}
+  .riddle-choices{gap:5px}
+  .riddle-choices button{font-size:13px;padding:9px 3px}
+}
