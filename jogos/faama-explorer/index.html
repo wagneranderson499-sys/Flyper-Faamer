@@ -41,6 +41,17 @@
                     <strong id="interiorRoom">Recepção</strong>
                     <span>Explore as duas salas, converse e volte pela saída [E]</span>
                 </aside>
+                <aside id="sportsHUD" class="sports-hud hidden" aria-label="Circuito dos Campeões em andamento">
+                    <div class="sports-hud-top">
+                        <span>🏆 CIRCUITO DOS CAMPEÕES</span>
+                        <strong id="sportsTimer" aria-live="off">90,0s</strong>
+                    </div>
+                    <div class="sports-hud-line">
+                        <strong id="sportsMedalCount">0 / 5 medalhas</strong>
+                        <span id="sportsRaceState">Converse com Rafael para começar</span>
+                    </div>
+                    <div class="sports-progress"><i id="sportsMedalBar"></i></div>
+                </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
                             o Prédio Central</strong></div>
@@ -179,8 +190,34 @@
                       title="Recomeçar somente o desafio acadêmico">Recomeçar missão 03</button>
                 </div>
             </section>
+            <section class="quest-tracker quest-sports" aria-label="Diário da Missão 04">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🏅</span>
+                        <div>
+                            <small>MISSÃO 04 · COMPLEXO ESPORTIVO</small>
+                            <strong>Circuito dos Campeões</strong>
+                        </div>
+                    </div>
+                    <span class="quest-stage" id="sportsQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="sportsQuestDescription" class="quest-description">
+                    Converse com Rafael no ginásio e complete o circuito com cinco medalhas.
+                </p>
+                <div class="quest-clues sports-quest-stats">
+                    <span id="sportsQuestMedals">🏅 Medalhas: 0 / 5</span>
+                    <span id="sportsBestTime">⏱️ Recorde: —</span>
+                    <span id="sportsQuestTime">⏳ Limite: 90 segundos</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="sportsAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP na primeira vitória</small>
+                    <button id="sportsQuestRestart" class="quest-restart" type="button"
+                      title="Apagar recorde e recompensa do circuito">Recomeçar missão 04</button>
+                </div>
+            </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.6 • Desafio do Conhecimento</span></div>
+                    você</span><span>FAAMA Explorer 2.7 • Circuito dos Campeões</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -194,6 +231,7 @@
     <script src="interior.js"></script>
     <script src="indoor-quest.js"></script>
     <script src="academic.js"></script>
+    <script src="sports.js"></script>
     <script src="game.js"></script>
 </body>
 
