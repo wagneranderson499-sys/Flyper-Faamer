@@ -86,7 +86,9 @@ window.createFaamaInterior = function createFaamaInterior({ctx, canvasWidth=1200
   }
   const radius=.28;
   function blocked(x,y) {
-    if(!rooms.some(r=>inside(r,x,y,radius)))return true;
+    // As áreas se encontram nas portas; a margem fica nas paredes físicas,
+    // não nos limites de cada sala (senão haveria faixas invisíveis bloqueadas).
+    if(!rooms.some(r=>inside(r,x,y,0)))return true;
     if(walls.some(s=>segmentDistance(x,y,s)<radius+.15))return true;
     if(furniture.some(f=>x>f.x-radius && x<f.x+f.w+radius &&
         y>f.y-radius && y<f.y+f.h+radius))return true;
