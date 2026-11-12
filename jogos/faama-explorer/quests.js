@@ -7,7 +7,7 @@ window.createFaamaQuest = function createFaamaQuest({ ctx, P, storage }) {
   const clueData = [
     {id:"bilhete",name:"Bilhete amassado",x:15.4,y:33.1,
       detail:"O bilhete diz: 'Passei pela praça perto do Prédio Central...'."},
-    {id:"pegadas",name:"Pegadas na calçada",x:23.0,y:34.0,
+    {id:"pegadas",name:"Pegadas na calçada",x:22.5,y:34.0,
       detail:"As pegadas seguem até o caminho que leva à entrada do Prédio Central."},
     {id:"caderno",name:"Caderno esquecido",x:18.5,y:29.6,
       detail:"Uma anotação no caderno: 'Deixei a chave perto da porta central!'."}
