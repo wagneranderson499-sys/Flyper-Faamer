@@ -62,10 +62,12 @@
     ctx,canvasWidth:SW,canvasHeight:SH
   });
   const centralSite = sites.find(s => s.id === "central");
+  const academicSite = sites.find(s => s.id === "academic");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
-    minimap:document.getElementById("minimapPanel")
+    minimap:document.getElementById("minimapPanel"),
+    building:document.getElementById("interiorBuilding")
   };
   function nearCentralEntrance(){
     if(!centralSite)return false;
@@ -76,11 +78,19 @@
       Math.hypot(player.x-(centralSite.x+centralSite.w/2),
         player.y-(centralSite.y+centralSite.h+.65))<1.45;
   }
+  function nearAcademicEntrance(){
+    if(!academicSite)return false;
+    const cx=academicSite.x+academicSite.w/2;
+    const y=academicSite.y+academicSite.h;
+    return player.y >= y-.15 && player.y <= y+1.3 &&
+      Math.hypot(player.x-cx,player.y-(y+.65))<1.45;
+  }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
     if(interiorUI.minimap)interiorUI.minimap.classList.toggle("hidden",enabled);
   }
   function enterCentral(){
+    if(interiorUI.building)interiorUI.building.textContent="🏛️ PRÉDIO CENTRAL • INTERIOR";
     interior.enter();
     held.clear();
     player.moving=false;
@@ -101,6 +111,27 @@
     show("Você saiu do Prédio Central e voltou ao campus.",4);
   }
 
+  function enterAcademic(){
+    if(interiorUI.building)interiorUI.building.textContent="🎓 PRÉDIO ACADÊMICO • INTERIOR";
+    academic.enter();
+    held.clear();
+    player.moving=false;
+    setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    show("Bem-vindo ao Prédio Acadêmico! Converse com a professora Helena.",5);
+  }
+  function leaveAcademic(){
+    if(!academic.active)return;
+    academic.leave();
+    held.clear();
+    player.x=academicSite.x+academicSite.w/2;
+    player.y=academicSite.y+academicSite.h+1.25;
+    player.moving=false;
+    nearTalker=null;
+    nearQuestItem=null;
+    setInteriorMode(false);
+    show("Você voltou ao campus pelo Prédio Acadêmico.",4);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -118,6 +149,74 @@
   const indoorQuest = window.createFaamaIndoorQuest({
     storage:questStorage,firstQuest:quest
   });
+  const academic = window.createFaamaAcademic({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const academicUI={
+    stage:document.getElementById("academicQuestStage"),
+    description:document.getElementById("academicDescription"),
+    quadro:document.getElementById("academicStationQuadro"),
+    catalogo:document.getElementById("academicStationCatalogo"),
+    terminal:document.getElementById("academicStationTerminal"),
+    achievement:document.getElementById("academicAchievement")
+  };
+  const academicQuizUI={
+    root:document.getElementById("academicQuiz"),
+    title:document.getElementById("academicQuizTitle"),
+    question:document.getElementById("academicQuestion"),
+    feedback:document.getElementById("academicQuizFeedback"),
+    close:document.getElementById("academicQuizClose"),
+    options:[...document.querySelectorAll("[data-academic-answer]")]
+  };
+  let activeAcademicQuiz=null;
+  function refreshAcademicUI(){
+    const p=academic.progress();
+    const labels={ready:"DISPONÍVEL",challenges:"3 DESAFIOS",return:"VOLTAR À PROFESSORA",completed:"CONCLUÍDA"};
+    if(academicUI.stage)academicUI.stage.textContent=labels[p.stage];
+    if(academicUI.description)academicUI.description.textContent=p.objective;
+    for(const st of p.stations){
+      const node=academicUI[st.id];
+      if(node){
+        node.textContent=(st.done?"✓ ":"○ ")+st.name;
+        node.classList.toggle("complete",st.done);
+      }
+    }
+    if(academicUI.achievement){
+      academicUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      academicUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+p.xp)+" XP";
+  }
+  function closeAcademicQuiz(){
+    if(!activeAcademicQuiz)return;
+    activeAcademicQuiz=null;
+    academicQuizUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function openAcademicQuiz(station){
+    activeAcademicQuiz=station;
+    held.clear();
+    academic.pause();
+    academicQuizUI.title.textContent="🎓 "+station.name;
+    academicQuizUI.question.textContent=station.question;
+    academicQuizUI.feedback.textContent="Escolha uma resposta. Você pode usar as teclas 1, 2 e 3.";
+    academicQuizUI.options.forEach((button,index)=>{
+      button.textContent=(index+1)+". "+station.choices[index];
+    });
+    academicQuizUI.root.classList.remove("hidden");
+  }
+  function answerAcademicQuiz(index){
+    if(!activeAcademicQuiz)return;
+    const result=academic.answer(activeAcademicQuiz.id,index);
+    if(result.correct){
+      closeAcademicQuiz();
+      refreshAcademicUI();
+      show(result.message,6);
+    }else if(!result.ignored){
+      academicQuizUI.feedback.textContent=result.message;
+    }
+  }
   const indoorQuestUI = {
     stage:document.getElementById("indoorQuestStage"),
     description:document.getElementById("indoorQuestDescription"),
@@ -160,8 +259,7 @@
         "🏆 "+progress.achievement:"🏆 Conquista bloqueada";
       indoorQuestUI.achievement.classList.toggle("complete",progress.completed);
     }
-    if(questUI.xp)questUI.xp.textContent=
-      (quest.progress().xp+progress.xp)+" XP";
+    refreshAcademicUI();
   }
   function closeRiddle(){
     if(!riddleOpen)return;
@@ -1311,7 +1409,8 @@
   function dialoguePortrait(npc) {
     const icon = {
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
-      daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼"
+      daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
+      helena: "👩🏽‍🏫"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -1363,6 +1462,29 @@
       advanceDialogue();
       return;
     }
+    if(academic.active){
+      if(activeAcademicQuiz)return;
+      const action=academic.nearest();
+      if(!action){
+        show(academic.objective(),4);
+        return;
+      }
+      if(action.kind==="exit"){
+        leaveAcademic();
+      }else if(action.kind==="npc"){
+        const result=academic.talk();
+        openDialogue({...action.npc,lines:result.lines});
+        if(result.changed){
+          refreshAcademicUI();
+          pendingQuestNotice=result.message||null;
+        }
+      }else if(action.kind==="station"){
+        const result=academic.inspect(action.id);
+        if(result?.quiz)openAcademicQuiz(result.quiz);
+        else if(result?.message)show(result.message,5);
+      }
+      return;
+    }
     if (interior.active) {
       if(riddleOpen)return;
       const action=interior.interact();
@@ -1394,6 +1516,10 @@
     }
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="academic"&&nearAcademicEntrance()) {
+      enterAcademic();
+      return;
+    }
     if (near?.id==="central"&&nearCentralEntrance()) {
       enterCentral();
       return;
@@ -1423,6 +1549,8 @@
       }
     } else if (near?.id==="central") {
       show("Para entrar no Prédio Central, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
+    } else if (near?.id==="academic") {
+      show("Para entrar no Prédio Acadêmico, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1431,6 +1559,38 @@
   }
 
   function update(dt) {
+    if(academic.active){
+      if(activeAcademicQuiz){
+        held.clear();
+        academic.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="Responda ao Desafio do Conhecimento";
+      } else if(activeDialogue){
+        held.clear();
+        academic.pause();
+        if(ui.interact){
+          ui.interact.disabled=false;
+          ui.interact.textContent="CONTINUAR [E]";
+        }
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      } else {
+        academic.update(dt,held);
+        const spot=academic.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="npc"?"CONVERSAR [E]":
+            spot?.kind==="station"?"RESPONDER [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=
+          spot?"[E] "+(spot.kind==="exit"?"Voltar ao campus":spot.name):academic.objective();
+      }
+      if(ui.location)ui.location.textContent="PRÉDIO ACADÊMICO • "+academic.roomName().toUpperCase();
+      if(interiorUI.room)interiorUI.room.textContent=academic.roomName();
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E interagir • provas e biblioteca";
+      return;
+    }
     if(interior.active){
       if(riddleOpen){
         held.clear();
@@ -1529,16 +1689,19 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="central"&&nearCentralEntrance()
-        ? "ENTRAR [E]" : nearQuestItem
+      ui.interact.textContent = near?.id==="academic"&&nearAcademicEntrance()
+        ? "ENTRAR [E]" : near?.id==="central"&&nearCentralEntrance()
+          ? "ENTRAR [E]" : nearQuestItem
           ? "INVESTIGAR [E]" : nearTalker
             ? "CONVERSAR [E]" : "INTERAGIR [E]";
     }
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="central"&&nearCentralEntrance()
-        ? "[E] Entrar no Prédio Central"
+      hint.textContent = near?.id==="academic"&&nearAcademicEntrance()
+        ? "[E] Entrar no Prédio Acadêmico"
+        : near?.id==="central"&&nearCentralEntrance()
+          ? "[E] Entrar no Prédio Central"
         : nearQuestItem
           ? "[E] Investigar: "+nearQuestItem.item.name
           : nearTalker
@@ -1553,7 +1716,9 @@
         (indoorQuest.stage()==="ready"
           ? "Missão 02 liberada! Entre no Prédio Central e converse com Marina."
           : indoorQuest.stage()==="completed"
-            ? "Duas missões concluídas! Explore o campus."
+            ? academic.stage()==="completed"
+              ? "Três missões concluídas! Explore o campus."
+              : "Prédio Acadêmico: converse com a professora Helena."
             : "Missão 02: continue a investigação no Prédio Central.")
         : quest.objective();
     }
@@ -1566,11 +1731,17 @@
       previous = ms;
       time += dt;
 
-      if(!interior.active){
+      if(!interior.active&&!academic.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
 
+      if(academic.active){
+        academic.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);
+        return;
+      }
       if(interior.active){
         interior.draw(time,zoom,indoorQuest.markers());
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
@@ -1668,6 +1839,12 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(activeAcademicQuiz){
+      if(k==="Escape")closeAcademicQuiz();
+      else if(["1","2","3"].includes(k))answerAcademicQuiz(Number(k)-1);
+      e.preventDefault();
+      return;
+    }
     if(riddleOpen){
       if(k==="Escape")closeRiddle();
       else if(["1","2","3"].includes(k)){
@@ -1736,7 +1913,9 @@
     reset.addEventListener("click", () => {
       closeDialogue();
       closeRiddle();
+      closeAcademicQuiz();
       if(interior.active)leaveCentral();
+      if(academic.active)leaveAcademic();
       player.x = 20;
       player.y = 42;
       near = nearest();
@@ -1755,7 +1934,9 @@
       pendingQuestNotice = null;
       closeDialogue();
       closeRiddle();
+      closeAcademicQuiz();
       if(interior.active)leaveCentral();
+      if(academic.active)leaveAcademic();
       held.clear();
       quest.restart();
       // Missão 02 depende da primeira: reiniciar a primeira reinicia ambas.
@@ -1788,6 +1969,24 @@
     btn.addEventListener("click",()=>answerRiddle(btn.dataset.riddleAnswer));
   });
 
+  const academicQuestRestart=document.getElementById("academicQuestRestart");
+  if(academicQuestRestart){
+    academicQuestRestart.addEventListener("click",()=>{
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar somente O Desafio do Conhecimento? As Missões 01 e 02 serão preservadas."))return;
+      pendingQuestNotice=null;
+      closeDialogue();
+      closeAcademicQuiz();
+      academic.restart();
+      refreshAcademicUI();
+      show("Missão 03 reiniciada. Converse com a professora Helena.",5);
+    });
+  }
+  if(academicQuizUI.close)academicQuizUI.close.addEventListener("click",closeAcademicQuiz);
+  academicQuizUI.options.forEach((btn,index)=>{
+    btn.addEventListener("click",()=>answerAcademicQuiz(index));
+  });
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
@@ -1812,6 +2011,7 @@
 
   refreshQuestUI();
   refreshIndoorQuestUI();
+  refreshAcademicUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
