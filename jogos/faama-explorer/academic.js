@@ -131,7 +131,7 @@ window.createFaamaAcademic=function createFaamaAcademic({ctx,storage,canvasWidth
     {id:"class-desk-4",kind:"desk",x:7.1,y:8.7,w:2.2,h:.9},
     {id:"library-shelf-1",kind:"shelf",x:11.6,y:3.1,w:1.0,h:2.2},
     {id:"library-shelf-2",kind:"shelf",x:15.5,y:3.1,w:.95,h:2.2},
-    {id:"library-desk",kind:"desk",x:12.8,y:5.4,w:2.3,h:.67},
+    {id:"library-desk",kind:"desk",x:12.0,y:5.4,w:1.65,h:.67},
     {id:"lab-pc-1",kind:"computer",x:18.4,y:4.7,w:2.7,h:1.2},
     {id:"lab-pc-2",kind:"computer",x:22.2,y:4.7,w:2.7,h:1.2},
     {id:"lab-pc-3",kind:"computer",x:18.4,y:8.6,w:2.7,h:1.2},
