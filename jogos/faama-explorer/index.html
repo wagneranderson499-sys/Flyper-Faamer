@@ -24,6 +24,18 @@
             </div>
             <div class="viewport"><canvas id="world" width="1200" height="760"
                     aria-label="Mapa isométrico explorável do campus da FAAMA"></canvas>
+                <aside class="player-status" aria-label="Estado do explorador">
+                    <span class="player-avatar" aria-hidden="true">🧑🏻‍🎓</span>
+                    <div class="player-stats">
+                        <strong>EXPLORADOR <small>NV. 1</small></strong>
+                        <div class="stat-line"><span aria-hidden="true">♥</span><div class="health-bar"><i></i></div></div>
+                        <div class="stat-line"><span aria-hidden="true">⚡</span><div class="energy-bar"><i></i></div></div>
+                    </div>
+                </aside>
+                <aside class="minimap-panel" aria-label="Minimapa do campus">
+                    <span class="minimap-title">MAPA DO CAMPUS</span>
+                    <canvas id="miniMap" width="164" height="182" aria-label="Visão superior com a posição atual do personagem"></canvas>
+                </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
                             o Prédio Central</strong></div>
@@ -34,15 +46,15 @@
                 <div id="fatal" class="fatal hidden"></div>
             </div>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>Visual isométrico • Protótipo externo</span></div>
+                    você</span><span>FAAMA Explorer • Prévia jogável v2</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
                     data-key="ArrowRight">▶</button></div>
         </section>
-        <p class="disclaimer">A distribuição dos edifícios segue sua marcação no satélite. O desenho dos prédios é
-            estilizado; as fases internas serão desenvolvidas depois.</p>
+        <p class="disclaimer">Campus inspirado nas fotografias e no mapa que você marcou. As posições são uma adaptação jogável; as fases internas serão desenvolvidas depois.</p>
     </main>
+    <script src="map-data.js"></script>
     <script src="game.js"></script>
 </body>
 
