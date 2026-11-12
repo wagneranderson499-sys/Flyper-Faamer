@@ -69,9 +69,12 @@
   };
   function nearCentralEntrance(){
     if(!centralSite)return false;
-    return player.y >= centralSite.y+centralSite.h-.3 &&
+    // Faixa curta junto à porta; a pista da missão, mais ao sul,
+    // continua acessível sem ser confundida com a entrada do prédio.
+    return player.y >= centralSite.y+centralSite.h-.15 &&
+      player.y <= centralSite.y+centralSite.h+1.30 &&
       Math.hypot(player.x-(centralSite.x+centralSite.w/2),
-        player.y-(centralSite.y+centralSite.h+.65))<2.3;
+        player.y-(centralSite.y+centralSite.h+.65))<1.45;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -1301,7 +1304,12 @@
       }
       return;
     }
-    // Itens da missão têm prioridade apenas quando o jogador está perto.
+    // A porta tem prioridade somente na sua faixa de acesso, sem
+    // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="central"&&nearCentralEntrance()) {
+      enterCentral();
+      return;
+    }
     nearQuestItem = quest.nearItem(player.x,player.y);
     if (nearQuestItem) {
       const result=quest.collect(nearQuestItem.item.id);
@@ -1326,11 +1334,7 @@
         openDialogue(nearTalker.npc);
       }
     } else if (near?.id==="central") {
-      if(nearCentralEntrance()){
-        enterCentral();
-      } else {
-        show("Para entrar no Prédio Central, vá até a porta principal, na fachada voltada para a entrada do campus.",5);
-      }
+      show("Para entrar no Prédio Central, aproxime-se da porta principal na fachada voltada para a entrada do campus.",5);
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1428,17 +1432,19 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = nearQuestItem
-        ? "INVESTIGAR [E]" : nearTalker
-          ? "CONVERSAR [E]" : near?.id==="central" && nearCentralEntrance()
-            ? "ENTRAR [E]" : "INTERAGIR [E]";
+      ui.interact.textContent = near?.id==="central"&&nearCentralEntrance()
+        ? "ENTRAR [E]" : nearQuestItem
+          ? "INVESTIGAR [E]" : nearTalker
+            ? "CONVERSAR [E]" : "INTERAGIR [E]";
     }
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = nearQuestItem
-        ? "[E] Investigar: "+nearQuestItem.item.name
-        : nearTalker
+      hint.textContent = near?.id==="central"&&nearCentralEntrance()
+        ? "[E] Entrar no Prédio Central"
+        : nearQuestItem
+          ? "[E] Investigar: "+nearQuestItem.item.name
+          : nearTalker
           ? "[E] Conversar com " + nearTalker.npc.name
           : near
             ? "[E] Conhecer: "+(near.short || near.name)
