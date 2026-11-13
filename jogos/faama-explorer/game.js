@@ -561,20 +561,20 @@
     if(finalGateUI.description)finalGateUI.description.textContent=!p.unlocked
       ?"Conclua todas as outras missões para desbloquear a Igreja, a última fase do FAAMA Explorer."
       :church.progress().completed
-      ?"Missão final concluída! Você zerou o jogo e pode continuar explorando o campus."
-      :"Todas as missões anteriores foram concluídas! A Igreja está aberta para a grande missão final.";
+      ?"Igreja concluída! Modo de testes: as demais missões continuam independentes."
+      :"Modo de testes: Igreja liberada sem exigir as outras missões.";
     if(finalGateUI.count)finalGateUI.count.textContent=
       p.done+" de "+p.total+" missões concluídas";
     if(finalGateUI.bar)finalGateUI.bar.style.width=(p.done/p.total*100)+"%";
     if(finalGateUI.missing)finalGateUI.missing.textContent=p.unlocked
-      ?church.progress().completed?"🏆 Lenda da FAAMA — a jornada foi concluída!"
-        :"Tudo pronto! Entre na Igreja e conclua O Livro da Jornada."
+      ?church.progress().completed?"🏆 Lenda da FAAMA — Igreja concluída!"
+        :"Acesso livre! Entre na Igreja e explore o Livro da Jornada."
       :"Faltam: "+p.missing.map(c=>c.name).join(" • ");
     if(finalGateUI.note)finalGateUI.note.textContent=
       !p.unlocked?"A Igreja permanece fechada até completar as nove missões anteriores."
       :church.progress().completed
-      ?"Você zerou o jogo! A exploração livre está disponível e você pode rever a celebração."
-      :"A Igreja está aberta. Resolva as nove lembranças e os três desafios para zerar o jogo.";
+      ?"A Igreja foi concluída no modo de testes. Você pode rever a celebração."
+      :"Acesso temporariamente liberado para testar a Igreja e seus desafios.";
     for(const c of p.chapters){
       const node=finalGateUI.chapters[c.id];
       if(!node)continue;
@@ -1571,7 +1571,7 @@
   function drawChurchFinalBadge(b){
     const status=finalGate.progress();
     const p=P(b.x+b.w/2,b.y+b.h/2,b.z+62);
-    const finale=status.unlocked&&church.progress().completed;
+    const finale=church.progress().completed;
     const title=finale?"🏆 JOGO ZERADO":status.unlocked?"🔓 FASE FINAL":"🔒 ÚLTIMA FASE";
     const line2=finale?"CONCLUÍDO":status.unlocked?"LIBERADA":status.done+"/"+status.total+" MISSÕES";
     ctx.save();
