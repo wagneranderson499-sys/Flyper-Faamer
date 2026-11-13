@@ -10,10 +10,10 @@ const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,260);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.38;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
 stage.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight("#f0f9ff","#527a55",2.05));
-const sun=new THREE.DirectionalLight("#fff0c7",3.1);sun.position.set(-35,75,-24);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+scene.add(new THREE.HemisphereLight("#f0f9ff","#527a55",1.45));
+const sun=new THREE.DirectionalLight("#fff5d8",2.35);sun.position.set(-35,75,-24);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=75;sun.shadow.camera.bottom=-75;sun.shadow.normalBias=.025;scene.add(sun);
 const materials=new Map();
 function mat(color,roughness=1){const key=color+roughness;if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness}));return materials.get(key)}
@@ -122,6 +122,38 @@ function centralBuilding(s,p,w,d){
  for(let i=0;i<2;i++)box(w*.24+i*.3,.13,.62,"#d6c9b5",p.x,.07+i*.13,front+1.2+i*.4);
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
+// Reserva arquitetônica inspirada na fotografia real, sem retornar ao antigo prédio azul.
+function realCentralFallback(p,w,d){
+ const front=p.z+d/2,baseY=0;
+ box(w*.94,5.5,d*.9,"#315b63",p.x,2.75,p.z);
+ box(w*.44,8.8,d*.66,"#6a9b65",p.x,4.4,p.z-d*.13);
+ box(w*.98,1.15,d*.93,"#e6b748",p.x,5.9,p.z);
+ for(const side of [-1,1]){
+  const xx=p.x+side*w*.38;
+  box(w*.22,5.7,d*.9,"#d4ad43",xx,2.85,p.z);
+  box(w*.16,3.5,.13,"#194c65",xx,2.65,front+.12);
+  box(w*.13,3.2,.14,"#81bdc2",xx,2.7,front+.23,false);
+ }
+ box(w*.3,6.4,.8,"#d67c3b",p.x,3.2,front+.42);
+ box(w*.21,4.2,.14,"#143e59",p.x,2.15,front+.89);
+ for(const side of [-1,1]){
+  box(w*.08,3.5,.12,"#a5d4d5",p.x+side*w*.16,2.2,front+.23,false);
+  box(w*.08,3.5,.12,"#234d62",p.x+side*w*.25,2.2,front+.23,false);
+ }
+ const canopy=new THREE.Mesh(new THREE.CylinderGeometry(w*.18,w*.18,.22,32,1,false,0,Math.PI),mat("#164d85"));
+ canopy.rotation.z=Math.PI/2;canopy.rotation.y=Math.PI/2;canopy.position.set(p.x,3.35,front+1.35);canopy.castShadow=true;scene.add(canopy);
+ box(w*.36,.18,2.3,"#1d5284",p.x,3.32,front+1.25);
+ box(w*.48,.32,d*.7,"#e6e0c7",p.x,9,p.z-d*.14);
+ for(let i=0;i<5;i++){
+  const x=p.x+(i-2)*w*.105;
+  box(w*.075,1.3,.11,"#1b5269",x,6.9,front+.18);
+ }
+ for(const side of [-1,1]){
+  const x=p.x+side*w*.57,z=front+2;
+  cylinder(.18,2.4,"#705b3a",x,1.2,z);
+  const crown=new THREE.Mesh(new THREE.SphereGeometry(1.25,10,8),mat("#3e8751"));crown.position.set(x,3.1,z);scene.add(crown);
+ }
+}
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
  if(s.type==="central"){
@@ -129,7 +161,7 @@ function addBuilding(s){
   new GLTFLoader().load("./models/predio_central_real_faama.glb",gltf=>{
    const model=gltf.scene;
    const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
-   const scale=Math.min(w/size.x,d/size.z);
+   const scale=Math.min((w*1.22)/size.x,(d*1.2)/size.z);
    model.scale.setScalar(scale);
    const center=bounds.getCenter(new THREE.Vector3());
    model.position.set(p.x-center.x*scale,-bounds.min.y*scale,p.z-center.z*scale);
@@ -138,8 +170,7 @@ function addBuilding(s){
    console.info("Prédio Central real carregado no FAAMA Explorer 3D");
   },undefined,error=>{
    console.warn("Arquivo GLB não encontrado. Usando modelo de reserva.",error);
-   centralBuilding(s,p,w,d);
-   buildings.pop();
+   realCentralFallback(p,w,d);
   });
   return;
  }
@@ -299,16 +330,39 @@ renderer.domElement.addEventListener("pointerdown",e=>{dragging=true;lastX=e.cli
 renderer.domElement.addEventListener("pointerup",()=>dragging=false);
 renderer.domElement.addEventListener("pointermove",e=>{if(!dragging)return;if(cameraMode==="third"){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.004,.12,.8)}else if(cameraMode==="overview"){overviewYaw-=(e.clientX-lastX)*.004}lastX=e.clientX;lastY=e.clientY});
 renderer.domElement.addEventListener("wheel",e=>{if(cameraMode==="third")dist=THREE.MathUtils.clamp(dist+e.deltaY*.012,6,22);else overviewDistance=THREE.MathUtils.clamp(overviewDistance+e.deltaY*.12,65,190);e.preventDefault()},{passive:false});
-function blocked(x,z){if(missionEngine.active)return missionEngine.blocked(x,z);const gx=(x-originX)/unit,gy=(z-originZ)/unit;if(gx<.5||gx>33.5||gy<.5||gy>43.5)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-.35&&gx<s.x+s.w+.35&&gy>s.y-.35&&gy<s.y+s.h+.35)}
+function blocked(x,z){if(missionEngine.active)return missionEngine.blocked(x,z);const gx=(x-originX)/unit,gy=(z-originZ)/unit,r=playerRadius/unit;if(gx<.5+r||gx>33.5-r||gy<.5+r||gy>43.5-r)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-r&&gx<s.x+s.w+r&&gy>s.y-r&&gy<s.y+s.h+r)}
 const missionEngine=createMissions3D(THREE,{scene,avatar,at,unit,sites:data.sites,held,box,mat,place,hint});
 let nearbyMission=null;
 const clock=new THREE.Clock(),look=new THREE.Vector3();
+const velocity=new THREE.Vector3();
+const playerRadius=.38;
 function frame(){
  requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.045);
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const dx=(cameraMode==="third"||missionEngine.active)?(Number(held.has("d"))-Number(held.has("a"))):0,dz=(cameraMode==="third"||missionEngine.active)?(Number(held.has("w"))-Number(held.has("s"))):0;
  const move=forward.multiplyScalar(dz).addScaledVector(right,dx);
- if(move.lengthSq()>0){move.normalize().multiplyScalar(dt*(held.has("shift")?10:6));const x=avatar.position.x+move.x,z=avatar.position.z+move.z;if(!blocked(x,avatar.position.z))avatar.position.x=x;if(!blocked(avatar.position.x,z))avatar.position.z=z;avatar.rotation.y=Math.atan2(-move.x,-move.z);walk+=dt*11;legs[0].rotation.x=Math.sin(walk)*.55;legs[1].rotation.x=-Math.sin(walk)*.55;arms[0].rotation.x=-Math.sin(walk)*.42;arms[1].rotation.x=Math.sin(walk)*.42}else{legs[0].rotation.x*=.8;legs[1].rotation.x*=.8;arms[0].rotation.x*=.8;arms[1].rotation.x*=.8}
+ const moving=move.lengthSq()>0;
+ const maxSpeed=held.has("shift")?8.5:5.5;
+ if(moving)move.normalize().multiplyScalar(maxSpeed);
+ const smooth=1-Math.exp(-dt*(moving?9:14));
+ velocity.x=THREE.MathUtils.lerp(velocity.x,move.x,smooth);
+ velocity.z=THREE.MathUtils.lerp(velocity.z,move.z,smooth);
+ if(Math.abs(velocity.x)<.015)velocity.x=0;
+ if(Math.abs(velocity.z)<.015)velocity.z=0;
+ const stepX=avatar.position.x+velocity.x*dt,stepZ=avatar.position.z+velocity.z*dt;
+ if(!blocked(stepX,avatar.position.z))avatar.position.x=stepX;else velocity.x=0;
+ if(!blocked(avatar.position.x,stepZ))avatar.position.z=stepZ;else velocity.z=0;
+ const speed=Math.hypot(velocity.x,velocity.z);
+ if(speed>.1){
+  const targetAngle=Math.atan2(-velocity.x,-velocity.z);
+  avatar.rotation.y+=Math.atan2(Math.sin(targetAngle-avatar.rotation.y),Math.cos(targetAngle-avatar.rotation.y))*(1-Math.exp(-dt*12));
+  walk+=dt*speed*2;
+  const amplitude=Math.min(.65,speed*.11);
+  legs[0].rotation.x=Math.sin(walk)*amplitude;legs[1].rotation.x=-Math.sin(walk)*amplitude;
+  arms[0].rotation.x=-Math.sin(walk)*amplitude*.7;arms[1].rotation.x=Math.sin(walk)*amplitude*.7;
+ }else{
+  for(const part of [...legs,...arms])part.rotation.x*=Math.exp(-dt*12);
+ }
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
  const target=(cameraMode==="third"||missionEngine.active)?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:overviewTarget;
