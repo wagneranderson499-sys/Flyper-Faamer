@@ -103,6 +103,28 @@ function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i+
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
+// Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
+function palm(x,z){
+ const stem=new THREE.Mesh(new THREE.CylinderGeometry(.13,.25,5.8,9),mat("#8d7250"));stem.position.set(x,2.9,z);stem.castShadow=true;scene.add(stem);
+ for(let i=0;i<9;i++){const angle=i*Math.PI*2/9;const leaf=new THREE.Mesh(new THREE.ConeGeometry(.45,3.6,5),mat(i%2?"#3e994e":"#5db95b"));leaf.position.set(x+Math.cos(angle)*1.25,5.9,z+Math.sin(angle)*1.25);leaf.rotation.z=Math.cos(angle)*.88;leaf.rotation.x=-Math.sin(angle)*.88;leaf.castShadow=true;scene.add(leaf)}
+}
+function flowering(x,z,seed){
+ const stem=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,2.5,7),mat("#77573e"));stem.position.set(x,1.25,z);scene.add(stem);
+ for(let i=0;i<5;i++){const angle=i*Math.PI*2/5;const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.98,1),mat(i%2?"#ed6eac":"#f59ac4"));crown.position.set(x+Math.cos(angle)*.85,3.1+(i%2)*.45,z+Math.sin(angle)*.85);crown.castShadow=true;scene.add(crown)}
+}
+for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4))palm(p.x,p.z)}
+for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[31,20],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2))flowering(p.x,p.z,x*y)}
+function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
+for(const [x,y] of [[17,35],[22,35],[13,35],[25,34],[17,30],[22,30],[14,21],[23,21],[12,16],[25,17],[11,40],[28,38]]){const p=at(x,y);if(!insideBuilding(x,y,.3))lamp(p.x,p.z)}
+// Portaria junto à rodovia, no extremo sul do campus.
+const gate=at(20,43.4);
+for(const side of [-1,1]){box(1.3,5,1.3,"#e5d5b4",gate.x+side*7,2.5,gate.z);box(1.6,.35,1.6,"#2b75a8",gate.x+side*7,5.1,gate.z)}
+box(16,.9,2.2,"#e8e2ce",gate.x,5.4,gate.z);
+box(15.8,.22,2.4,"#197bb9",gate.x,6,gate.z);
+box(3,2.6,2.3,"#e2d5b9",gate.x,1.3,gate.z+1.6);
+box(3.1,.12,2.4,"#197bb9",gate.x,2.7,gate.z+1.6);
+box(34,.1,5,"#414850",gate.x,.02,gate.z+8,false);
+for(let i=-6;i<=6;i++)box(1.5,.12,.14,"#e6ca65",gate.x+i*2.5,.1,gate.z+8,false);
 // Explorador detalhado: rosto, uniforme, cabelo, mochila, braços e tênis.
 const avatar=new THREE.Group();scene.add(avatar);
 function avatarMesh(geometry,color,x,y,z,parent=avatar){const mesh=new THREE.Mesh(geometry,mat(color));mesh.position.set(x,y,z);mesh.castShadow=true;parent.add(mesh);return mesh}
