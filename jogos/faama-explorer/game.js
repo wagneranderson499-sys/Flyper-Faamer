@@ -2356,6 +2356,61 @@
   }
 
   function update(dt) {
+    if(pool.active){
+      if(activeDialogue){
+        held.clear();pool.pause();
+        if(ui.interact){ui.interact.disabled=false;ui.interact.textContent="CONTINUAR [E]";}
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        const event=pool.update(dt,held);
+        if(event?.message)show(event.message,event.kind==="buoy"?3:7);
+        const spot=pool.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="coach"?"CONVERSAR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=pool.objective();
+      }
+      if(ui.location)ui.location.textContent="PISCINA • DESAFIO AQUÁTICO";
+      if(interiorUI.room)interiorUI.room.textContent="Área da piscina";
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E conversar • colete 5 boias";
+      refreshPoolUI();
+      return;
+    }
+    const residence=currentResidence();
+    if(residence){
+      const kind=residence.kind;
+      if(residencePuzzleKind){
+        held.clear();residence.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="Responda ao desafio de organização";
+      }else if(activeDialogue){
+        held.clear();residence.pause();
+        if(ui.interact){ui.interact.disabled=false;ui.interact.textContent="CONTINUAR [E]";}
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        residence.update(dt,held);
+        const spot=residence.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="npc"?"CONVERSAR [E]":
+            spot?.kind==="item"?"PEGAR [E]":
+            spot?.kind==="board"?"ORGANIZAR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=spot?
+          "[E] "+spot.name:residence.objective();
+      }
+      if(ui.location)ui.location.textContent=residence.conf.name.toUpperCase()+
+        " • "+residence.roomName().toUpperCase();
+      if(interiorUI.room)interiorUI.room.textContent=residence.roomName();
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E investigar • quadro de organização";
+      refreshResidenceUI(kind);
+      return;
+    }
     if(school.active){
       if(schoolPuzzleOpen){
         held.clear();
@@ -2576,7 +2631,10 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="church"&&nearChurchEntrance()
+      ui.interact.textContent = near?.id==="pool"&&nearNewSiteEntrance(poolSite)
+        ? "ENTRAR [E]" : near?.id==="female"&&nearNewSiteEntrance(femaleSite)
+        ? "ENTRAR [E]" : near?.id==="male"&&nearNewSiteEntrance(maleSite)
+        ? "ENTRAR [E]" : near?.id==="church"&&nearChurchEntrance()
         ? finalGate.progress().unlocked?"FASE FINAL [E]":"🔒 BLOQUEADA [E]"
         : near?.id==="school"&&nearSchoolEntrance()
         ? "ENTRAR [E]" : near?.id==="restaurant"&&nearRestaurantEntrance()
@@ -2590,7 +2648,13 @@
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="church"&&nearChurchEntrance()
+      hint.textContent = near?.id==="pool"&&nearNewSiteEntrance(poolSite)
+        ? "[E] Entrar na Piscina"
+        : near?.id==="female"&&nearNewSiteEntrance(femaleSite)
+        ? "[E] Entrar no Residencial Feminino"
+        : near?.id==="male"&&nearNewSiteEntrance(maleSite)
+        ? "[E] Entrar no Residencial Masculino"
+        : near?.id==="church"&&nearChurchEntrance()
         ? finalGate.progress().unlocked
           ? "[E] A Igreja está liberada para a última fase"
           : "[E] Igreja bloqueada — conclua todas as missões"
@@ -2622,7 +2686,13 @@
               ? sports.progress().completed
                 ? restaurant.progress().completed
                   ? school.progress().completed
-                    ? "Seis missões concluídas! Explore o campus."
+                    ? !pool.progress().completed
+                      ? "Próxima aventura: Desafio Aquático na Piscina."
+                      : !female.progress().completed
+                      ? "Próxima aventura: A Rotina Equilibrada no Residencial Feminino."
+                      : !male.progress().completed
+                      ? "Próxima aventura: Projeto em Equipe no Residencial Masculino."
+                      : "Nove missões concluídas! A Igreja foi desbloqueada para a fase final."
                     : "Próxima aventura: O Tesouro da FAAMinha. Converse com Sofia!"
                   : "Nova missão: O Restaurante Misterioso. Converse com Clara!"
                 : "Próximo desafio: Circuito dos Campeões no Complexo Esportivo."
@@ -2639,12 +2709,23 @@
       previous = ms;
       time += dt;
 
-      if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active&&!school.active){
+      if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active&&!school.active&&
+          !pool.active&&!female.active&&!male.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
       refreshFinalGateUI();
 
+      if(pool.active){
+        pool.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);return;
+      }
+      if(female.active||male.active){
+        currentResidence().draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);return;
+      }
       if(school.active){
         school.draw(time,zoom);
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
@@ -2766,6 +2847,11 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(residencePuzzleKind){
+      if(k==="Escape")closeResidencePuzzle();
+      else if(["1","2","3"].includes(k))answerResidencePuzzle(Number(k)-1);
+      e.preventDefault();return;
+    }
     if(schoolPuzzleOpen){
       if(k==="Escape")closeSchoolPuzzle();
       else if(["1","2","3"].includes(k))answerSchoolPuzzle(Number(k)-1);
