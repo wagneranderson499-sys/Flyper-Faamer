@@ -125,11 +125,12 @@ function centralBuilding(s,p,w,d){
 // Reserva arquitetônica inspirada na fotografia real, sem retornar ao antigo prédio azul.
 // Modelo arquitetônico V3: volumes assimétricos, fachada recuada e entrada com marquise curva.
 function realCentralFallback(p,w,d){
- const x=p.x,z=p.z,front=z+d*.5;
- const wall="#e1c45c",yellow="#e8c65e",green="#548a62",dark="#204653",glass="#244c62",orange="#c9773f";
+ const x=p.x,z=p.z,wide=w*1.58,front=z+d*.5;
+ w=wide;
+ const wall="#edc75a",yellow="#f1cc5e",green="#397b53",dark="#142e4c",glass="#173c5b",orange="#d47736";
  const add=(W,H,D,color,X,Y,Z)=>box(W,H,D,color,X,Y,Z);
  const window=(X,Y,Z,W,H)=>{
-  add(W+.2,H+.24,.18,"#e9e4cc",X,Y,Z);
+  add(W+.2,H+.24,.18,"#f5f4eb",X,Y,Z);
   add(W,H,.2,glass,X,Y,Z+.11);
   add(W*.46,.035,.23,"#9ec2c4",X,Y,Z+.23);
   add(.055,H,.23,"#b6d0d1",X,Y,Z+.24);
@@ -137,58 +138,56 @@ function realCentralFallback(p,w,d){
  // Ala principal baixa: dois blocos amarelos com alturas distintas.
  add(w*.99,5.5,d*.94,wall,x,2.75,z);
  add(w*.37,6.5,d*.92,yellow,x-w*.315,3.25,z+.08);
- add(w*.32,5.8,d*.96,"#d2b34c",x+w*.34,2.9,z-.04);
+ add(w*.32,5.8,d*.96,"#dcb950",x+w*.34,2.9,z-.04);
  // Volume posterior verde elevado, com beirais e recuos.
- add(w*.49,9.4,d*.64,green,x+w*.04,4.7,z-d*.2);
- add(w*.51,.26,d*.68,"#d9ded0",x+w*.04,9.55,z-d*.2);
- add(w*.52,.3,d*.7,"#f1f0e5",x+w*.04,9.8,z-d*.2);
- // Cobertura de duas águas, inclinação suave e borda clara.
- const roofShape=new THREE.Shape();roofShape.moveTo(-w*.32,0);roofShape.lineTo(0,1.6);roofShape.lineTo(w*.32,0);roofShape.closePath();
- const roofGeo=new THREE.ExtrudeGeometry(roofShape,{depth:d*.57,bevelEnabled:false});
- roofGeo.rotateY(Math.PI/2);
- const roofMesh=new THREE.Mesh(roofGeo,mat("#e4e4d8"));roofMesh.position.set(x+w*.04,9.8,z-d*.48);roofMesh.castShadow=true;scene.add(roofMesh);
+ add(w*.42,8.8,d*.64,green,x+w*.04,4.4,z-d*.2);
+ add(w*.44,.26,d*.68,"#f4f3ec",x+w*.04,8.95,z-d*.2);
+ add(w*.45,.3,d*.7,"#ffffff",x+w*.04,9.2,z-d*.2);
+ // Cobertura branca de baixa inclinação, respeitando a largura do bloco superior.
+ const roof=new THREE.Mesh(new THREE.BoxGeometry(w*.46,.22,d*.73),mat("#ffffff"));
+ roof.position.set(x+w*.04,9.43,z-d*.2);roof.rotation.z=-.035;roof.castShadow=true;roof.receiveShadow=true;scene.add(roof);
  // Janelas altas: ritmo irregular na faixa superior.
- for(const t of [-.38,-.21,-.04,.13,.30]){
+ for(const t of [-.40,-.28,-.16,-.04,.08,.20,.32,.43]){
   const xx=x+w*t;
-  window(xx,5.05,front+.12,w*.092,1.58);
+  window(xx,4.95,front+.12,w*.067,1.7);
  }
  // Portais e esquadrias no pavimento térreo.
  for(const side of [-1,1]){
   const xx=x+side*w*.36;
-  add(w*.17,3.2,.23,"#1b3f50",xx,1.95,front+.22);
-  add(w*.15,3,.25,"#6d9a9f",xx,1.95,front+.36);
+  add(w*.17,3.2,.23,"#142e4c",xx,1.95,front+.22);
+  add(w*.15,3,.25,"#315a79",xx,1.95,front+.36);
   add(.075,3,.28,"#d1dbd4",xx,1.95,front+.52);
   add(w*.175,.2,.35,"#e5d9b4",xx,3.65,front+.4);
  }
  // Textura vertical em painéis laterais e painéis ventilados.
  for(const side of [-1,1]){
   const xx=x+side*w*.25;
-  add(w*.16,3.2,.15,"#274c51",xx,1.8,front+.22);
+  add(w*.16,3.2,.15,"#142e4c",xx,1.8,front+.22);
   for(let i=0;i<12;i++)add(w*.15,.035,.16,i%2?"#8b9b77":"#c1aa5c",xx,1.05+i*.19,front+.32,false);
  }
  // Entrada principal recuada, com pórtico laranja de altura integral.
- add(w*.255,6.3,.72,orange,x,3.15,front+.42);
- add(w*.185,4.35,.78,"#18374b",x,2.18,front+.83);
- add(w*.17,3.5,.8,"#183343",x,1.8,front+.89);
- add(w*.028,4.35,.83,"#b86a3a",x-w*.12,2.18,front+.88);
- add(w*.028,4.35,.83,"#b86a3a",x+w*.12,2.18,front+.88);
- add(w*.28,.2,.85,"#e8b26b",x,6.25,front+.5);
+ add(w*.19,6.3,.72,orange,x,3.15,front+.42);
+ add(w*.145,4.35,.78,"#132b45",x,2.18,front+.83);
+ add(w*.13,3.5,.8,"#132b45",x,1.8,front+.89);
+ add(w*.028,4.35,.83,"#d47736",x-w*.09,2.18,front+.88);
+ add(w*.028,4.35,.83,"#b86a3a",x+w*.09,2.18,front+.88);
+ add(w*.21,.2,.85,"#e8b26b",x,6.25,front+.5);
  // Marquise arqueada construída por faixas trianguladas (curva frontal real).
  const canopyGroup=new THREE.Group();scene.add(canopyGroup);
- const R=w*.15,depth=2.45,segments=24,positions=[],indices=[];
+ const R=w*.105,depth=2.45,segments=24,positions=[],indices=[];
  for(let i=0;i<=segments;i++){
   const t=Math.PI*i/segments,xx=-R*Math.cos(t),yy=3.25+R*.48*Math.sin(t);
   positions.push(xx,yy,0,xx,yy,depth);
   if(i<segments){const k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}
  }
  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();
- const cover=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:"#1c5684",roughness:.56,side:THREE.DoubleSide}));cover.castShadow=true;canopyGroup.add(cover);
+ const cover=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:"#173b69",roughness:.56,side:THREE.DoubleSide}));cover.castShadow=true;canopyGroup.add(cover);
  canopyGroup.position.set(x,0,front+.8);
- add(w*.35,.18,2.4,"#215d8a",x,3.24,front+1.95);
+ add(w*.24,.18,2.4,"#173b69",x,3.24,front+1.95);
  // Degraus, calçada e jardineiras.
  for(let i=0;i<3;i++)add(w*.32+i*.28,.13,.78,"#ded9c8",x,.07+i*.11,front+3.2+i*.5);
  for(const side of [-1,1]){
-  const xx=x+side*w*.58;
+  const xx=x+side*w*.53;
   add(1.9,.6,2.4,"#d2c6a5",xx,.3,front+1.2);
   add(1.6,.3,2.1,"#427e4b",xx,.72,front+1.2);
   for(let i=0;i<3;i++){
