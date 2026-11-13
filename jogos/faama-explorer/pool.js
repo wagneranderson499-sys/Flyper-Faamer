@@ -20,7 +20,7 @@ window.createFaamaPool=function createFaamaPool({ctx,storage,canvasWidth=1200,ca
   ];
   const coach={id:"nara-pool",name:"Guarda-vidas Nara",role:"Orientadora do Desafio Aquático",
     x:9.2,y:16.4,skin:"#bd875d",hair:"#3c3746",shirt:"#d6a848"};
-  const finish={x:21.6,y:16.25},exit={x:14,y:18.55};
+  const finish={x:14,y:16.1},exit={x:14,y:18.55};
   const player={x:14,y:17.3,walk:0,facing:"up",moving:false};
   let active=false,phase="idle",elapsed=0,anim=0,cameraX=canvasWidth/2,cameraY=canvasHeight/2;
   let collected=new Set();
@@ -52,9 +52,12 @@ window.createFaamaPool=function createFaamaPool({ctx,storage,canvasWidth=1200,ca
   function leave(){active=false;phase="idle";elapsed=0;collected.clear();player.moving=false;}
   function restartProgress(){saved.completed=false;saved.bestTime=null;persist();phase="idle";elapsed=0;collected.clear();}
   function talkCoach(){
-    if(phase==="running")return {startOnClose:false,lines:[
-      "Você está no circuito! Colete as cinco boias e volte à faixa dourada de chegada.",
-      "Observe os obstáculos flutuantes e faça seu trajeto com calma."
+    if(phase==="running")return {startOnClose:false,lines:collected.size===buoys.length?[
+      "Parabéns! Você já pegou as cinco boias. Não precisa procurar mais nenhuma.",
+      "Agora vá até o centro da faixa quadriculada com a palavra CHEGADA, na parte inferior da piscina, para concluir o desafio."
+    ]:[
+      "Você já pegou "+collected.size+" de "+buoys.length+" boias. Ainda faltam "+(buoys.length-collected.size)+".",
+      "Continue explorando a piscina e depois vá até a faixa quadriculada CHEGADA, na parte inferior."
     ]};
     if(phase==="failed")return {startOnClose:true,lines:[
       "O tempo acabou! Você pode tentar novamente sem problema.",
@@ -82,7 +85,7 @@ window.createFaamaPool=function createFaamaPool({ctx,storage,canvasWidth=1200,ca
   function nearest(){
     if(distance(player,exit)<1.05)return {kind:"exit",name:"Voltar ao campus"};
     if(distance(player,coach)<1.85)return {kind:"coach",name:"Guarda-vidas Nara"};
-    if(distance(player,finish)<1.4)return {kind:"finish",name:"Faixa de chegada"};
+    if(distance(player,finish)<1.6)return {kind:"finish",name:"Faixa de chegada"};
     return null;
   }
   function update(dt,held){
@@ -106,7 +109,7 @@ window.createFaamaPool=function createFaamaPool({ctx,storage,canvasWidth=1200,ca
     if(elapsed>=LIMIT){phase="failed";return {kind:"timeout",message:"Tempo esgotado! Converse com Nara para tentar novamente."};}
     let caught=0;
     for(const b of buoys)if(!collected.has(b.id)&&distance(player,b)<.7){collected.add(b.id);caught++;}
-    if(collected.size===5&&distance(player,finish)<1.06){
+    if(collected.size===buoys.length&&distance(player,finish)<1.25){
       phase="finished";const duration=Math.max(.1,Math.round(elapsed*10)/10);
       const first=!saved.completed,newBest=saved.bestTime===null||duration<saved.bestTime;
       saved.completed=true;if(newBest)saved.bestTime=duration;persist();
@@ -176,11 +179,16 @@ window.createFaamaPool=function createFaamaPool({ctx,storage,canvasWidth=1200,ca
     }
     const title=point(14,3.2);round(title.x-135,title.y-18,270,28,8,"#286b83","#f3e0ae");
     label("PISCINA • DESAFIO AQUÁTICO",title.x,title.y+2,15,"#f3f6df",true);
-    const lane=point(14,16.1);round(lane.x-53,lane.y-25,110,44,5,"#dbb98179","#fff2cb");
+    const lane=point(finish.x,finish.y);round(lane.x-53,lane.y-25,110,44,5,"#dbb98179","#fff2cb");
     for(let i=0;i<10;i++)for(let j=0;j<3;j++){
       fill(lane.x-50+i*10,lane.y-22+j*13,10,13,(i+j)%2?"#e9f0eb":"#3b7888");
     }
-    label("CHEGADA",lane.x,lane.y-32,12,"#f8edba",true);
+    label(collected.size===buoys.length&&phase==="running"?"CHEGADA • ENTRE AQUI":"CHEGADA",lane.x,lane.y-32,12,"#f8edba",true);
+    if(collected.size===buoys.length&&phase==="running"){
+      const pulse=.45+.3*Math.sin(anim*6);
+      ctx.lineWidth=4;ctx.strokeStyle="rgba(255,245,150,"+pulse+")";
+      ctx.strokeRect(lane.x-57,lane.y-29,118,52);
+    }
     for(const b of buoys){
       if(collected.has(b.id))continue;
       const p=point(b.x,b.y),z=Math.sin(anim*3+b.x)*3;
