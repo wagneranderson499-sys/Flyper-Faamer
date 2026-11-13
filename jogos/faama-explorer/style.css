@@ -971,3 +971,74 @@ body {
   .final-gate-summary small,.final-gate-note{font-size:10px}
   .final-gate-progress{height:7px}
 }
+
+/* FAAMA Explorer 3.0–3.2: piscina e residenciais */
+.quest-pool{margin-top:13px;border-color:#89d8e1;background:linear-gradient(118deg,#173f59,#285d73 60%,#264e66)}
+.quest-pool .quest-title strong{color:#bfeefa}
+.quest-pool .quest-stage{border-color:#8bd8ea;color:#c5edfa}
+.quest-female{margin-top:13px;border-color:#d7acca;background:linear-gradient(118deg,#40344e,#59465e 60%,#34475b)}
+.quest-female .quest-title strong{color:#f0cce6}
+.quest-female .quest-stage{border-color:#e0bad8;color:#f8def0}
+.quest-male{margin-top:13px;border-color:#a9cbdc;background:linear-gradient(118deg,#1d4055,#325c6a 60%,#26465c)}
+.quest-male .quest-title strong{color:#cfedff}
+.quest-male .quest-stage{border-color:#afd4e0;color:#daf2fc}
+.pool-hud,.residence-hud{
+  position:absolute;z-index:8;right:15px;top:86px;
+  width:min(305px,37%);padding:10px 12px;border:2px solid #aedfe5;
+  border-radius:12px;color:#f8f1dc;
+  background:linear-gradient(125deg,#1d5268ec,#2e6875ec);
+  box-shadow:0 8px 28px #0b2a4190;pointer-events:none
+}
+.residence-hud{border-color:#e1c5aa;background:linear-gradient(125deg,#2c4f5fec,#3f626ceb)}
+.pool-hud-head,.pool-hud-count,.residence-hud-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.pool-hud-head span,.residence-hud-head strong{
+  font-size:10px;font-weight:900;letter-spacing:.045em;color:#d7f4ef
+}
+.pool-hud-head strong,.residence-hud-head span{font-size:19px;font-weight:900;color:#fff0c4;font-variant-numeric:tabular-nums}
+.pool-hud p,.residence-hud p{font-size:11px;line-height:1.4;margin:8px 0;color:#f2f2df}
+.pool-hud-count strong{font-size:12px;color:#d3f2b8}
+.pool-hud-count small{font-size:10px;text-align:right}
+.pool-progress,.residence-progress{height:7px;margin-top:9px;border-radius:8px;background:#133d51;overflow:hidden}
+.pool-progress i,.residence-progress i{display:block;width:0;height:100%;
+  border-radius:8px;background:linear-gradient(90deg,#90e1e8,#f5e2a1);transition:width .18s ease}
+.residence-progress i{background:linear-gradient(90deg,#a9dcca,#f3d6aa)}
+.residence-puzzle{
+  position:absolute;z-index:31;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(530px,calc(100% - 26px));max-height:calc(100% - 20px);
+  padding:17px;border:2px solid #a7d7d1;border-radius:15px;
+  overflow-y:auto;color:#fff5da;
+  background:linear-gradient(125deg,#223d56,#3f6172);
+  box-shadow:0 20px 75px #081e30ef
+}
+.residence-puzzle-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.residence-puzzle-heading div{display:flex;flex-direction:column;gap:5px}
+.residence-puzzle-heading small{font-size:10px;font-weight:900;letter-spacing:.04em;color:#b4e9df}
+.residence-puzzle-heading strong{font-size:19px;font-weight:900}
+.residence-puzzle-heading button{width:32px;height:32px;border:1px solid #a9cacc;
+  border-radius:8px;background:#315d72;color:#fff5df;font-size:21px;cursor:pointer}
+.residence-puzzle p{margin:11px 0 0;font-size:12px;line-height:1.5}
+.residence-puzzle #residencePuzzleQuestion{font-size:14px;font-weight:800;color:#ffe7ad}
+.residence-puzzle-choices{display:grid;gap:8px;margin-top:15px}
+.residence-puzzle-choices button{width:100%;min-height:42px;text-align:left;
+  padding:10px 13px;border:1px solid #a8d5d4;border-radius:9px;
+  background:#355f75;color:#f5f4e6;font-size:12px;font-weight:750;line-height:1.4;cursor:pointer}
+.residence-puzzle-choices button:hover,.residence-puzzle-choices button:focus-visible{
+  background:#487f82;outline:2px solid #ffe2a0;outline-offset:1px}
+.residence-puzzle .residence-feedback{color:#ffdc94;min-height:20px;font-weight:700}
+.residence-help{display:block;margin-top:8px;font-size:10px;color:#b8d4d6}
+@media(max-width:800px){
+  .pool-hud,.residence-hud{top:53px;right:5px;width:44%;padding:6px 7px;border-width:1px;border-radius:8px}
+  .pool-hud-head span,.residence-hud-head strong{font-size:7px}
+  .pool-hud-head strong,.residence-hud-head span{font-size:13px}
+  .pool-hud p,.residence-hud p{font-size:9px;margin:4px 0}
+  .pool-hud-count strong,.pool-hud-count small{font-size:9px}
+  .pool-progress,.residence-progress{height:4px;margin-top:5px}
+  .residence-puzzle{padding:11px;border-radius:10px}
+  .residence-puzzle-heading strong{font-size:15px}
+  .residence-puzzle p{font-size:11px;margin-top:8px}
+  .residence-puzzle #residencePuzzleQuestion{font-size:12px}
+  .residence-puzzle-choices{gap:6px;margin-top:9px}
+  .residence-puzzle-choices button{font-size:11px;min-height:35px;padding:8px 10px}
+}
