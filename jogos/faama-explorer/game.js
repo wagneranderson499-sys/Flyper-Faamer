@@ -536,6 +536,7 @@
     count:document.getElementById("finalGateCount"),
     bar:document.getElementById("finalGateBar"),
     missing:document.getElementById("finalGateMissing"),
+    note:document.getElementById("finalGateNote"),
     chapters:{
       quest01:document.getElementById("finalGateQuest01"),
       quest02:document.getElementById("finalGateQuest02"),
@@ -569,6 +570,11 @@
       ?church.progress().completed?"🏆 Lenda da FAAMA — a jornada foi concluída!"
         :"Tudo pronto! Entre na Igreja e conclua O Livro da Jornada."
       :"Faltam: "+p.missing.map(c=>c.name).join(" • ");
+    if(finalGateUI.note)finalGateUI.note.textContent=
+      !p.unlocked?"A Igreja permanece fechada até completar as nove missões anteriores."
+      :church.progress().completed
+      ?"Você zerou o jogo! A exploração livre está disponível e você pode rever a celebração."
+      :"A Igreja está aberta. Resolva as nove lembranças e os três desafios para zerar o jogo.";
     for(const c of p.chapters){
       const node=finalGateUI.chapters[c.id];
       if(!node)continue;
@@ -1565,8 +1571,9 @@
   function drawChurchFinalBadge(b){
     const status=finalGate.progress();
     const p=P(b.x+b.w/2,b.y+b.h/2,b.z+62);
-    const title=status.unlocked?"🔓 FASE FINAL":"🔒 ÚLTIMA FASE";
-    const line2=status.unlocked?"LIBERADA":status.done+"/"+status.total+" MISSÕES";
+    const finale=status.unlocked&&church.progress().completed;
+    const title=finale?"🏆 JOGO ZERADO":status.unlocked?"🔓 FASE FINAL":"🔒 ÚLTIMA FASE";
+    const line2=finale?"CONCLUÍDO":status.unlocked?"LIBERADA":status.done+"/"+status.total+" MISSÕES";
     ctx.save();
     ctx.shadowColor="#0c2537aa";
     ctx.shadowBlur=12;
@@ -2184,7 +2191,7 @@
         m.textAlign="center";
         m.font="bold 13px Arial,sans-serif";
         m.fillStyle="#fff6d9";
-        m.fillText(finalGate.progress().unlocked?"✦":"🔒",
+        m.fillText(church.progress().completed?"🏆":finalGate.progress().unlocked?"✦":"🔒",
           ox+(b.x+b.w/2)*sx,oy+(b.y+b.h/2)*sy+5);
       }
     }
