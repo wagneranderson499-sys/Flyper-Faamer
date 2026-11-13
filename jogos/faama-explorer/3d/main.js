@@ -123,55 +123,86 @@ function centralBuilding(s,p,w,d){
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
 // Reserva arquitetônica inspirada na fotografia real, sem retornar ao antigo prédio azul.
+// Modelo arquitetônico V3: volumes assimétricos, fachada recuada e entrada com marquise curva.
 function realCentralFallback(p,w,d){
- const front=p.z+d/2,baseY=0;
- box(w*.94,5.5,d*.9,"#315b63",p.x,2.75,p.z);
- box(w*.44,8.8,d*.66,"#6a9b65",p.x,4.4,p.z-d*.13);
- box(w*.98,1.15,d*.93,"#e6b748",p.x,5.9,p.z);
- for(const side of [-1,1]){
-  const xx=p.x+side*w*.38;
-  box(w*.22,5.7,d*.9,"#d4ad43",xx,2.85,p.z);
-  box(w*.16,3.5,.13,"#194c65",xx,2.65,front+.12);
-  box(w*.13,3.2,.14,"#81bdc2",xx,2.7,front+.23,false);
+ const x=p.x,z=p.z,front=z+d*.5;
+ const wall="#e1c45c",yellow="#e8c65e",green="#548a62",dark="#204653",glass="#244c62",orange="#c9773f";
+ const add=(W,H,D,color,X,Y,Z)=>box(W,H,D,color,X,Y,Z);
+ const window=(X,Y,Z,W,H)=>{
+  add(W+.2,H+.24,.18,"#e9e4cc",X,Y,Z);
+  add(W,H,.2,glass,X,Y,Z+.11);
+  add(W*.46,.035,.23,"#9ec2c4",X,Y,Z+.23);
+  add(.055,H,.23,"#b6d0d1",X,Y,Z+.24);
+ };
+ // Ala principal baixa: dois blocos amarelos com alturas distintas.
+ add(w*.99,5.5,d*.94,wall,x,2.75,z);
+ add(w*.37,6.5,d*.92,yellow,x-w*.315,3.25,z+.08);
+ add(w*.32,5.8,d*.96,"#d2b34c",x+w*.34,2.9,z-.04);
+ // Volume posterior verde elevado, com beirais e recuos.
+ add(w*.49,9.4,d*.64,green,x+w*.04,4.7,z-d*.2);
+ add(w*.51,.26,d*.68,"#d9ded0",x+w*.04,9.55,z-d*.2);
+ add(w*.52,.3,d*.7,"#f1f0e5",x+w*.04,9.8,z-d*.2);
+ // Cobertura de duas águas, inclinação suave e borda clara.
+ const roofShape=new THREE.Shape();roofShape.moveTo(-w*.32,0);roofShape.lineTo(0,1.6);roofShape.lineTo(w*.32,0);roofShape.closePath();
+ const roofGeo=new THREE.ExtrudeGeometry(roofShape,{depth:d*.57,bevelEnabled:false});
+ roofGeo.rotateY(Math.PI/2);
+ const roofMesh=new THREE.Mesh(roofGeo,mat("#e4e4d8"));roofMesh.position.set(x+w*.04,9.8,z-d*.48);roofMesh.castShadow=true;scene.add(roofMesh);
+ // Janelas altas: ritmo irregular na faixa superior.
+ for(const t of [-.38,-.21,-.04,.13,.30]){
+  const xx=x+w*t;
+  window(xx,5.05,front+.12,w*.092,1.58);
  }
- box(w*.3,6.4,.8,"#d67c3b",p.x,3.2,front+.42);
- box(w*.21,4.2,.14,"#143e59",p.x,2.15,front+.89);
+ // Portais e esquadrias no pavimento térreo.
  for(const side of [-1,1]){
-  box(w*.08,3.5,.12,"#a5d4d5",p.x+side*w*.16,2.2,front+.23,false);
-  box(w*.08,3.5,.12,"#234d62",p.x+side*w*.25,2.2,front+.23,false);
+  const xx=x+side*w*.36;
+  add(w*.17,3.2,.23,"#1b3f50",xx,1.95,front+.22);
+  add(w*.15,3,.25,"#6d9a9f",xx,1.95,front+.36);
+  add(.075,3,.28,"#d1dbd4",xx,1.95,front+.52);
+  add(w*.175,.2,.35,"#e5d9b4",xx,3.65,front+.4);
  }
- const canopy=new THREE.Mesh(new THREE.CylinderGeometry(w*.18,w*.18,.22,32,1,false,0,Math.PI),mat("#164d85"));
- canopy.rotation.z=Math.PI/2;canopy.rotation.y=Math.PI/2;canopy.position.set(p.x,3.35,front+1.35);canopy.castShadow=true;scene.add(canopy);
- box(w*.36,.18,2.3,"#1d5284",p.x,3.32,front+1.25);
- box(w*.48,.32,d*.7,"#e6e0c7",p.x,9,p.z-d*.14);
- for(let i=0;i<5;i++){
-  const x=p.x+(i-2)*w*.105;
-  box(w*.075,1.3,.11,"#1b5269",x,6.9,front+.18);
- }
+ // Textura vertical em painéis laterais e painéis ventilados.
  for(const side of [-1,1]){
-  const x=p.x+side*w*.57,z=front+2;
-  cylinder(.18,2.4,"#705b3a",x,1.2,z);
-  const crown=new THREE.Mesh(new THREE.SphereGeometry(1.25,10,8),mat("#3e8751"));crown.position.set(x,3.1,z);scene.add(crown);
+  const xx=x+side*w*.25;
+  add(w*.16,3.2,.15,"#274c51",xx,1.8,front+.22);
+  for(let i=0;i<12;i++)add(w*.15,.035,.16,i%2?"#8b9b77":"#c1aa5c",xx,1.05+i*.19,front+.32,false);
+ }
+ // Entrada principal recuada, com pórtico laranja de altura integral.
+ add(w*.255,6.3,.72,orange,x,3.15,front+.42);
+ add(w*.185,4.35,.78,"#18374b",x,2.18,front+.83);
+ add(w*.17,3.5,.8,"#183343",x,1.8,front+.89);
+ add(w*.028,4.35,.83,"#b86a3a",x-w*.12,2.18,front+.88);
+ add(w*.028,4.35,.83,"#b86a3a",x+w*.12,2.18,front+.88);
+ add(w*.28,.2,.85,"#e8b26b",x,6.25,front+.5);
+ // Marquise arqueada construída por faixas trianguladas (curva frontal real).
+ const canopyGroup=new THREE.Group();scene.add(canopyGroup);
+ const R=w*.15,depth=2.45,segments=24,positions=[],indices=[];
+ for(let i=0;i<=segments;i++){
+  const t=Math.PI*i/segments,xx=-R*Math.cos(t),yy=3.25+R*.48*Math.sin(t);
+  positions.push(xx,yy,0,xx,yy,depth);
+  if(i<segments){const k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();
+ const cover=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:"#1c5684",roughness:.56,side:THREE.DoubleSide}));cover.castShadow=true;canopyGroup.add(cover);
+ canopyGroup.position.set(x,0,front+.8);
+ add(w*.35,.18,2.4,"#215d8a",x,3.24,front+1.95);
+ // Degraus, calçada e jardineiras.
+ for(let i=0;i<3;i++)add(w*.32+i*.28,.13,.78,"#ded9c8",x,.07+i*.11,front+3.2+i*.5);
+ for(const side of [-1,1]){
+  const xx=x+side*w*.58;
+  add(1.9,.6,2.4,"#d2c6a5",xx,.3,front+1.2);
+  add(1.6,.3,2.1,"#427e4b",xx,.72,front+1.2);
+  for(let i=0;i<3;i++){
+   const sx=xx+(i-1)*.48;
+   cylinder(.07,1.4,"#56744b",sx,1.35,front+1.2);
+   const crown=new THREE.Mesh(new THREE.SphereGeometry(.47,10,8),mat("#38764c"));crown.position.set(sx,2.05,front+1.2);scene.add(crown);
+  }
  }
 }
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
  if(s.type==="central"){
   buildings.push({site:s,x:p.x,z:p.z,w,d});
-  new GLTFLoader().load("./models/predio_central_real_faama.glb",gltf=>{
-   const model=gltf.scene;
-   const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
-   const scale=Math.min((w*1.22)/size.x,(d*1.2)/size.z);
-   model.scale.setScalar(scale);
-   const center=bounds.getCenter(new THREE.Vector3());
-   model.position.set(p.x-center.x*scale,-bounds.min.y*scale,p.z-center.z*scale);
-   model.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true}});
-   scene.add(model);
-   console.info("Prédio Central real carregado no FAAMA Explorer 3D");
-  },undefined,error=>{
-   console.warn("Arquivo GLB não encontrado. Usando modelo de reserva.",error);
-   realCentralFallback(p,w,d);
-  });
+  realCentralFallback(p,w,d);
   return;
  }
  if(s.type==="pool"){
