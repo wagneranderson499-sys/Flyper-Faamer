@@ -66,6 +66,7 @@
   const sportsSite = sites.find(s => s.id === "sports");
   const restaurantSite = sites.find(s => s.id === "restaurant");
   const schoolSite = sites.find(s => s.id === "school");
+  const churchSite = sites.find(s => s.id === "church");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
@@ -107,6 +108,13 @@
     const y=schoolSite.y+schoolSite.h;
     return player.y>=y-.16&&player.y<=y+1.4&&
       Math.hypot(player.x-cx,player.y-(y+.66))<1.47;
+  }
+  function nearChurchEntrance(){
+    if(!churchSite)return false;
+    const cx=churchSite.x+churchSite.w/2;
+    const y=churchSite.y+churchSite.h;
+    return player.y>=y-.15&&player.y<=y+1.4&&
+      Math.hypot(player.x-cx,player.y-(y+.65))<1.45;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -258,6 +266,63 @@
   const school=window.createFaamaSchool({
     ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
   });
+  // A Igreja é a última fase. As futuras missões precisam ser concluídas
+  // e registrar sua instância em window.FAAMA_EXTRA_QUESTS antes da liberação.
+  const finalGate=window.createFaamaFinalGate({
+    getProgress:()=>{
+      const extras=window.FAAMA_EXTRA_QUESTS||{};
+      return {
+        quest01:quest.progress(),quest02:indoorQuest.progress(),
+        academic:academic.progress(),sports:sports.progress(),
+        restaurant:restaurant.progress(),school:school.progress(),
+        pool:extras.pool?.progress?.()||null,
+        female:extras.female?.progress?.()||null,
+        male:extras.male?.progress?.()||null
+      };
+    }
+  });
+  const finalGateUI={
+    stage:document.getElementById("finalGateStage"),
+    description:document.getElementById("finalGateDescription"),
+    count:document.getElementById("finalGateCount"),
+    bar:document.getElementById("finalGateBar"),
+    missing:document.getElementById("finalGateMissing"),
+    chapters:{
+      quest01:document.getElementById("finalGateQuest01"),
+      quest02:document.getElementById("finalGateQuest02"),
+      academic:document.getElementById("finalGateAcademic"),
+      sports:document.getElementById("finalGateSports"),
+      restaurant:document.getElementById("finalGateRestaurant"),
+      school:document.getElementById("finalGateSchool"),
+      pool:document.getElementById("finalGatePool"),
+      female:document.getElementById("finalGateFemale"),
+      male:document.getElementById("finalGateMale")
+    }
+  };
+  let finalGateCachedState="";
+  function refreshFinalGateUI(){
+    const p=finalGate.progress();
+    const state=p.chapters.map(c=>c.completed?"1":"0").join("");
+    if(state===finalGateCachedState)return;
+    finalGateCachedState=state;
+    if(finalGateUI.stage)finalGateUI.stage.textContent=
+      p.unlocked?"🔓 LIBERADA":"🔒 BLOQUEADA";
+    if(finalGateUI.description)finalGateUI.description.textContent=p.unlocked
+      ?"Todas as missões anteriores foram concluídas! A Igreja é a fase final da aventura."
+      :"Conclua todas as outras missões para desbloquear a Igreja, a última fase do FAAMA Explorer.";
+    if(finalGateUI.count)finalGateUI.count.textContent=
+      p.done+" de "+p.total+" missões concluídas";
+    if(finalGateUI.bar)finalGateUI.bar.style.width=(p.done/p.total*100)+"%";
+    if(finalGateUI.missing)finalGateUI.missing.textContent=p.unlocked
+      ?"Tudo pronto para o capítulo final!"
+      :"Faltam: "+p.missing.map(c=>c.name).join(" • ");
+    for(const c of p.chapters){
+      const node=finalGateUI.chapters[c.id];
+      if(!node)continue;
+      node.textContent=(c.completed?"✓ ":"🔒 ")+c.name;
+      node.classList.toggle("complete",c.completed);
+    }
+  }
   const schoolUI={
     hud:document.getElementById("schoolHUD"),
     count:document.getElementById("schoolHUDCount"),
@@ -1929,6 +1994,13 @@
     }
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="church"&&nearChurchEntrance()) {
+      // O capítulo final deve validar novamente as nove missões antes de abrir.
+      // Até a implementação do seu interior, a entrada só exibe o status.
+      show(finalGate.notice(),8);
+      refreshFinalGateUI();
+      return;
+    }
     if (near?.id==="school"&&nearSchoolEntrance()) {
       enterSchool();
       return;
@@ -1982,6 +2054,9 @@
       show("Para entrar no Restaurante, aproxime-se da entrada principal.",5);
     } else if (near?.id==="school") {
       show("Para entrar na FAAMinha, aproxime-se da porta principal da escola.",5);
+    } else if (near?.id==="church") {
+      show(finalGate.notice(),8);
+      refreshFinalGateUI();
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -2210,7 +2285,9 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="school"&&nearSchoolEntrance()
+      ui.interact.textContent = near?.id==="church"&&nearChurchEntrance()
+        ? finalGate.progress().unlocked?"FASE FINAL [E]":"🔒 BLOQUEADA [E]"
+        : near?.id==="school"&&nearSchoolEntrance()
         ? "ENTRAR [E]" : near?.id==="restaurant"&&nearRestaurantEntrance()
         ? "ENTRAR [E]" : near?.id==="sports"&&nearSportsEntrance()
         ? "ENTRAR [E]" : near?.id==="academic"&&nearAcademicEntrance()
@@ -2222,7 +2299,11 @@
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="school"&&nearSchoolEntrance()
+      hint.textContent = near?.id==="church"&&nearChurchEntrance()
+        ? finalGate.progress().unlocked
+          ? "[E] A Igreja está liberada para a última fase"
+          : "[E] Igreja bloqueada — conclua todas as missões"
+        : near?.id==="school"&&nearSchoolEntrance()
         ? "[E] Entrar na FAAMinha"
         : near?.id==="restaurant"&&nearRestaurantEntrance()
         ? "[E] Entrar no Restaurante"
@@ -2271,6 +2352,7 @@
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
+      refreshFinalGateUI();
 
       if(school.active){
         school.draw(time,zoom);
@@ -2645,6 +2727,7 @@
   refreshSportsUI();
   refreshRestaurantUI();
   refreshSchoolUI();
+  refreshFinalGateUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
