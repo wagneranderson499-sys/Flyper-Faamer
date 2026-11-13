@@ -2946,6 +2946,10 @@
       closeAcademicQuiz();
       closeFood();
       closeSchoolPuzzle();
+      closeResidencePuzzle();
+      if(pool.active)leavePool();
+      if(female.active)leaveResidence("female");
+      if(male.active)leaveResidence("male");
       if(school.active)leaveSchool();
       if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
@@ -2972,6 +2976,10 @@
       closeAcademicQuiz();
       closeFood();
       closeSchoolPuzzle();
+      closeResidencePuzzle();
+      if(pool.active)leavePool();
+      if(female.active)leaveResidence("female");
+      if(male.active)leaveResidence("male");
       if(school.active)leaveSchool();
       if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
@@ -3076,6 +3084,34 @@
     btn.addEventListener("click",()=>answerSchoolPuzzle(index));
   });
 
+  const poolRestart=document.getElementById("poolQuestRestart");
+  if(poolRestart)poolRestart.addEventListener("click",()=>{
+    if(typeof window.confirm==="function" &&
+      !window.confirm("Recomeçar o Desafio Aquático? O recorde, a conquista e os 200 XP da Missão 07 serão apagados. As demais missões serão preservadas."))return;
+    pendingPoolStart=false;closeDialogue();pool.restartProgress();
+    refreshPoolUI();refreshFinalGateUI();
+    show("Desafio Aquático reiniciado. Converse com Nara para começar.",5);
+  });
+  for(const kind of ["female","male"]){
+    const button=document.getElementById(kind+"QuestRestart");
+    if(!button)continue;
+    button.addEventListener("click",()=>{
+      const o=kind==="female"?female:male;
+      const id=kind==="female"?"08":"09";
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar a Missão "+id+" do "+o.conf.name+
+          "? Isso apagará os 200 XP e a conquista dessa missão, mas preservará todas as outras."))return;
+      closeDialogue();closeResidencePuzzle();
+      o.restart();
+      refreshResidenceUI(kind);refreshFinalGateUI();
+      show("Missão "+id+" reiniciada. Converse com "+o.npc.name+".",5);
+    });
+  }
+  if(residencePuzzleUI.close)residencePuzzleUI.close.addEventListener("click",closeResidencePuzzle);
+  residencePuzzleUI.choices.forEach((btn,index)=>{
+    btn.addEventListener("click",()=>answerResidencePuzzle(index));
+  });
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
@@ -3104,6 +3140,10 @@
   refreshSportsUI();
   refreshRestaurantUI();
   refreshSchoolUI();
+  refreshPoolUI();
+  refreshResidenceUI("female");
+  refreshResidenceUI("male");
+  refreshTotalXP();
   refreshFinalGateUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
