@@ -575,6 +575,171 @@
       node.classList.toggle("complete",c.completed);
     }
   }
+  const churchUI={
+    hud:document.getElementById("churchHUD"),
+    hudCount:document.getElementById("churchHUDCount"),
+    hudObjective:document.getElementById("churchHUDObjective"),
+    hudBar:document.getElementById("churchHUDBar"),
+    stage:document.getElementById("churchQuestStage"),
+    description:document.getElementById("churchQuestDescription"),
+    book:document.getElementById("churchQuestBook"),
+    virtues:document.getElementById("churchQuestVirtues"),
+    achievement:document.getElementById("churchQuestAchievement"),
+    bar:document.getElementById("churchQuestBar"),
+    replay:document.getElementById("churchQuestReplay")
+  };
+  const churchChallengeUI={
+    root:document.getElementById("churchChallenge"),
+    title:document.getElementById("churchChallengeTitle"),
+    step:document.getElementById("churchChallengeStep"),
+    lead:document.getElementById("churchChallengeLead"),
+    question:document.getElementById("churchChallengeQuestion"),
+    feedback:document.getElementById("churchChallengeFeedback"),
+    close:document.getElementById("churchChallengeClose"),
+    choices:[...document.querySelectorAll("[data-church-answer]")]
+  };
+  const cinematicUI={
+    root:document.getElementById("churchCinematic"),
+    bar:document.getElementById("churchCinematicBar")
+  };
+  const endingUI={
+    root:document.getElementById("endingScreen"),
+    missions:document.getElementById("endingMissions"),
+    xp:document.getElementById("endingXP"),
+    progress:document.getElementById("endingProgress"),
+    playtime:document.getElementById("endingPlaytime"),
+    records:document.getElementById("endingRecords"),
+    credits:document.getElementById("endingCredits"),
+    explore:document.getElementById("endingExplore"),
+    toggleCredits:document.getElementById("endingToggleCredits"),
+    restart:document.getElementById("endingRestartJourney")
+  };
+  let churchChallengeActive=null;
+  let churchCinematicActive=false,churchCinematicElapsed=0,endingOpen=false;
+  function refreshChurchUI(){
+    const p=church.progress();
+    const names={locked:"🔒 BLOQUEADA",ready:"DISPONÍVEL",book:"LIVRO DA JORNADA",
+      virtues:"FÉ • ESPERANÇA • AMOR",return:"VOLTAR A SAMUEL",completed:"🏆 JOGO ZERADO"};
+    if(churchUI.stage)churchUI.stage.textContent=names[p.stage];
+    if(churchUI.description)churchUI.description.textContent=p.objective;
+    if(churchUI.book)churchUI.book.textContent=
+      "📖 Livro da Jornada: "+p.book+" / "+p.bookTotal+" lembranças";
+    if(churchUI.virtues)churchUI.virtues.textContent=
+      "✦ Fé • Esperança • Amor: "+p.virtues+" / "+p.virtueTotal+" concluídos";
+    if(churchUI.achievement){
+      churchUI.achievement.textContent=p.completed
+        ?"🏆 Conquista: Lenda da FAAMA":"🏆 Conquista bloqueada: Lenda da FAAMA";
+      churchUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(churchUI.hud)churchUI.hud.classList.toggle("hidden",!church.active);
+    if(churchUI.hudCount)churchUI.hudCount.textContent=(p.book+p.virtues)+"/12";
+    if(churchUI.hudObjective)churchUI.hudObjective.textContent=p.objective;
+    if(churchUI.hudBar)churchUI.hudBar.style.width=((p.book+p.virtues)/12*100)+"%";
+    if(churchUI.bar)churchUI.bar.style.width=((p.book+p.virtues)/12*100)+"%";
+    if(churchUI.replay)churchUI.replay.classList.toggle("hidden",!p.completed);
+    refreshTotalXP();
+  }
+  function closeChurchChallenge(){
+    if(!churchChallengeActive)return;
+    churchChallengeActive=null;
+    churchChallengeUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function fillChurchChallenge(item,feedback){
+    churchChallengeUI.title.textContent=item.type==="book"
+      ?item.icon+" "+item.place:item.icon+" Painel da "+item.title;
+    churchChallengeUI.step.textContent=item.type==="book"
+      ?"LIVRO DA JORNADA • "+(item.index+1)+"/9":
+      "TRÊS VALORES • "+(item.index+1)+"/3";
+    churchChallengeUI.lead.textContent=item.type==="book"
+      ?"Recordação "+(item.index+1)+" de nove. Qual valor você aprendeu?"
+      :"1 Coríntios 13:13 • "+item.title;
+    churchChallengeUI.question.textContent=item.question||item.prompt;
+    churchChallengeUI.feedback.textContent=feedback||"Escolha a atitude que melhor corresponde à jornada.";
+    churchChallengeUI.choices.forEach((button,i)=>{
+      button.textContent=(i+1)+". "+item.choices[i];
+    });
+  }
+  function openChurchChallenge(item){
+    if(churchChallengeActive||!church.active)return;
+    churchChallengeActive=item;
+    held.clear();church.pause();
+    fillChurchChallenge(item);
+    churchChallengeUI.root.classList.remove("hidden");
+  }
+  function answerChurchChallenge(index){
+    if(!churchChallengeActive)return;
+    const item=churchChallengeActive;
+    const result=church.answer(item.type,item.id,index);
+    if(result.correct){
+      refreshChurchUI();
+      if(result.next){
+        churchChallengeActive=result.next;
+        fillChurchChallenge(result.next,"✓ "+result.message);
+      }else{
+        closeChurchChallenge();
+        show(result.message,7);
+      }
+    }else if(!result.ignored){
+      churchChallengeUI.feedback.textContent=result.message;
+    }else{
+      closeChurchChallenge();
+      show(church.objective(),5);
+    }
+  }
+  function stopChurchCinematic(){
+    churchCinematicActive=false;churchCinematicElapsed=0;
+    if(cinematicUI.root)cinematicUI.root.classList.add("hidden");
+    if(cinematicUI.bar)cinematicUI.bar.style.width="0%";
+  }
+  function startChurchCinematic(){
+    if(!church.active||!church.progress().completed)return;
+    endingOpen=false;
+    if(endingUI.root)endingUI.root.classList.add("hidden");
+    churchCinematicActive=true;churchCinematicElapsed=0;
+    held.clear();church.pause();persistPlayTime();
+    if(cinematicUI.bar)cinematicUI.bar.style.width="0%";
+    if(cinematicUI.root)cinematicUI.root.classList.remove("hidden");
+  }
+  function refreshEndingStats(){
+    const missions=finalGate.progress().done+(church.progress().completed?1:0);
+    if(endingUI.missions)endingUI.missions.textContent=missions+"/10";
+    if(endingUI.xp)endingUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+academic.progress().xp+
+        sports.progress().xp+restaurant.progress().xp+school.progress().xp+
+        pool.progress().xp+female.progress().xp+male.progress().xp+church.progress().xp)+" XP";
+    if(endingUI.progress)endingUI.progress.textContent=Math.round(missions/10*100)+"%";
+    if(endingUI.playtime)endingUI.playtime.textContent=formatPlaytime(playTimeSeconds);
+    if(endingUI.records)endingUI.records.textContent=
+      "🏅 Ginásio: "+sports.progress().bestLabel+
+      "  •  🍽️ Restaurante: "+restaurant.progress().bestLabel+
+      "  •  🏊 Piscina: "+pool.progress().bestLabel;
+  }
+  function openFinalVictory(){
+    if(!church.progress().completed||!finalGate.progress().unlocked){
+      show("Complete primeiro as dez missões para acessar o encerramento.",5);return false;
+    }
+    stopChurchCinematic();
+    refreshEndingStats();
+    if(endingUI.credits)endingUI.credits.classList.add("hidden");
+    if(endingUI.toggleCredits)endingUI.toggleCredits.textContent="Ver créditos";
+    endingOpen=true;held.clear();
+    if(endingUI.root)endingUI.root.classList.remove("hidden");
+    persistPlayTime();
+    return true;
+  }
+  function closeFinalVictory(){
+    endingOpen=false;
+    if(endingUI.root)endingUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function tickChurchCinematic(dt){
+    if(!churchCinematicActive)return;
+    churchCinematicElapsed+=dt;
+    if(cinematicUI.bar)cinematicUI.bar.style.width=
+      (Math.min(1,churchCinematicElapsed/4)*100)+"%";
+    if(churchCinematicElapsed>=4.1)openFinalVictory();
+  }
   const schoolUI={
     hud:document.getElementById("schoolHUD"),
     count:document.getElementById("schoolHUDCount"),
