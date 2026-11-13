@@ -5,7 +5,7 @@ export function createMissions3D(THREE,{scene,avatar,at,unit,sites,held,box,mat,
  const choices=document.getElementById("mission3dChoices"),list=document.getElementById("missionList");
  const toggle=document.getElementById("missionsToggle"),menu=document.getElementById("missionsPanel"),count=document.getElementById("missionCount");
  const conf={
-  central:{title:"Prédio Central — Enigma da Chave",npc:"Marina",color:"#ecaa56",task:"Encontre as três pistas no saguão e resolva o código do armário.",labels:["Mural","Quadro","Estante"],question:"Qual é o código das pistas: mural (3), quadro (1), estante (2)?",answers:["231","312","123"],correct:1},
+  central:{title:"Prédio Central — Enigma da Chave",npc:"Júlia",color:"#ecaa56",task:"Encontre as três pistas no saguão e resolva o código do armário.",labels:["Mural","Quadro","Estante"],question:"Qual é o código das pistas: mural (3), quadro (1), estante (2)?",answers:["231","312","123"],correct:1},
   academic:{title:"Prédio Acadêmico — Conhecimento",npc:"Professora Helena",color:"#6385bd",task:"Colete os três selos e responda à pergunta.",labels:["Biblioteca","Laboratório","Sala de aula"],question:"Qual atitude favorece a aprendizagem?",answers:["Estudar só na véspera","Revisar com regularidade","Ignorar dúvidas"],correct:1},
   sports:{title:"Complexo Esportivo — Circuito",npc:"Rafael",color:"#52aa77",task:"Recolha cinco medalhas antes que o tempo acabe.",labels:["Medalha 1","Medalha 2","Medalha 3","Medalha 4","Medalha 5"],seconds:90},
   restaurant:{title:"Restaurante Misterioso",npc:"Clara",color:"#d48d54",task:"Encontre os cinco pedidos e entregue-os à cozinheira.",labels:["Pedido 1","Pedido 2","Pedido 3","Pedido 4","Pedido 5"],seconds:180},
@@ -49,7 +49,7 @@ export function createMissions3D(THREE,{scene,avatar,at,unit,sites,held,box,mat,
    makeBox(room,2.8,1.4,2.5,"#a88763",x,.7,z);
    makeBox(room,2.8,.15,2.5,"#e3c6a2",x,1.45,z);
   }
-  const npc=new THREE.Group();npc.position.set(0,0,-7);room.add(npc);npcObject=npc;
+  const npc=new THREE.Group();npc.position.set(0,0,-7);room.add(npc);npcObject=npc;npc.name=active==="central"?"Júlia":conf[active].npc;
   const part=(geometry,color,x,y,z)=>{const m=new THREE.Mesh(geometry,mat(color));m.position.set(x,y,z);m.castShadow=true;npc.add(m);return m};
   const skin=active==="central"?"#b77956":"#c99070",shirt=active==="central"?"#e8aa58":"#32688c";
   part(new THREE.CapsuleGeometry(.4,.75,5,16),shirt,0,1.52,0);
@@ -66,6 +66,17 @@ export function createMissions3D(THREE,{scene,avatar,at,unit,sites,held,box,mat,
    part(new THREE.BoxGeometry(.36,.18,.6),"#27343e",side*.19,.12,-.12);
   }
   part(new THREE.BoxGeometry(.16,.035,.04),"#914d50",0,2.3,-.414);
+  // Crachá, gola, pulseiras e acessórios tornam a NPC identificável.
+  part(new THREE.BoxGeometry(.28,.32,.065),"#f2eee2",.22,1.59,-.4);
+  part(new THREE.BoxGeometry(.22,.07,.068),"#1c789c",.22,1.68,-.44);
+  part(new THREE.BoxGeometry(.1,.12,.07),"#e8ba52",.22,1.52,-.45);
+  if(active==="central"){
+   for(const side of [-1,1]){
+    part(new THREE.TorusGeometry(.115,.025,6,16),"#e3c46f",side*.42,2.4,-.04);
+    part(new THREE.SphereGeometry(.042,10,8),"#d6b45b",side*.42,2.29,-.04);
+   }
+   part(new THREE.BoxGeometry(.55,.08,.12),"#f4e4ca",0,1.89,-.34);
+  }
   items=[];
   const points=[[-9,-7],[9,-7],[-9,1],[9,1],[-6,7],[6,7]];
   const labels=active==="central"?[...c.labels,"Armário de arquivos"]:c.labels;
@@ -87,7 +98,7 @@ export function createMissions3D(THREE,{scene,avatar,at,unit,sites,held,box,mat,
   avatar.position.copy(entryPosition);active=null;panel.hidden=true;choices.replaceChildren();held.clear();
  }
  function finish(){
-  completed[active]=true;save();description.textContent=active==="central"?"Marina: Obrigada pela ajuda! +150 XP • Detetive do Prédio Central.":"Missão concluída! Parabéns pela conquista.";
+  completed[active]=true;save();description.textContent=active==="central"?"Júlia: Obrigada pela ajuda! +150 XP • Detetive do Prédio Central.":"Missão concluída! Parabéns pela conquista.";
   progress.textContent="✓ Concluída • Progresso salvo";
   choices.replaceChildren();const b=document.createElement("button");b.textContent="Voltar ao campus";b.onclick=leave;choices.appendChild(b);
  }
@@ -96,21 +107,21 @@ export function createMissions3D(THREE,{scene,avatar,at,unit,sites,held,box,mat,
   if(nearNpc){
    choices.replaceChildren();
    if(active==="central"){
-    if(centralStage==="talk"){centralStage="clues";description.textContent="Marina: Um documento importante está no armário de arquivos. A combinação está dividida em três pistas. Investigue o mural, o quadro e a estante."}
-    else if(centralStage==="return"){finish();description.textContent="Marina: Você encontrou o documento! Muito obrigada! +150 XP e a conquista Detetive do Prédio Central."}
-    else description.textContent=centralStage==="clues"?"Marina: Procure as três pistas. Já encontrou "+collected.size+" de 3.":centralStage==="locker"?"Marina: Agora descubra o código do armário.":"Marina: Pegue o documento no armário e traga-o para mim.";
+    if(centralStage==="talk"){centralStage="clues";description.textContent="Júlia: Um documento importante está no armário de arquivos. A combinação está dividida em três pistas. Investigue o mural, o quadro e a estante."}
+    else if(centralStage==="return"){finish();description.textContent="Júlia: Você encontrou o documento! Muito obrigada! +150 XP e a conquista Detetive do Prédio Central."}
+    else description.textContent=centralStage==="clues"?"Júlia: Procure as três pistas. Já encontrou "+collected.size+" de 3.":centralStage==="locker"?"Júlia: Agora descubra o código do armário.":"Júlia: Pegue o documento no armário e traga-o para mim.";
    }else description.textContent=conf[active].npc+": "+conf[active].task;
    return true;
   }
   if(nearItem){
-   if(active==="central"&&centralStage==="talk"){hint.textContent="Converse primeiro com Marina.";return true}
+   if(active==="central"&&centralStage==="talk"){hint.textContent="Converse primeiro com Júlia.";return true}
    const item=nearItem;
    if(active==="central"&&item.index===3){
     if(centralStage==="locker"){
      description.textContent="Armário de arquivos: qual é a combinação das três pistas?";
      choices.replaceChildren();
      ["231","312","123"].forEach(code=>{const b=document.createElement("button");b.textContent=code;b.onclick=()=>{if(code==="312"){centralStage="document";description.textContent="Armário aberto! Pressione E novamente para pegar o documento.";choices.replaceChildren()}else progress.textContent="Código incorreto. Releia as pistas."};choices.appendChild(b)});
-    }else if(centralStage==="document"){centralStage="return";item.group.visible=false;collected.add(3);description.textContent="Documento encontrado! Volte até Marina e pressione E."}
+    }else if(centralStage==="document"){centralStage="return";item.group.visible=false;collected.add(3);description.textContent="Documento encontrado! Volte até Júlia e pressione E."}
     else hint.textContent="Investigue primeiro as três pistas.";
     return true;
    }
