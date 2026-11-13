@@ -3436,6 +3436,76 @@
     btn.addEventListener("click",()=>answerResidencePuzzle(index));
   });
 
+  const churchQuestRestart=document.getElementById("churchQuestRestart");
+  if(churchQuestRestart)churchQuestRestart.addEventListener("click",()=>{
+    if(typeof window.confirm==="function" &&
+      !window.confirm("Recomeçar somente a Missão 10 — A Luz que Permanece? Isso apagará o Livro, os três painéis e os 200 XP finais. As nove missões anteriores e seus recordes serão preservados."))return;
+    pendingChurchEnding=false;closeDialogue(false);closeChurchChallenge();
+    stopChurchCinematic();closeFinalVictory();
+    church.restart();
+    refreshChurchUI();refreshFinalGateUI();
+    show("Missão final reiniciada. Converse com Samuel para começar a jornada na Igreja.",5);
+  });
+  const churchQuestReplay=document.getElementById("churchQuestReplay");
+  if(churchQuestReplay)churchQuestReplay.addEventListener("click",()=>{
+    if(church.progress().completed)openFinalVictory();
+  });
+  if(churchChallengeUI.close)
+    churchChallengeUI.close.addEventListener("click",closeChurchChallenge);
+  churchChallengeUI.choices.forEach((button,index)=>{
+    button.addEventListener("click",()=>answerChurchChallenge(index));
+  });
+  if(endingUI.explore)endingUI.explore.addEventListener("click",()=>{
+    closeFinalVictory();
+    if(church.active)leaveChurch();
+    else show("Exploração livre liberada! Visite o campus, converse com personagens e melhore seus recordes.",6);
+  });
+  if(endingUI.toggleCredits)endingUI.toggleCredits.addEventListener("click",()=>{
+    if(!endingOpen)return;
+    const nowHidden=endingUI.credits.classList.contains("hidden");
+    endingUI.credits.classList.toggle("hidden",!nowHidden);
+    endingUI.toggleCredits.textContent=nowHidden?"Ocultar créditos":"Ver créditos";
+  });
+  if(endingUI.restart)endingUI.restart.addEventListener("click",()=>{
+    if(typeof window.confirm==="function" &&
+      !window.confirm("ATENÇÃO: recomeçar TODA a jornada apagará o progresso, os 1.850 XP possíveis, as 10 conquistas e todos os recordes. Você voltará à entrada da FAAMA. Deseja realmente apagar todos os seus avanços?"))return;
+    pendingChurchEnding=false;
+    pendingQuestNotice=null;
+    closeFinalVictory();stopChurchCinematic();closeChurchChallenge();
+    closeSchoolPuzzle();closeResidencePuzzle();closeFood();
+    closeAcademicQuiz();closeRiddle();closeDialogue(false);
+    if(church.active)leaveChurch();
+    if(pool.active)leavePool();
+    if(female.active)leaveResidence("female");
+    if(male.active)leaveResidence("male");
+    if(school.active)leaveSchool();
+    if(restaurant.active)leaveRestaurant();
+    if(sports.active)leaveSports();
+    if(interior.active)leaveCentral();
+    if(academic.active)leaveAcademic();
+    held.clear();
+    church.restart();
+    quest.restart();
+    indoorQuest.reset();
+    academic.restart();
+    sports.restartProgress();
+    restaurant.reset();
+    school.restart();
+    pool.restartProgress();
+    female.restart();
+    male.restart();
+    playTimeSeconds=0;playtimeSaveBucket=0;persistPlayTime();
+    pendingSportsStart=false;pendingRestaurantStart=false;pendingPoolStart=false;
+    finalGateCachedState="";
+    player.x=20;player.y=42;player.moving=false;
+    near=nearest();nearTalker=life.nearestTalker(player.x,player.y,1.85);
+    refreshQuestUI();refreshIndoorQuestUI();refreshAcademicUI();
+    refreshSportsUI();refreshRestaurantUI();refreshSchoolUI();
+    refreshPoolUI();refreshResidenceUI("female");refreshResidenceUI("male");
+    refreshChurchUI();refreshFinalGateUI();refreshTotalXP();
+    show("Nova jornada iniciada! As dez missões foram reiniciadas. Converse com Lia perto da entrada.",7);
+  });
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
