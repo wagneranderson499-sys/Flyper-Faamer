@@ -1248,3 +1248,9 @@ body {
 .quest-enter:hover{filter:brightness(1.07);transform:translateY(-1px)}
 .quest-enter:focus-visible{outline:3px solid #e5cf84;outline-offset:2px}
 @media(max-width:600px){.quest-enter{width:100%;margin:6px 0;font-size:12px}}
+
+/* Nova rodada: ação separada do botão que apenas volta à entrada */
+.toolbar .new-journey{padding:9px 13px;border:1px solid #e7c892;border-radius:9px;background:#f2dbad;color:#43311d;font-weight:800;white-space:nowrap;cursor:pointer}
+.toolbar .new-journey:hover{background:#ffe7b7}
+.toolbar .new-journey:focus-visible{outline:3px solid #f2dbad;outline-offset:3px}
+@media(max-width:620px){.toolbar .tools{flex-wrap:wrap;justify-content:flex-end}.toolbar .new-journey{font-size:12px;padding:8px 10px}}
