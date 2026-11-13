@@ -3450,6 +3450,31 @@
     btn.addEventListener("click",()=>answerResidencePuzzle(index));
   });
 
+  // Acesso direto de desenvolvimento: permite revisar cenários sem caminhar
+  // pelo campus. Não marca missões como concluídas e não concede XP.
+  function previewCampusArea(kind){
+    if(activeDialogue)closeDialogue(false);
+    closeChurchChallenge();stopChurchCinematic();closeFinalVictory();
+    closeFood();closeSchoolPuzzle();closeResidencePuzzle();
+    closeAcademicQuiz();closeRiddle();
+    if(church.active)leaveChurch();
+    if(pool.active)leavePool();
+    if(female.active)leaveResidence("female");
+    if(male.active)leaveResidence("male");
+    if(school.active)leaveSchool();
+    if(restaurant.active)leaveRestaurant();
+    if(sports.active)leaveSports();
+    if(interior.active)leaveCentral();
+    if(academic.active)leaveAcademic();
+    held.clear();
+    if(kind==="pool")enterPool();
+    else if(kind==="female"||kind==="male")enterResidence(kind);
+  }
+  [["poolQuestEnter","pool"],["femaleQuestEnter","female"],["maleQuestEnter","male"]]
+    .forEach(([id,kind])=>{
+      const button=document.getElementById(id);
+      if(button)button.addEventListener("click",()=>previewCampusArea(kind));
+    });
   const churchQuestRestart=document.getElementById("churchQuestRestart");
   if(churchQuestRestart)churchQuestRestart.addEventListener("click",()=>{
     if(typeof window.confirm==="function" &&
