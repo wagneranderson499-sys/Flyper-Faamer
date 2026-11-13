@@ -1320,6 +1320,45 @@
     line(P(0,H),P(W,H),"#6a995b",7);
   }
 
+  // Detalhes naturais determinísticos: não mudam colisões nem a planta do campus.
+  const grassDetails=[];
+  for(let y=1;y<H-1;y+=.72){
+    for(let x=1;x<W-1;x+=.78){
+      const n=seeded(x*61.73+y*117.91);
+      if(n<.47||sites.some(site=>inside(x,y,site,1.1))||roadNear(x,y))continue;
+      grassDetails.push({x:x+seeded(n*81)*.35,y:y+seeded(n*33)*.32,
+        flower:n>.973,shade:n>.81,seed:n});
+    }
+  }
+  function drawGrassDetails(){
+    for(const d of grassDetails){
+      const p=P(d.x,d.y);
+      const sway=Math.sin(time*1.45+d.seed*15)*.85;
+      const c=d.shade?"#315f3c":"#4f8544";
+      line({x:p.x-3,y:p.y+1},{x:p.x-4+sway,y:p.y-5},c,1.15);
+      line({x:p.x,y:p.y+1},{x:p.x+1+sway,y:p.y-7},"#bdd889",1.05);
+      line({x:p.x+3,y:p.y+1},{x:p.x+4+sway,y:p.y-4},c,1);
+      if(d.flower){
+        ellipse(p.x+1+sway,p.y-7,2.5,2.5,"#f9e9aa");
+        ellipse(p.x+1+sway,p.y-7,1.15,1.15,"#e7a875");
+      }
+    }
+  }
+  function drawAtmosphere(){
+    // Iluminação suave aplicada à cena, sem filtros pesados por pixel.
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);
+    const sun=ctx.createRadialGradient(SW*.14,SH*.08,25,SW*.28,SH*.15,SW*.92);
+    sun.addColorStop(0,"rgba(255,233,174,.105)");
+    sun.addColorStop(.58,"rgba(255,235,190,.025)");
+    sun.addColorStop(1,"rgba(255,235,190,0)");
+    ctx.fillStyle=sun;ctx.fillRect(0,0,SW,SH);
+    const vignette=ctx.createRadialGradient(SW*.5,SH*.43,SH*.23,SW*.5,SH*.5,SW*.83);
+    vignette.addColorStop(0,"rgba(4,22,28,0)");
+    vignette.addColorStop(1,"rgba(4,22,28,.23)");
+    ctx.fillStyle=vignette;ctx.fillRect(0,0,SW,SH);
+    ctx.restore();
+  }
+
   function drawRoads() {
     // Três camadas fazem as calçadas parecerem lajes em vez de traços planos.
     for (const road of roads) {
@@ -3100,6 +3139,7 @@
       ctx.translate(-camera.x, -camera.y);
 
       ground();
+      drawGrassDetails();
       drawRoads();
       plazas();
       campusDecor();
@@ -3132,6 +3172,7 @@
       objects.forEach(o => o.draw());
 
       ctx.restore();
+      drawAtmosphere();
       drawMinimap();
 
       if (ui.toast && time > toastUntil) {
