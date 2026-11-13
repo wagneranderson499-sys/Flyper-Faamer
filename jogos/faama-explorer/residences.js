@@ -169,7 +169,7 @@ window.createFaamaResidence=function createFaamaResidence({kind,ctx,storage,canv
     if(stage()==="ready")return {message:"Fale primeiro com "+npc.name+"."};
     if(state.found.includes(id))return {message:"Você já encontrou "+item.name+"."};
     state.found.push(id);persist();
-    return {changed:true,message:item.icon+" "+item.name+" encontrado! ("+state.found.length+"/3)"};
+    return {changed:true,message:item.icon+" Encontrado: "+item.name+"! ("+state.found.length+"/3)"};
   }
   function answer(index){
     if(stage()!=="organize")return {ignored:true};
