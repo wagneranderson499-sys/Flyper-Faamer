@@ -65,6 +65,7 @@
   const academicSite = sites.find(s => s.id === "academic");
   const sportsSite = sites.find(s => s.id === "sports");
   const restaurantSite = sites.find(s => s.id === "restaurant");
+  const schoolSite = sites.find(s => s.id === "school");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
@@ -99,6 +100,13 @@
     const y=restaurantSite.y+restaurantSite.h;
     return player.y>=y-.15 && player.y<=y+1.42 &&
       Math.hypot(player.x-cx,player.y-(y+.67))<1.5;
+  }
+  function nearSchoolEntrance(){
+    if(!schoolSite)return false;
+    const cx=schoolSite.x+schoolSite.w/2;
+    const y=schoolSite.y+schoolSite.h;
+    return player.y>=y-.16&&player.y<=y+1.4&&
+      Math.hypot(player.x-cx,player.y-(y+.66))<1.47;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -196,6 +204,29 @@
     refreshRestaurantUI();
     show("Você voltou ao campus. Os pedidos e o recorde foram preservados.",4);
   }
+  function enterSchool(){
+    if(interiorUI.building)interiorUI.building.textContent="🗺️ FAAMINHA • INTERIOR";
+    school.enter();
+    held.clear();
+    player.moving=false;
+    setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshSchoolUI();
+    show("Você entrou na FAAMinha! Converse com a professora Sofia para começar a aventura.",5);
+  }
+  function leaveSchool(){
+    if(!school.active)return;
+    closeSchoolPuzzle();
+    school.leave();
+    held.clear();
+    player.x=schoolSite.x+schoolSite.w/2;
+    player.y=schoolSite.y+schoolSite.h+1.25;
+    player.moving=false;
+    nearTalker=null;nearQuestItem=null;
+    setInteriorMode(false);
+    refreshSchoolUI();
+    show("Você saiu da FAAMinha. As pistas encontradas foram salvas.",4);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -224,6 +255,98 @@
   const restaurant=window.createFaamaRestaurant({
     ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
   });
+  const school=window.createFaamaSchool({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const schoolUI={
+    hud:document.getElementById("schoolHUD"),
+    count:document.getElementById("schoolHUDCount"),
+    hint:document.getElementById("schoolHUDHint"),
+    bar:document.getElementById("schoolProgressBar"),
+    stage:document.getElementById("schoolQuestStage"),
+    description:document.getElementById("schoolQuestDescription"),
+    mural:document.getElementById("schoolClueMural"),
+    livro:document.getElementById("schoolClueLivro"),
+    quadro:document.getElementById("schoolClueQuadro"),
+    brinquedo:document.getElementById("schoolClueBrinquedo"),
+    desenho:document.getElementById("schoolClueDesenho"),
+    capsule:document.getElementById("schoolCapsule"),
+    achievement:document.getElementById("schoolQuestAchievement")
+  };
+  const schoolPuzzleUI={
+    root:document.getElementById("schoolPuzzle"),
+    title:document.getElementById("schoolPuzzleTitle"),
+    number:document.getElementById("schoolPuzzleNumber"),
+    clue:document.getElementById("schoolPuzzleClue"),
+    question:document.getElementById("schoolPuzzleQuestion"),
+    feedback:document.getElementById("schoolPuzzleFeedback"),
+    close:document.getElementById("schoolPuzzleClose"),
+    choices:[...document.querySelectorAll("[data-school-answer]")]
+  };
+  let schoolPuzzleOpen=null;
+  function refreshSchoolUI(){
+    const p=school.progress();
+    const labels={ready:"DISPONÍVEL",clues:"PROCURANDO PISTAS",
+      capsule:"CÁPSULA REVELADA",return:"ENTREGAR TESOURO",completed:"CONCLUÍDA"};
+    if(schoolUI.stage)schoolUI.stage.textContent=labels[p.stage];
+    if(schoolUI.description)schoolUI.description.textContent=p.objective;
+    if(schoolUI.hud)schoolUI.hud.classList.toggle("hidden",!school.active);
+    if(schoolUI.count)schoolUI.count.textContent=p.solved+" / 5";
+    if(schoolUI.hint)schoolUI.hint.textContent=p.objective;
+    if(schoolUI.bar)schoolUI.bar.style.width=(p.solved/p.total*100)+"%";
+    for(const c of p.clues){
+      const target=schoolUI[c.id];
+      if(!target)continue;
+      target.textContent=(c.solved?"✓ ":c.active?"🔎 ":"🔒 ")+c.name;
+      target.classList.toggle("complete",c.solved);
+    }
+    if(schoolUI.capsule){
+      schoolUI.capsule.textContent=p.hasCapsule?
+        "🎁 Cápsula do tempo encontrada":
+        p.solved===5?"🎁 Cápsula do tempo revelada":
+          "🔒 Cápsula do tempo bloqueada";
+      schoolUI.capsule.classList.toggle("complete",p.hasCapsule);
+    }
+    if(schoolUI.achievement){
+      schoolUI.achievement.textContent=p.achievement?
+        "🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      schoolUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+academic.progress().xp+
+        sports.progress().xp+restaurant.progress().xp+p.xp)+" XP";
+  }
+  function closeSchoolPuzzle(){
+    if(!schoolPuzzleOpen)return;
+    schoolPuzzleOpen=null;
+    schoolPuzzleUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function openSchoolPuzzle(puzzle){
+    if(schoolPuzzleOpen)return;
+    schoolPuzzleOpen=puzzle;
+    held.clear();school.pause();
+    schoolPuzzleUI.title.textContent=puzzle.icon+" "+puzzle.name;
+    schoolPuzzleUI.number.textContent=puzzle.number+"/5";
+    schoolPuzzleUI.clue.textContent=puzzle.clue;
+    schoolPuzzleUI.question.textContent=puzzle.question;
+    schoolPuzzleUI.feedback.textContent="Escolha uma das três respostas para revelar a próxima pista.";
+    schoolPuzzleUI.choices.forEach((button,index)=>{
+      button.textContent=(index+1)+". "+puzzle.choices[index];
+    });
+    schoolPuzzleUI.root.classList.remove("hidden");
+  }
+  function answerSchoolPuzzle(index){
+    if(!schoolPuzzleOpen)return;
+    const result=school.answer(schoolPuzzleOpen.id,index);
+    if(result.correct){
+      closeSchoolPuzzle();
+      refreshSchoolUI();
+      show(result.message,7);
+    }else if(!result.ignored){
+      schoolPuzzleUI.feedback.textContent=result.message;
+    }
+  }
   const restaurantUI={
     hud:document.getElementById("restaurantHUD"),
     timer:document.getElementById("restaurantTimer"),
@@ -277,9 +400,7 @@
       p.stage==="paused"?"Retome com Clara":p.stage==="failed"?"Tempo esgotado":
       p.stage==="finished"?"Serviço concluído":"Fale com Clara";
     if(restaurantUI.bar)restaurantUI.bar.style.width=(p.served/p.total*100)+"%";
-    if(questUI.xp)questUI.xp.textContent=
-      (quest.progress().xp+indoorQuest.progress().xp+
-        academic.progress().xp+sports.progress().xp+p.xp)+" XP";
+    refreshSchoolUI();
   }
   function refreshFoodChoices(){
     if(foodUI.count)foodUI.count.textContent=selectedFood.size+" de 3 ingredientes";
