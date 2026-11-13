@@ -1,12 +1,7 @@
-/* FAAMA Explorer — portão da fase final (Igreja da FAAMA).
-   A igreja só abre quando TODAS as nove missões anteriores estiverem concluídas.
-   As missões futuras são intencionalmente obrigatórias: falta de implementação NÃO libera a igreja.
-   Integração de missões futuras no motor:
-      window.FAAMA_EXTRA_QUESTS = window.FAAMA_EXTRA_QUESTS || {};
-      window.FAAMA_EXTRA_QUESTS.pool = poolQuest;       // .progress().completed === true
-      window.FAAMA_EXTRA_QUESTS.female = femaleQuest;   // .progress().completed === true
-      window.FAAMA_EXTRA_QUESTS.male = maleQuest;       // .progress().completed === true
-   Não persiste "desbloqueado": sempre calcula a partir dos salvamentos reais das missões.
+/* FAAMA Explorer — acesso livre temporário para testes.
+   As nove missões continuam sendo contadas normalmente, mas nenhuma é
+   requisito de entrada na Igreja. Para restaurar a progressão, reverta
+   unlocked:true para unlocked:missing.length===0 e reative os avisos.
 */
 "use strict";
 window.createFaamaFinalGate = function createFaamaFinalGate({getProgress}){
@@ -26,20 +21,18 @@ window.createFaamaFinalGate = function createFaamaFinalGate({getProgress}){
     try{
       const found=getProgress();
       if(found&&typeof found==="object")values=found;
-    }catch(_err){/* Fail closed: qualquer erro mantém a Igreja bloqueada. */}
+    }catch(_err){/* A ausência de dados não impede explorar o campus. */}
     const chapters=requirements.map(item=>{
       const completed=values[item.id]?.completed===true;
       return {id:item.id,name:item.name,completed};
     });
     const done=chapters.filter(c=>c.completed).length;
     const missing=chapters.filter(c=>!c.completed);
-    return {unlocked:missing.length===0,done,total:chapters.length,chapters,missing};
+    return {unlocked:true,done,total:chapters.length,chapters,missing};
   }
   function notice(){
     const p=progress();
-    if(p.unlocked)return "A Igreja foi desbloqueada! A última aventura estará disponível quando a fase final estiver implementada.";
-    return "🔒 Igreja bloqueada: conclua todas as outras missões primeiro ("+
-      p.done+"/"+p.total+"). Faltam: "+p.missing.map(m=>m.name).join(", ")+".";
+    return "🔓 Modo de testes: todas as áreas estão abertas. Missões concluídas: "+p.done+"/"+p.total+".";
   }
   return {progress,notice};
 };
