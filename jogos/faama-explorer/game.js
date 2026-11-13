@@ -2486,6 +2486,8 @@
       closeRiddle();
       closeAcademicQuiz();
       closeFood();
+      closeSchoolPuzzle();
+      if(school.active)leaveSchool();
       if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
@@ -2510,6 +2512,8 @@
       closeRiddle();
       closeAcademicQuiz();
       closeFood();
+      closeSchoolPuzzle();
+      if(school.active)leaveSchool();
       if(restaurant.active)leaveRestaurant();
       if(sports.active)leaveSports();
       if(interior.active)leaveCentral();
@@ -2596,6 +2600,23 @@
     btn.addEventListener("click",()=>selectFood(btn.dataset.foodId));
   });
 
+  const schoolQuestRestart=document.getElementById("schoolQuestRestart");
+  if(schoolQuestRestart){
+    schoolQuestRestart.addEventListener("click",()=>{
+      if(typeof window.confirm==="function" &&
+        !window.confirm("Recomeçar O Tesouro da FAAMinha? As cinco pistas, a cápsula e os 200 XP da Missão 06 serão apagados. As Missões 01–05 serão preservadas."))return;
+      closeDialogue();
+      closeSchoolPuzzle();
+      school.restart();
+      refreshSchoolUI();
+      show("Missão 06 reiniciada. Converse com a professora Sofia para começar.",5);
+    });
+  }
+  if(schoolPuzzleUI.close)schoolPuzzleUI.close.addEventListener("click",closeSchoolPuzzle);
+  schoolPuzzleUI.choices.forEach((btn,index)=>{
+    btn.addEventListener("click",()=>answerSchoolPuzzle(index));
+  });
+
   function changeZoom(d) {
     zoom = Math.max(
       0.7,
@@ -2623,6 +2644,7 @@
   refreshAcademicUI();
   refreshSportsUI();
   refreshRestaurantUI();
+  refreshSchoolUI();
   console.log("FAAMA Explorer: JavaScript iniciado!");
 
   requestAnimationFrame(render);
