@@ -23,35 +23,65 @@ const campus=new THREE.Mesh(new THREE.PlaneGeometry(34*unit,44*unit),mat("#81ac7
 const buildings=[];
 function rng(n){const v=Math.sin(n*127.1+39.6)*43758.5453;return v-Math.floor(v)}
 function roof(x,z,w,d,height,color){const shape=new THREE.ConeGeometry(1,1,4);shape.rotateY(Math.PI/4);shape.scale(w*.75,1,d*.75);const mesh=new THREE.Mesh(shape,mat(color,.82));mesh.position.set(x,height,z);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh)}
+function cylinder(radius,height,color,x,y,z,sides=12){const o=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,height,sides),mat(color));o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o}
+function windowGrid(p,w,d,h,front,rows,columns,frame="#f2f4e8"){
+ const gap=w/(columns+1);
+ for(let row=0;row<rows;row++)for(let i=1;i<=columns;i++){
+  const x=p.x-w/2+i*gap,y=1.95+row*2.8;if(y+1>h)continue;
+  box(gap*.79,1.85,.16,"#16465e",x,y,front+.08);
+  box(.065,1.9,.23,frame,x,y,front+.19);
+  box(gap*.8,.085,.25,frame,x,y+.95,front+.18);
+  box(gap*.8,.085,.25,frame,x,y-.95,front+.18);
+  box(gap*.75,.035,.03,"#8bd6e1",x,y+.4,front+.22,false);
+ }
+}
+function planters(p,w,d){for(const side of [-1,1]){const x=p.x+side*(w*.32),z=p.z+d/2+2.5;box(2.7,.48,1.3,"#d8c49f",x,.24,z);for(let j=0;j<3;j++){const xx=x+(j-1)*.72;cylinder(.16,.65,"#477c3c",xx,.7,z,7);const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.29,1),mat(j%2?"#ed77ac":"#f4c456"));flower.position.set(xx,1.12,z);scene.add(flower)}}}
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
  if(s.type==="pool"){
-  box(w+.9,.28,d+.9,"#dfd6b9",p.x,.12,p.z);
-  const water=box(w-.7,.12,d-.7,"#2189aa",p.x,.32,p.z);water.material=new THREE.MeshPhysicalMaterial({color:"#218db7",metalness:.2,roughness:.14,transparent:true,opacity:.88,clearcoat:1});
-  for(let i=1;i<4;i++)box(w-.8,.045,.065,"#dce8c9",p.x,.42,p.z-d/2+i*d/4);
+  box(w+3,.3,d+3,"#e9d5b0",p.x,.1,p.z);
+  const water=box(w-.7,.13,d-.7,"#1687b8",p.x,.34,p.z);water.material=new THREE.MeshPhysicalMaterial({color:"#35b6d9",metalness:.18,roughness:.1,transparent:true,opacity:.86,clearcoat:1});
+  for(let i=1;i<5;i++)box(w-.8,.04,.075,i%2?"#faf4da":"#e3c35e",p.x,.44,p.z-d/2+i*d/5);
+  for(let i=0;i<4;i++){const xx=p.x-w/2+1.5+i*(w-3)/3;cylinder(.09,2.4,"#ecebe2",xx,1.2,p.z-d/2-1.2);const umbrella=new THREE.Mesh(new THREE.ConeGeometry(1.2,.5,8),mat(i%2?"#fff1c8":"#37a3cf"));umbrella.position.set(xx,2.6,p.z-d/2-1.2);scene.add(umbrella)}
   buildings.push({site:s,x:p.x,z:p.z,w,d});return;
  }
- const h=Math.max(4.3,s.z*.125),wall=s.wall||"#eee7d5",top=s.roof||"#5a8278";
+ if(s.type==="sports"){
+  box(w,.35,d,"#3780b6",p.x,.15,p.z);
+  box(w*.82,.055,d*.77,"#297a5b",p.x,.38,p.z);
+  for(const x of [-1,1])for(const z of [-1,1])cylinder(.13,6,"#e3e9e5",p.x+x*w*.43,3,p.z+z*d*.42);
+  const canopy=box(w+1,.28,d+1,"#f5dfb4",p.x,6.2,p.z);canopy.rotation.z=.07;
+  for(let i=0;i<6;i++)box(.1,.14,d+1,"#237ac0",p.x-w/2+i*w/5,6.42,p.z);
+  buildings.push({site:s,x:p.x,z:p.z,w,d});return;
+ }
+ const h=Math.max(5,s.z*.125),front=p.z+d/2+.08;
+ const wall=s.type==="central"?"#f6c535":s.type==="school"?"#9bc65b":s.type==="restaurant"?"#757d77":s.type==="female"?"#ece9e0":s.wall;
+ const roofColor=s.type==="central"?"#1989c7":s.type==="female"?"#d9d5cf":s.type==="male"?"#28b58c":s.type==="school"?"#197dc4":s.roof;
  box(w,h,d,wall,p.x,h/2,p.z);
- box(w+.65,.38,d+.65,top,p.x,h+.14,p.z);
- if(["church","female","male","school"].includes(s.type))roof(p.x,p.z,w,d,h+1.3,top);
- // Frontal glazing, lintels and entrance canopy.
- const front=p.z+d/2+.07,rows=h>7?2:1;
- for(let row=0;row<rows;row++)for(let i=1;i<=Math.max(2,Math.floor(s.w));i++){
-  const xx=p.x-w/2+i*w/(Math.floor(s.w)+1),yy=1.95+row*3.05;
-  if(yy+1.2>h)continue;
-  box(1.1,1.4,.13,"#2c5969",xx,yy,front);
-  box(.075,1.45,.17,"#d8e8dd",xx,yy,front+.1);
-  box(1.2,.11,.24,"#f2e8d5",xx,yy+ .75,front+.12);
- }
- const doorX=p.x,doorZ=front+.09;
- box(1.8,2.5,.17,"#4c655e",doorX,1.28,doorZ);
- box(2.7,.16,1.5,top,doorX,2.75,doorZ+.55);
- const sideX=p.x+w/2+.08;
- for(let i=1;i<=Math.floor(s.h);i++){
-  const zz=p.z-d/2+i*d/(Math.floor(s.h)+1);
-  box(.12,1.45,1.1,"#325d69",sideX,Math.min(2.6,h*.56),zz);
- }
+ box(w+.9,.36,d+.9,roofColor,p.x,h+.15,p.z);
+ if(s.type==="church"||s.type==="school"||s.type==="male")roof(p.x,p.z,w,d,h+1.35,roofColor);
+ if(s.type==="female"){
+  box(w*.86,h*.83,.18,"#b82932",p.x,h*.52,front+.1);
+  box(w*.77,h*.7,.2,"#235b72",p.x,h*.52,front+.22);
+  for(let i=1;i<7;i++)box(.085,h*.67,.24,"#b8e2e9",p.x-w*.385+i*w*.77/7,h*.52,front+.36);
+  for(let j=1;j<4;j++)box(w*.77,.08,.24,"#c4e0e4",p.x,h*.16+j*h*.15,front+.37);
+ }else if(s.type==="central"){
+  box(w*.94,h*.42,.22,"#1872c5",p.x,h*.72,front+.1);
+  windowGrid(p,w*.93,d,h,front+.25,1,8,"#b5e8e9");
+  box(w*.33,h*.53,.28,"#155fa5",p.x,h*.3,front+.24);
+  box(w*.38,.65,2.1,"#1d7fbd",p.x,h*.55,front+1.1);
+  for(const side of [-1,1])box(w*.23,h*.26,.2,"#e8b82c",p.x+side*w*.35,h*.25,front+.18);
+ }else if(s.type==="male"){
+  box(w+.1,.65,.22,"#5860b6",p.x,h*.5,front+.12);
+  windowGrid(p,w,d,h,front,2,5);
+ }else if(s.type==="church"){
+  windowGrid(p,w,d,h,front,1,3);
+  box(.24,2.2,.24,"#704d31",p.x,h+2,front+.1);
+  box(1.4,.22,.24,"#704d31",p.x,h+2.4,front+.1);
+ }else windowGrid(p,w,d,h,front,h>7?2:1,Math.max(3,Math.floor(s.w)));
+ box(1.8,2.5,.18,"#3e5962",p.x,1.25,front+.38);
+ box(3.4,.2,2.3,roofColor,p.x,2.78,front+1.2);
+ for(let i=1;i<Math.floor(s.h);i++)box(.13,1.4,1.1,"#316477",p.x+w/2+.1,Math.min(h*.55,3.6),p.z-d/2+i*d/Math.floor(s.h));
+ planters(p,w,d);
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
 for(const s of data.sites)addBuilding(s);
