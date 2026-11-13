@@ -230,35 +230,40 @@ box(3,2.6,2.3,"#e2d5b9",gate.x,1.3,gate.z+1.6);
 box(3.1,.12,2.4,"#197bb9",gate.x,2.7,gate.z+1.6);
 box(34,.1,5,"#414850",gate.x,.02,gate.z+8,false);
 for(let i=-6;i<=6;i++)box(1.5,.12,.14,"#e6ca65",gate.x+i*2.5,.1,gate.z+8,false);
-// Explorador detalhado: rosto, uniforme, cabelo, mochila, braços e tênis.
-const avatar=new THREE.Group();scene.add(avatar);
+// Wagner: personagem jogável estilizado, com silhueta e detalhes próprios.
+const avatar=new THREE.Group();scene.add(avatar);avatar.name="Wagner";
 function avatarMesh(geometry,color,x,y,z,parent=avatar){const mesh=new THREE.Mesh(geometry,mat(color));mesh.position.set(x,y,z);mesh.castShadow=true;parent.add(mesh);return mesh}
-const torso=avatarMesh(new THREE.CapsuleGeometry(.43,.8,5,12),"#eaf1e7",0,1.55,0);
-avatarMesh(new THREE.BoxGeometry(.72,.18,.12),"#2371a2",0,1.78,-.4);
-avatarMesh(new THREE.BoxGeometry(.2,.15,.13),"#e7b448",.12,1.72,-.48);
-const neck=avatarMesh(new THREE.CylinderGeometry(.17,.19,.28,12),"#c99070",0,2.15,0);
-const head=avatarMesh(new THREE.SphereGeometry(.42,24,18),"#c99070",0,2.53,-.04);
-avatarMesh(new THREE.SphereGeometry(.425,24,14,0,Math.PI*2,0,Math.PI*.46),"#342922",0,2.65,-.04);
+const torso=avatarMesh(new THREE.CapsuleGeometry(.43,.8,6,18),"#e6eee8",0,1.56,0);
+avatarMesh(new THREE.BoxGeometry(.77,.16,.12),"#137eaf",0,1.78,-.4);
+avatarMesh(new THREE.BoxGeometry(.24,.18,.14),"#e5b04b",.13,1.71,-.48);
+avatarMesh(new THREE.CylinderGeometry(.17,.19,.28,14),"#bd8563",0,2.16,0);
+avatarMesh(new THREE.SphereGeometry(.42,28,22),"#bd8563",0,2.53,-.04);
+avatarMesh(new THREE.SphereGeometry(.43,28,18,0,Math.PI*2,0,Math.PI*.48),"#25272b",0,2.67,-.04);
 for(const side of [-1,1]){
- avatarMesh(new THREE.SphereGeometry(.06,10,8),"#f8f5ec",side*.17,2.57,-.39);
- avatarMesh(new THREE.SphereGeometry(.032,8,8),"#25252d",side*.17,2.57,-.445);
- avatarMesh(new THREE.SphereGeometry(.09,8,8),"#c99070",side*.41,2.48,-.02);
- avatarMesh(new THREE.BoxGeometry(.11,.47,.12),"#264d69",side*.34,1.55,.46);
+ avatarMesh(new THREE.SphereGeometry(.064,12,10),"#f8f4e9",side*.17,2.56,-.39);
+ avatarMesh(new THREE.SphereGeometry(.034,12,10),"#252a32",side*.17,2.56,-.45);
+ avatarMesh(new THREE.SphereGeometry(.092,12,10),"#bd8563",side*.41,2.47,-.03);
+ avatarMesh(new THREE.BoxGeometry(.115,.5,.13),"#263d57",side*.35,1.56,.47);
+ avatarMesh(new THREE.BoxGeometry(.11,.045,.06),"#40302c",side*.17,2.65,-.417);
 }
-avatarMesh(new THREE.BoxGeometry(.16,.04,.035),"#874b4a",0,2.34,-.445);
-avatarMesh(new THREE.BoxGeometry(.76,.93,.4),"#325b76",0,1.48,.47);
-avatarMesh(new THREE.BoxGeometry(.62,.18,.46),"#d8b461",0,1.83,.52);
+avatarMesh(new THREE.BoxGeometry(.15,.035,.04),"#814b48",0,2.32,-.44);
+avatarMesh(new THREE.BoxGeometry(.77,.95,.42),"#2d526d",0,1.48,.47);
+avatarMesh(new THREE.BoxGeometry(.64,.18,.46),"#c79c54",0,1.83,.52);
+avatarMesh(new THREE.BoxGeometry(.27,.3,.08),"#d1dbe0",.24,1.38,-.42);
 const arms=[],legs=[];
 for(const side of [-1,1]){
- const arm=new THREE.Group();arm.position.set(side*.52,1.94,0);avatar.add(arm);
- avatarMesh(new THREE.CapsuleGeometry(.145,.55,4,10),"#d5e5e7",0,-.39,0,arm);
- avatarMesh(new THREE.SphereGeometry(.145,10,8),"#c99070",0,-.82,0,arm);
+ const arm=new THREE.Group();arm.position.set(side*.53,1.96,0);avatar.add(arm);
+ avatarMesh(new THREE.CapsuleGeometry(.145,.57,5,12),"#d4e3e8",0,-.38,0,arm);
+ avatarMesh(new THREE.SphereGeometry(.145,12,10),"#bd8563",0,-.83,0,arm);
  arms.push(arm);
- const leg=new THREE.Group();leg.position.set(side*.23,.99,0);avatar.add(leg);
- avatarMesh(new THREE.CapsuleGeometry(.16,.58,4,10),"#2c4262",0,-.38,0,leg);
- avatarMesh(new THREE.BoxGeometry(.34,.19,.57),"#f3f2e8",0,-.86,-.11,leg);
+ const leg=new THREE.Group();leg.position.set(side*.23,1,0);avatar.add(leg);
+ avatarMesh(new THREE.CapsuleGeometry(.17,.62,5,12),"#293d5b",0,-.39,0,leg);
+ avatarMesh(new THREE.BoxGeometry(.35,.2,.6),"#f0f0e8",0,-.88,-.13,leg);
+ avatarMesh(new THREE.BoxGeometry(.35,.07,.6),"#42556b",0,-.99,-.13,leg);
  legs.push(leg);
 }
+const playerName=document.getElementById("playerName");
+if(playerName)playerName.textContent="Wagner";
 const player=at(20,42);avatar.position.set(player.x,0,player.z);
 const held=new Set();let yaw=0,dist=12,pitch=.36,dragging=false,lastX=0,lastY=0,walk=0;
 let cameraMode="third",overviewYaw=0,overviewDistance=138;
