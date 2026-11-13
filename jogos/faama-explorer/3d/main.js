@@ -1,4 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js";
 
 const data=window.FAAMA_MAP;
 if(!data?.sites||!data?.roads)throw Error("map-data.js não foi carregado");
@@ -122,7 +123,25 @@ function centralBuilding(s,p,w,d){
 }
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
- if(s.type==="central"){centralBuilding(s,p,w,d);return;}
+ if(s.type==="central"){
+  buildings.push({site:s,x:p.x,z:p.z,w,d});
+  new GLTFLoader().load("./models/predio_central_real_faama.glb",gltf=>{
+   const model=gltf.scene;
+   const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
+   const scale=Math.min(w/size.x,d/size.z);
+   model.scale.setScalar(scale);
+   const center=bounds.getCenter(new THREE.Vector3());
+   model.position.set(p.x-center.x*scale,-bounds.min.y*scale,p.z-center.z*scale);
+   model.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true}});
+   scene.add(model);
+   console.info("Prédio Central real carregado no FAAMA Explorer 3D");
+  },undefined,error=>{
+   console.warn("Arquivo GLB não encontrado. Usando modelo de reserva.",error);
+   centralBuilding(s,p,w,d);
+   buildings.pop();
+  });
+  return;
+ }
  if(s.type==="pool"){
   box(w+3,.3,d+3,"#e9d5b0",p.x,.1,p.z);
   const water=box(w-.7,.13,d-.7,"#1687b8",p.x,.34,p.z);water.material=new THREE.MeshPhysicalMaterial({color:"#35b6d9",metalness:.18,roughness:.1,transparent:true,opacity:.86,clearcoat:1});
