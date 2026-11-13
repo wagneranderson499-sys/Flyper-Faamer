@@ -1752,7 +1752,7 @@
     const icon = {
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
       daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
-      helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳"
+      helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳", sofia: "👩🏽‍🏫"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -1811,9 +1811,32 @@
   }
 
   function interact() {
-    if(foodOpen)return;
+    if(foodOpen||schoolPuzzleOpen)return;
     if (activeDialogue) {
       advanceDialogue();
+      return;
+    }
+    if(school.active){
+      const action=school.nearest();
+      if(!action){show(school.objective(),5);return;}
+      if(action.kind==="exit"){
+        leaveSchool();
+      }else if(action.kind==="teacher"){
+        const event=school.talk();
+        openDialogue({...school.teacher,lines:event.lines});
+        if(event.changed){
+          refreshSchoolUI();
+          pendingQuestNotice=event.message||null;
+        }
+      }else if(action.kind==="clue"){
+        const result=school.inspect(action.id);
+        if(result?.puzzle)openSchoolPuzzle(result.puzzle);
+        else if(result?.message)show(result.message,5);
+      }else if(action.kind==="capsule"){
+        const result=school.inspect("capsule");
+        if(result?.message)show(result.message,7);
+        if(result?.changed)refreshSchoolUI();
+      }
       return;
     }
     if(restaurant.active){
@@ -1906,6 +1929,10 @@
     }
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
+    if (near?.id==="school"&&nearSchoolEntrance()) {
+      enterSchool();
+      return;
+    }
     if (near?.id==="restaurant"&&nearRestaurantEntrance()) {
       enterRestaurant();
       return;
@@ -1953,6 +1980,8 @@
       show("Para entrar no Complexo Esportivo, vá até a porta principal do ginásio.",5);
     } else if (near?.id==="restaurant") {
       show("Para entrar no Restaurante, aproxime-se da entrada principal.",5);
+    } else if (near?.id==="school") {
+      show("Para entrar na FAAMinha, aproxime-se da porta principal da escola.",5);
     } else if (near) {
       show(near.info, 6);
     } else {
@@ -1961,6 +1990,39 @@
   }
 
   function update(dt) {
+    if(school.active){
+      if(schoolPuzzleOpen){
+        held.clear();
+        school.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="Resolva o enigma para descobrir a próxima pista";
+      }else if(activeDialogue){
+        held.clear();school.pause();
+        if(ui.interact){
+          ui.interact.disabled=false;
+          ui.interact.textContent="CONTINUAR [E]";
+        }
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        school.update(dt,held);
+        const spot=school.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!spot;
+          ui.interact.textContent=spot?.kind==="exit"?"SAIR [E]":
+            spot?.kind==="teacher"?"CONVERSAR [E]":
+            spot?.kind==="clue"?"INVESTIGAR [E]":
+            spot?.kind==="capsule"?"PEGAR TESOURO [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=
+          spot?"[E] "+(spot.kind==="exit"?"Voltar ao campus":spot.name):school.objective();
+      }
+      if(ui.location)ui.location.textContent="FAAMINHA • "+school.roomName().toUpperCase();
+      if(interiorUI.room)interiorUI.room.textContent=school.roomName();
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E investigar • pistas em sequência";
+      refreshSchoolUI();
+      return;
+    }
     if(restaurant.active){
       if(activeDialogue){
         held.clear();
@@ -2148,7 +2210,8 @@
 
     if (ui.interact) {
       ui.interact.disabled = !(nearQuestItem || nearTalker || near);
-      ui.interact.textContent = near?.id==="restaurant"&&nearRestaurantEntrance()
+      ui.interact.textContent = near?.id==="school"&&nearSchoolEntrance()
+        ? "ENTRAR [E]" : near?.id==="restaurant"&&nearRestaurantEntrance()
         ? "ENTRAR [E]" : near?.id==="sports"&&nearSportsEntrance()
         ? "ENTRAR [E]" : near?.id==="academic"&&nearAcademicEntrance()
         ? "ENTRAR [E]" : near?.id==="central"&&nearCentralEntrance()
@@ -2159,7 +2222,9 @@
 
     const hint = document.getElementById("hint");
     if (hint) {
-      hint.textContent = near?.id==="restaurant"&&nearRestaurantEntrance()
+      hint.textContent = near?.id==="school"&&nearSchoolEntrance()
+        ? "[E] Entrar na FAAMinha"
+        : near?.id==="restaurant"&&nearRestaurantEntrance()
         ? "[E] Entrar no Restaurante"
         : near?.id==="sports"&&nearSportsEntrance()
         ? "[E] Entrar no Complexo Esportivo"
@@ -2184,7 +2249,9 @@
             ? academic.stage()==="completed"
               ? sports.progress().completed
                 ? restaurant.progress().completed
-                  ? "Cinco missões concluídas! Explore o campus."
+                  ? school.progress().completed
+                    ? "Seis missões concluídas! Explore o campus."
+                    : "Próxima aventura: O Tesouro da FAAMinha. Converse com Sofia!"
                   : "Nova missão: O Restaurante Misterioso. Converse com Clara!"
                 : "Próximo desafio: Circuito dos Campeões no Complexo Esportivo."
               : "Prédio Acadêmico: converse com a professora Helena."
@@ -2200,11 +2267,17 @@
       previous = ms;
       time += dt;
 
-      if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active){
+      if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active&&!school.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
 
+      if(school.active){
+        school.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);
+        return;
+      }
       if(restaurant.active){
         restaurant.draw(time,zoom);
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
@@ -2320,6 +2393,12 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(schoolPuzzleOpen){
+      if(k==="Escape")closeSchoolPuzzle();
+      else if(["1","2","3"].includes(k))answerSchoolPuzzle(Number(k)-1);
+      e.preventDefault();
+      return;
+    }
     if(foodOpen){
       if(k==="Escape")closeFood();
       else if(k==="Enter")prepareFood();
