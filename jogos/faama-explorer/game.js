@@ -2305,7 +2305,7 @@
     const startRestaurant=completed===true && pendingRestaurantStart && restaurant.active;
     const startPool=completed===true && pendingPoolStart && pool.active;
     const startChurchEnding=completed===true && pendingChurchEnding&&
-      church.active&&church.progress().completed;
+      church.active;
     pendingChurchEnding=false;
     pendingSportsStart=false;
     pendingRestaurantStart=false;
@@ -2329,7 +2329,14 @@
       refreshPoolUI();
       show("Desafio Aquático iniciado! Colete cinco boias em até 120 segundos!",5);
     }
-    if(startChurchEnding)startChurchCinematic();
+    if(startChurchEnding){
+      const event=church.finish();
+      if(event.rewarded){
+        refreshChurchUI();refreshFinalGateUI();
+        if(event.message)show(event.message,7);
+        startChurchCinematic();
+      }
+    }
   }
 
   function advanceDialogue() {
@@ -2360,7 +2367,7 @@
       if(action.kind==="exit")leaveChurch();
       else if(action.kind==="npc"){
         const event=church.talk();
-        pendingChurchEnding=event.celebrate===true;
+        pendingChurchEnding=event.celebrateOnClose===true;
         openDialogue({...church.samuel,lines:event.lines});
         if(event.changed){
           refreshChurchUI();
