@@ -6,3 +6,18 @@
 @media(max-width:720px){.camera-modes{top:78px;left:12px;transform:none;gap:3px;padding:4px}.camera-modes button{font-size:10px;padding:8px 9px}.compass{top:132px}}
 
 @media(max-width:720px){.camera-modes{max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:thin}.camera-modes button{flex-shrink:0}}
+
+.missions-toggle{position:absolute;top:156px;right:22px;z-index:5;border:1px solid #ffffff70;border-radius:12px;padding:12px 16px;background:#173e4fe8;color:#fff;font-weight:800;cursor:pointer}
+.missions-toggle span{display:block;font-size:10px;font-weight:500;color:#c9e4d7}
+.missions-panel{position:absolute;z-index:8;right:20px;top:224px;width:min(365px,calc(100vw - 40px));max-height:calc(100vh - 245px);overflow-y:auto;background:#102b37f2;border:1px solid #ffffff5a;border-radius:16px;padding:18px;box-shadow:0 15px 45px #0008}
+.missions-panel h2{margin:0 0 9px;font-size:19px}.missions-panel p{font-size:12px;line-height:1.5;color:#d1e3e0}
+#missionList{display:grid;gap:7px;margin:14px 0}
+#missionList button,.missions-panel #openAllMissions{border:1px solid #ffffff55;border-radius:9px;padding:10px 12px;background:#265268;color:white;text-align:left;cursor:pointer}
+#missionList button:hover,.missions-panel #openAllMissions:hover{background:#38748d}
+.missions-panel #openAllMissions{width:100%;text-align:center;background:#e4c981;color:#1a3541;font-weight:800}
+.legacy-overlay{position:absolute;inset:0;z-index:30;background:#071923;display:flex;flex-direction:column}
+.legacy-overlay[hidden],.missions-panel[hidden]{display:none}
+.legacy-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px;background:#163b4b}
+.legacy-header button{border:0;border-radius:9px;padding:11px 15px;background:#e4c981;color:#173340;font-weight:800;cursor:pointer}
+#legacyFrame{width:100%;flex:1;border:0;background:#112b39}
+@media(max-width:720px){.missions-toggle{top:136px;right:12px;padding:8px 10px;font-size:11px}.missions-panel{top:190px;right:10px;max-height:calc(100vh - 205px)}.legacy-header{padding:8px;font-size:12px}.legacy-header button{font-size:11px;padding:9px}}
