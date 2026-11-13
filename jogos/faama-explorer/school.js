@@ -71,7 +71,7 @@ window.createFaamaSchool=function createFaamaSchool({ctx,storage,canvasWidth=120
     [7,12,7,19],[21,12,21,19],
     [7,19,12.5,19],[15.5,19,21,19]
   ];
-  const exit={x:14,y:18.55},player={x:14,y:17.65,walk:0,facing:"up",moving:false};
+  const exit={x:14,y:18.55},player={x:14,y:16.85,walk:0,facing:"up",moving:false};
   let active=false,clock=0,cameraX=canvasWidth/2,cameraY=canvasHeight/2;
   function blank(){return {started:false,solved:0,hasCapsule:false,completed:false};}
   function load(){
@@ -180,7 +180,7 @@ window.createFaamaSchool=function createFaamaSchool({ctx,storage,canvasWidth=120
     return distance({x,y},teacher)<r+.37;
   }
   function enter(){
-    active=true;clock=0;player.x=14;player.y=17.65;
+    active=true;clock=0;player.x=14;player.y=16.85;
     player.facing="up";player.walk=0;player.moving=false;
   }
   function leave(){active=false;player.moving=false;}
