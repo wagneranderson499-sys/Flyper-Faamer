@@ -67,6 +67,9 @@
   const restaurantSite = sites.find(s => s.id === "restaurant");
   const schoolSite = sites.find(s => s.id === "school");
   const churchSite = sites.find(s => s.id === "church");
+  const poolSite = sites.find(s => s.id === "pool");
+  const femaleSite = sites.find(s => s.id === "female");
+  const maleSite = sites.find(s => s.id === "male");
   const interiorUI = {
     panel:document.getElementById("interiorStatus"),
     room:document.getElementById("interiorRoom"),
@@ -115,6 +118,13 @@
     const y=churchSite.y+churchSite.h;
     return player.y>=y-.15&&player.y<=y+1.4&&
       Math.hypot(player.x-cx,player.y-(y+.65))<1.45;
+  }
+  // Todas as novas portas preservam a posição original dos edifícios no mapa.
+  function nearNewSiteEntrance(site){
+    if(!site)return false;
+    const cx=site.x+site.w/2,y=site.y+site.h;
+    return player.y>=y-.18&&player.y<=y+1.42&&
+      Math.hypot(player.x-cx,player.y-(y+.66))<1.48;
   }
   function setInteriorMode(enabled){
     if(interiorUI.panel)interiorUI.panel.classList.toggle("hidden",!enabled);
@@ -235,6 +245,43 @@
     refreshSchoolUI();
     show("Você saiu da FAAMinha. As pistas encontradas foram salvas.",4);
   }
+  function enterPool(){
+    if(interiorUI.building)interiorUI.building.textContent="🏊 PISCINA • DESAFIO AQUÁTICO";
+    pool.enter();held.clear();player.moving=false;setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshPoolUI();
+    show("Bem-vindo à Piscina! Converse com a guarda-vidas Nara.",5);
+  }
+  function leavePool(){
+    if(!pool.active)return;
+    pool.leave();held.clear();
+    player.x=poolSite.x+poolSite.w/2;
+    player.y=poolSite.y+poolSite.h+1.25;
+    player.moving=false;nearTalker=null;nearQuestItem=null;
+    setInteriorMode(false);refreshPoolUI();
+    show("Você voltou ao campus. O recorde aquático foi preservado.",4);
+  }
+  function enterResidence(kind){
+    const residence=kind==="female"?female:male;
+    if(interiorUI.building)interiorUI.building.textContent=
+      "🏠 "+residence.conf.name.toUpperCase()+" • INTERIOR";
+    residence.enter();held.clear();player.moving=false;setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshResidenceUI(kind);
+    show("Você entrou no "+residence.conf.name+". Converse com "+residence.npc.name+".",5);
+  }
+  function leaveResidence(kind){
+    const residence=kind==="female"?female:male;
+    if(!residence.active)return;
+    closeResidencePuzzle();
+    residence.leave();held.clear();
+    const site=kind==="female"?femaleSite:maleSite;
+    player.x=site.x+site.w/2;
+    player.y=site.y+site.h+1.25;
+    player.moving=false;nearTalker=null;nearQuestItem=null;
+    setInteriorMode(false);refreshResidenceUI(kind);
+    show("Você voltou ao campus. O progresso do residencial foi salvo.",4);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -266,6 +313,160 @@
   const school=window.createFaamaSchool({
     ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
   });
+  const pool=window.createFaamaPool({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const female=window.createFaamaResidence({
+    kind:"female",ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  const male=window.createFaamaResidence({
+    kind:"male",ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH
+  });
+  // As três missões adicionais alimentam diretamente o portão final:
+  // todas precisam retornar completed === true para liberar a Igreja.
+  window.FAAMA_EXTRA_QUESTS={...(window.FAAMA_EXTRA_QUESTS||{}),pool,female,male};
+  function refreshTotalXP(){
+    if(questUI.xp)questUI.xp.textContent=
+      (quest.progress().xp+indoorQuest.progress().xp+academic.progress().xp+
+        sports.progress().xp+restaurant.progress().xp+school.progress().xp+
+        pool.progress().xp+female.progress().xp+male.progress().xp)+" XP";
+  }
+  const poolUI={
+    hud:document.getElementById("poolHUD"),
+    timer:document.getElementById("poolTimer"),
+    status:document.getElementById("poolStatus"),
+    hudBuoys:document.getElementById("poolBuoyCount"),
+    hudState:document.getElementById("poolState"),
+    bar:document.getElementById("poolBuoyBar"),
+    stage:document.getElementById("poolQuestStage"),
+    description:document.getElementById("poolQuestDescription"),
+    buoys:document.getElementById("poolQuestBuoys"),
+    best:document.getElementById("poolBestTime"),
+    time:document.getElementById("poolQuestTime"),
+    achievement:document.getElementById("poolQuestAchievement")
+  };
+  function refreshPoolUI(){
+    const p=pool.progress();
+    const stages={idle:"DISPONÍVEL",running:"EM ANDAMENTO",
+      failed:"TEMPO ESGOTADO",finished:"CONCLUÍDA"};
+    if(poolUI.hud)poolUI.hud.classList.toggle("hidden",!pool.active);
+    if(poolUI.stage)poolUI.stage.textContent=p.completed?"CONCLUÍDA":stages[p.stage];
+    if(poolUI.description)poolUI.description.textContent=p.objective;
+    if(poolUI.buoys)poolUI.buoys.textContent="🏊 Boias coletadas: "+p.buoys+" / "+p.total;
+    if(poolUI.best)poolUI.best.textContent="⏱️ Recorde: "+p.bestLabel;
+    if(poolUI.time)poolUI.time.textContent=p.stage==="running"
+      ?"⏳ Restante: "+p.timeLeft.toFixed(1).replace(".",",")+"s":
+      p.stage==="finished"?"⏱️ Último tempo: "+p.elapsed.toFixed(1).replace(".",",")+"s":
+      "⏳ Limite: 120 segundos";
+    if(poolUI.achievement){
+      poolUI.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      poolUI.achievement.classList.toggle("complete",p.completed);
+    }
+    if(poolUI.timer)poolUI.timer.textContent=(p.stage==="finished"?p.elapsed:p.timeLeft).toFixed(1).replace(".",",")+"s";
+    if(poolUI.status)poolUI.status.textContent=p.objective;
+    if(poolUI.hudBuoys)poolUI.hudBuoys.textContent=p.buoys+" / "+p.total+" boias";
+    if(poolUI.hudState)poolUI.hudState.textContent=p.stage==="running"?"Rumo à chegada!":
+      p.stage==="failed"?"Tente novamente":p.stage==="finished"?"Circuito concluído":"Fale com Nara";
+    if(poolUI.bar)poolUI.bar.style.width=(p.buoys/p.total*100)+"%";
+    refreshTotalXP();
+  }
+  const residenceUI={
+    hud:document.getElementById("residenceHUD"),
+    hudTitle:document.getElementById("residenceHUDTitle"),
+    hudCount:document.getElementById("residenceHUDCount"),
+    hudHint:document.getElementById("residenceHUDHint"),
+    hudBar:document.getElementById("residenceHUDBar"),
+    female:{
+      stage:document.getElementById("femaleQuestStage"),
+      description:document.getElementById("femaleQuestDescription"),
+      agenda:document.getElementById("femaleQuestAgenda"),
+      garrafa:document.getElementById("femaleQuestGarrafa"),
+      livro:document.getElementById("femaleQuestLivro"),
+      steps:document.getElementById("femaleQuestSteps"),
+      achievement:document.getElementById("femaleQuestAchievement")
+    },
+    male:{
+      stage:document.getElementById("maleQuestStage"),
+      description:document.getElementById("maleQuestDescription"),
+      cartaz:document.getElementById("maleQuestCartaz"),
+      lanterna:document.getElementById("maleQuestLanterna"),
+      bloco:document.getElementById("maleQuestBloco"),
+      steps:document.getElementById("maleQuestSteps"),
+      achievement:document.getElementById("maleQuestAchievement")
+    }
+  };
+  const residencePuzzleUI={
+    root:document.getElementById("residencePuzzle"),
+    title:document.getElementById("residencePuzzleTitle"),
+    step:document.getElementById("residencePuzzleStep"),
+    question:document.getElementById("residencePuzzleQuestion"),
+    feedback:document.getElementById("residencePuzzleFeedback"),
+    close:document.getElementById("residencePuzzleClose"),
+    choices:[...document.querySelectorAll("[data-residence-answer]")]
+  };
+  let residencePuzzleKind=null;
+  function currentResidence(){return female.active?female:male.active?male:null;}
+  function refreshResidenceUI(kind){
+    const o=kind==="female"?female:male;
+    const p=o.progress(),target=residenceUI[kind];
+    const stages={ready:"DISPONÍVEL",collect:"COLETANDO MATERIAIS",
+      organize:"ORGANIZAR ETAPAS",return:"VOLTAR AO MONITOR",completed:"CONCLUÍDA"};
+    if(target.stage)target.stage.textContent=stages[p.stage];
+    if(target.description)target.description.textContent=p.objective;
+    if(target.steps)target.steps.textContent="🧩 Etapas concluídas: "+p.solved+" / 3";
+    for(const item of p.items){
+      const node=target[item.id];
+      if(!node)continue;
+      node.textContent=(item.found?"✓ ":p.started?"○ ":"🔒 ")+item.name;
+      node.classList.toggle("complete",item.found);
+    }
+    if(target.achievement){
+      target.achievement.textContent=p.achievement?"🏆 "+p.achievement:"🏆 Conquista bloqueada";
+      target.achievement.classList.toggle("complete",p.completed);
+    }
+    const active=currentResidence();
+    if(residenceUI.hud)residenceUI.hud.classList.toggle("hidden",!active);
+    if(active){
+      const state=active.progress();
+      if(residenceUI.hudTitle)residenceUI.hudTitle.textContent=
+        "🏠 "+active.conf.short+" • "+active.conf.title;
+      if(residenceUI.hudCount)residenceUI.hudCount.textContent=state.collected+"/3";
+      if(residenceUI.hudHint)residenceUI.hudHint.textContent=state.objective;
+      if(residenceUI.hudBar)residenceUI.hudBar.style.width=
+        ((state.collected+state.solved)/6*100)+"%";
+    }
+    refreshTotalXP();
+  }
+  function closeResidencePuzzle(){
+    if(!residencePuzzleKind)return;
+    residencePuzzleKind=null;
+    residencePuzzleUI.root.classList.add("hidden");
+    held.clear();
+  }
+  function openResidencePuzzle(kind,puzzle){
+    residencePuzzleKind=kind;
+    held.clear();
+    (kind==="female"?female:male).pause();
+    residencePuzzleUI.title.textContent=puzzle.title;
+    residencePuzzleUI.step.textContent=(puzzle.index+1)+"/3";
+    residencePuzzleUI.question.textContent=puzzle.question;
+    residencePuzzleUI.feedback.textContent="Escolha uma resposta. Tente novamente se errar.";
+    residencePuzzleUI.choices.forEach((btn,index)=>btn.textContent=
+      (index+1)+". "+puzzle.choices[index]);
+    residencePuzzleUI.root.classList.remove("hidden");
+  }
+  function answerResidencePuzzle(index){
+    if(!residencePuzzleKind)return;
+    const kind=residencePuzzleKind;
+    const result=(kind==="female"?female:male).answer(index);
+    if(result.correct){
+      closeResidencePuzzle();
+      refreshResidenceUI(kind);
+      show(result.message,6);
+    }else if(!result.ignored){
+      residencePuzzleUI.feedback.textContent=result.message;
+    }
+  }
   // A Igreja é a última fase. As futuras missões precisam ser concluídas
   // e registrar sua instância em window.FAAMA_EXTRA_QUESTS antes da liberação.
   const finalGate=window.createFaamaFinalGate({
@@ -377,9 +578,7 @@
         "🏆 "+p.achievement:"🏆 Conquista bloqueada";
       schoolUI.achievement.classList.toggle("complete",p.completed);
     }
-    if(questUI.xp)questUI.xp.textContent=
-      (quest.progress().xp+indoorQuest.progress().xp+academic.progress().xp+
-        sports.progress().xp+restaurant.progress().xp+p.xp)+" XP";
+    refreshTotalXP();
   }
   function closeSchoolPuzzle(){
     if(!schoolPuzzleOpen)return;
