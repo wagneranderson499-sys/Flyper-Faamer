@@ -1658,8 +1658,8 @@
 
   function closeDialogue(completed=false) {
     if (!activeDialogue) return;
-    const startSports=completed && pendingSportsStart && sports.active;
-    const startRestaurant=completed && pendingRestaurantStart && restaurant.active;
+    const startSports=completed===true && pendingSportsStart && sports.active;
+    const startRestaurant=completed===true && pendingRestaurantStart && restaurant.active;
     pendingSportsStart=false;
     pendingRestaurantStart=false;
     activeDialogue = null;
@@ -2275,7 +2275,7 @@
     dialogueUI.next.addEventListener("click", advanceDialogue);
   }
   if (dialogueUI.close) {
-    dialogueUI.close.addEventListener("click", closeDialogue);
+    dialogueUI.close.addEventListener("click",()=>closeDialogue(false));
   }
 
   const reset = document.getElementById("reset");
