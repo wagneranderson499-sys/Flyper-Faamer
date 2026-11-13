@@ -927,3 +927,47 @@ body {
   .school-puzzle-choices{gap:6px;margin-top:10px}
   .school-puzzle-choices button{font-size:11px;min-height:34px;padding:8px 10px}
 }
+
+/* FAAMA Explorer — requisitos de desbloqueio da última fase */
+.quest-final-gate{
+  margin-top:14px;
+  border-color:#e3bd78;
+  background:linear-gradient(125deg,#273b4b,#344e56 55%,#253d4e);
+}
+.quest-final-gate .quest-medallion{border-color:#f0d38b}
+.quest-final-gate .quest-title strong{color:#ffe4aa}
+.quest-final-gate .quest-stage{
+  color:#ffe9b8;
+  border-color:#e5bd79;
+}
+.final-gate-summary{
+  margin:12px 0 10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  color:#f5ecd6;
+}
+.final-gate-summary strong{font-size:13px;font-weight:800;color:#ffe1a8}
+.final-gate-summary small{font-size:11px;line-height:1.5;color:#e2e5e4}
+.final-gate-progress{
+  width:100%;height:9px;border-radius:20px;background:#142f41;
+  box-shadow:inset 0 1px 4px #061e31b8;overflow:hidden
+}
+.final-gate-progress i{
+  display:block;height:100%;width:0;border-radius:20px;
+  background:linear-gradient(90deg,#93d5aa,#f3cf7f);
+  transition:width .2s ease
+}
+.final-gate-chapters span{min-height:24px;line-height:1.45}
+.final-gate-chapters .complete{color:#bdebc8}
+.final-gate-note{
+  margin:11px 0 0;
+  color:#d7e7e6;
+  font-size:11px;
+  line-height:1.6;
+}
+@media(max-width:800px){
+  .final-gate-summary strong{font-size:11px}
+  .final-gate-summary small,.final-gate-note{font-size:10px}
+  .final-gate-progress{height:7px}
+}
