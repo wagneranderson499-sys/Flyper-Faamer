@@ -1242,3 +1242,9 @@ body {
   .ending-confetti i,.church-cinematic-light,.church-cinematic-content>span{animation:none!important}
   .church-quest-progress i,.church-hud-progress i{transition:none}
 }
+
+/* Acesso direto aos cenários em revisão */
+.quest-enter{display:inline-flex;align-items:center;justify-content:center;min-height:35px;padding:8px 12px;margin:5px 6px 5px 0;border:1px solid #b4e5c7;border-radius:9px;background:#d8efcf;color:#183d35;font:800 12px 'DM Sans',sans-serif;cursor:pointer;transition:filter .15s ease,transform .15s ease}
+.quest-enter:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.quest-enter:focus-visible{outline:3px solid #e5cf84;outline-offset:2px}
+@media(max-width:600px){.quest-enter{width:100%;margin:6px 0;font-size:12px}}
