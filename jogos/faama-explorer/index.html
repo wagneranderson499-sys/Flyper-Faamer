@@ -58,6 +58,14 @@
                     <div class="restaurant-hud-row"><strong id="restaurantDelivered">0 / 5 pedidos</strong><span id="restaurantHUDState">Aguardando</span></div>
                     <div class="restaurant-progress"><i id="restaurantProgressBar"></i></div>
                 </aside>
+                <aside id="schoolHUD" class="school-hud hidden" aria-label="Caça ao tesouro na FAAMinha">
+                    <div class="school-hud-header">
+                      <span>🗺️ TESOURO DA FAAMINHA</span>
+                      <strong id="schoolHUDCount">0/5</strong>
+                    </div>
+                    <p id="schoolHUDHint">Converse com Sofia para começar.</p>
+                    <div class="school-progress"><i id="schoolProgressBar"></i></div>
+                </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
                             o Prédio Central</strong></div>
@@ -142,6 +150,25 @@
                     </div>
                     <p id="restaurantCookingFeedback" class="restaurant-feedback" aria-live="polite"></p>
                   </section>
+                <section id="schoolPuzzle" class="school-puzzle hidden" role="dialog" aria-modal="true"
+                  aria-labelledby="schoolPuzzleTitle" aria-describedby="schoolPuzzleQuestion">
+                    <div class="school-puzzle-heading">
+                      <div>
+                        <small>🔎 CAÇA AO TESOURO • ENIGMA <span id="schoolPuzzleNumber">1/5</span></small>
+                        <strong id="schoolPuzzleTitle">Enigma misterioso</strong>
+                      </div>
+                      <button id="schoolPuzzleClose" type="button" aria-label="Fechar enigma">×</button>
+                    </div>
+                    <p id="schoolPuzzleClue" class="school-puzzle-clue">Uma pista apareceu!</p>
+                    <p id="schoolPuzzleQuestion" class="school-puzzle-question">Qual é a resposta?</p>
+                    <div class="school-puzzle-choices" role="group" aria-label="Respostas do enigma">
+                      <button type="button" data-school-answer="0">1. Alternativa A</button>
+                      <button type="button" data-school-answer="1">2. Alternativa B</button>
+                      <button type="button" data-school-answer="2">3. Alternativa C</button>
+                    </div>
+                    <p id="schoolPuzzleFeedback" class="school-puzzle-feedback" aria-live="polite">Escolha uma resposta.</p>
+                    <p class="school-puzzle-help">Teclas 1, 2 e 3 para responder • Esc para voltar à escola</p>
+                </section>
                 <div id="toast" class="toast hidden"></div>
                 <div id="fatal" class="fatal hidden"></div>
             </div>
@@ -275,8 +302,37 @@
                       title="Apagar o recorde, o progresso e a recompensa da Missão 05">Recomeçar missão 05</button>
                 </div>
             </section>
+            <section class="quest-tracker quest-school" aria-label="Diário da Missão 06">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🗺️</span>
+                        <div>
+                            <small>MISSÃO 06 · FAAMINHA</small>
+                            <strong>O Tesouro da FAAMinha</strong>
+                        </div>
+                    </div>
+                    <span class="quest-stage" id="schoolQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="schoolQuestDescription" class="quest-description">
+                    Converse com a professora Sofia para iniciar a caça ao tesouro.
+                </p>
+                <div class="quest-clues" aria-label="Cinco pistas da FAAMinha">
+                    <span id="schoolClueMural">🔒 Mural colorido</span>
+                    <span id="schoolClueLivro">🔒 Livro ilustrado</span>
+                    <span id="schoolClueQuadro">🔒 Quadro da turma</span>
+                    <span id="schoolClueBrinquedo">🔒 Brinquedo escondido</span>
+                    <span id="schoolClueDesenho">🔒 Desenho misterioso</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="schoolCapsule">🎁 Cápsula do tempo bloqueada</span>
+                    <span id="schoolQuestAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP na primeira conclusão</small>
+                    <button id="schoolQuestRestart" class="quest-restart" type="button"
+                      title="Reiniciar somente O Tesouro da FAAMinha">Recomeçar missão 06</button>
+                </div>
+            </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.8 • O Restaurante Misterioso</span></div>
+                    você</span><span>FAAMA Explorer 2.9 • O Tesouro da FAAMinha</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -292,6 +348,7 @@
     <script src="academic.js"></script>
     <script src="sports.js"></script>
     <script src="restaurant.js"></script>
+    <script src="school.js"></script>
     <script src="game.js"></script>
 </body>
 
