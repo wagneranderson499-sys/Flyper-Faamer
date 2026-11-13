@@ -2050,7 +2050,7 @@
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
       daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
       helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳", sofia: "👩🏽‍🏫",
-      "nara-pool":"👩🏽‍🚒","isabela-residencia":"👩🏽‍🎓","gabriel-residencia":"👨🏽‍🎓"
+      "nara-pool":"🏊🏽‍♀️","isabela-residencia":"👩🏽‍🎓","gabriel-residencia":"👨🏽‍🎓"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
