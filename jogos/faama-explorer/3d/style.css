@@ -21,3 +21,12 @@
 .legacy-header button{border:0;border-radius:9px;padding:11px 15px;background:#e4c981;color:#173340;font-weight:800;cursor:pointer}
 #legacyFrame{width:100%;flex:1;border:0;background:#112b39}
 @media(max-width:720px){.missions-toggle{top:136px;right:12px;padding:8px 10px;font-size:11px}.missions-panel{top:190px;right:10px;max-height:calc(100vh - 205px)}.legacy-header{padding:8px;font-size:12px}.legacy-header button{font-size:11px;padding:9px}}
+
+.mission3d-panel{position:absolute;right:20px;bottom:20px;z-index:12;width:min(380px,calc(100vw - 40px));padding:18px;border-radius:17px;border:1px solid #ffffff65;background:#102b37ec;box-shadow:0 12px 36px #0007}
+.mission3d-panel h2{font-size:19px;margin:0 0 10px}.mission3d-panel p{font-size:13px;line-height:1.5;color:#e1ecea}
+#mission3dChoices{display:grid;gap:8px;margin:12px 0}
+#mission3dChoices button,#exit3dMission,#new3dJourney{border:1px solid #ffffff70;border-radius:9px;padding:10px;background:#e6cf8e;color:#163440;font-weight:800;cursor:pointer}
+#exit3dMission{width:100%;background:#315d6f;color:white}
+#new3dJourney{width:100%}
+.mission3d-panel[hidden]{display:none}
+@media(max-width:720px){.mission3d-panel{bottom:100px;right:10px;padding:11px;width:min(290px,calc(100vw - 20px))}.mission3d-panel h2{font-size:15px}.mission3d-panel p{font-size:11px}}
