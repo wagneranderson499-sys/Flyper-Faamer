@@ -2998,12 +2998,23 @@
       time += dt;
 
       if(!interior.active&&!academic.active&&!sports.active&&!restaurant.active&&!school.active&&
-          !pool.active&&!female.active&&!male.active){
+          !pool.active&&!female.active&&!male.active&&!church.active){
         life.update(dt, player, activeDialogue?.npc.id || null);
       }
       update(dt);
+      if(!endingOpen&&!churchCinematicActive){
+        playTimeSeconds+=Math.max(0,dt);
+        const bucket=Math.floor(playTimeSeconds/8);
+        if(bucket>playtimeSaveBucket){playtimeSaveBucket=bucket;persistPlayTime();}
+      }
+      tickChurchCinematic(dt);
       refreshFinalGateUI();
 
+      if(church.active){
+        church.draw(time,zoom);
+        if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
+        requestAnimationFrame(render);return;
+      }
       if(pool.active){
         pool.draw(time,zoom);
         if(ui.toast&&time>toastUntil)ui.toast.classList.add("hidden");
@@ -3135,6 +3146,22 @@
       ? e.key.toLowerCase()
       : e.key;
 
+    if(endingOpen){
+      // O fim do jogo não é interrompido por movimentos do teclado.
+      if(k==="Escape"){
+        closeFinalVictory();
+        if(church.active)leaveChurch();
+      }
+      e.preventDefault();return;
+    }
+    if(churchCinematicActive){
+      e.preventDefault();return;
+    }
+    if(churchChallengeActive){
+      if(k==="Escape")closeChurchChallenge();
+      else if(["1","2","3"].includes(k))answerChurchChallenge(Number(k)-1);
+      e.preventDefault();return;
+    }
     if(residencePuzzleKind){
       if(k==="Escape")closeResidencePuzzle();
       else if(["1","2","3"].includes(k))answerResidencePuzzle(Number(k)-1);
@@ -3198,8 +3225,9 @@
   });
 
   window.addEventListener("blur", () => {
-    held.clear();
+    held.clear();persistPlayTime();
   });
+  window.addEventListener("pagehide",persistPlayTime);
 
   document.querySelectorAll("[data-key]").forEach(btn => {
     const k = btn.dataset.key;
@@ -3235,6 +3263,10 @@
       closeFood();
       closeSchoolPuzzle();
       closeResidencePuzzle();
+      closeChurchChallenge();
+      stopChurchCinematic();
+      closeFinalVictory();
+      if(church.active)leaveChurch();
       if(pool.active)leavePool();
       if(female.active)leaveResidence("female");
       if(male.active)leaveResidence("male");
@@ -3265,6 +3297,10 @@
       closeFood();
       closeSchoolPuzzle();
       closeResidencePuzzle();
+      closeChurchChallenge();
+      stopChurchCinematic();
+      closeFinalVictory();
+      if(church.active)leaveChurch();
       if(pool.active)leavePool();
       if(female.active)leaveResidence("female");
       if(male.active)leaveResidence("male");
@@ -3428,6 +3464,7 @@
   refreshSportsUI();
   refreshRestaurantUI();
   refreshSchoolUI();
+  refreshChurchUI();
   refreshPoolUI();
   refreshResidenceUI("female");
   refreshResidenceUI("male");
