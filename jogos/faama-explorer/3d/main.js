@@ -1,4 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+import {createMissions3D} from "./missions3d.js";
 import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js";
 
 const data=window.FAAMA_MAP;
@@ -277,7 +278,15 @@ thirdButton.addEventListener("click",()=>setCameraMode("third"));
 overviewButton.addEventListener("click",()=>setCameraMode("overview"));
 centralButton.addEventListener("click",()=>setCameraMode("central"));
 const keyMap={ArrowUp:"w",ArrowLeft:"a",ArrowDown:"s",ArrowRight:"d"};
-addEventListener("keydown",e=>{if(!legacyOverlay.hidden)return;const k=keyMap[e.key]||e.key.toLowerCase();if(k==="m"&&!e.repeat){toggleMissions();e.preventDefault();return}if(k==="escape"){toggleMissions(false);return}if(k==="e"&&!e.repeat&&nearbyMission){openLegacy(nearbyMission);e.preventDefault();return}if(k==="c"&&!e.repeat){setCameraMode(cameraMode==="third"?"overview":"third");e.preventDefault();return}if(cameraMode==="third"&&["w","a","s","d","shift"].includes(k)){held.add(k);e.preventDefault()}});
+addEventListener("keydown",e=>{
+ const k=keyMap[e.key]||e.key.toLowerCase();
+ if(k==="escape"&&missionEngine.active){missionEngine.leave();e.preventDefault();return}
+ if(k==="e"&&!e.repeat){if(missionEngine.active)missionEngine.interact();else if(nearbyMission)missionEngine.enter(nearbyMission);e.preventDefault();return}
+ if(k==="m"&&!e.repeat){document.getElementById("missionsToggle").click();e.preventDefault();return}
+ if(missionEngine.active&&["w","a","s","d","shift"].includes(k)){held.add(k);e.preventDefault();return}
+ if(k==="c"&&!e.repeat&&!missionEngine.active){setCameraMode(cameraMode==="third"?"overview":"third");e.preventDefault();return}
+ if(cameraMode==="third"&&["w","a","s","d","shift"].includes(k)){held.add(k);e.preventDefault()}
+});
 addEventListener("keyup",e=>held.delete(keyMap[e.key]||e.key.toLowerCase()));
 addEventListener("blur",()=>held.clear());
 for(const b of document.querySelectorAll("[data-key]")){const k=b.dataset.key;b.addEventListener("pointerdown",e=>{e.preventDefault();held.add(k);b.setPointerCapture(e.pointerId)});for(const ev of ["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,()=>held.delete(k))}
@@ -285,68 +294,28 @@ renderer.domElement.addEventListener("pointerdown",e=>{dragging=true;lastX=e.cli
 renderer.domElement.addEventListener("pointerup",()=>dragging=false);
 renderer.domElement.addEventListener("pointermove",e=>{if(!dragging)return;if(cameraMode==="third"){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.004,.12,.8)}else if(cameraMode==="overview"){overviewYaw-=(e.clientX-lastX)*.004}lastX=e.clientX;lastY=e.clientY});
 renderer.domElement.addEventListener("wheel",e=>{if(cameraMode==="third")dist=THREE.MathUtils.clamp(dist+e.deltaY*.012,6,22);else overviewDistance=THREE.MathUtils.clamp(overviewDistance+e.deltaY*.12,65,190);e.preventDefault()},{passive:false});
-function blocked(x,z){const gx=(x-originX)/unit,gy=(z-originZ)/unit;if(gx<.5||gx>33.5||gy<.5||gy>43.5)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-.35&&gx<s.x+s.w+.35&&gy>s.y-.35&&gy<s.y+s.h+.35)}
-// Integração progressiva: missões completas continuam executadas pelo motor original.
-const missionsPanel=document.getElementById("missionsPanel"),missionsToggle=document.getElementById("missionsToggle");
-const legacyOverlay=document.getElementById("legacyOverlay"),legacyFrame=document.getElementById("legacyFrame");
-const missionList=document.getElementById("missionList"),legacyTitle=document.getElementById("legacyTitle");
-const missionNames={
- central:"Aventura do Prédio Central",academic:"Desafio do Conhecimento",
- sports:"Circuito dos Campeões",restaurant:"Restaurante Misterioso",
- school:"Tesouro da FAAMinha",church:"Grande Final na Igreja",
- pool:"Desafio Aquático",female:"Residencial Feminino",
- male:"Residencial Masculino"
-};
-const missionEntries=[
- {id:"central",name:"Prédio Central — aventura e enigma"},
- {id:"academic",name:"Prédio Acadêmico — conhecimento"},
- {id:"sports",name:"Complexo Esportivo — circuito"},
- {id:"restaurant",name:"Restaurante — pedidos"},
- {id:"school",name:"FAAMinha — caça ao tesouro"},
- {id:"pool",name:"Piscina — desafio aquático"},
- {id:"female",name:"Residencial Feminino — desafio"},
- {id:"male",name:"Residencial Masculino — desafio"},
- {id:"church",name:"Igreja — fase final"},
- {id:"all",name:"Diário, progresso e todas as 10 missões"}
-];
+function blocked(x,z){if(missionEngine.active)return missionEngine.blocked(x,z);const gx=(x-originX)/unit,gy=(z-originZ)/unit;if(gx<.5||gx>33.5||gy<.5||gy>43.5)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-.35&&gx<s.x+s.w+.35&&gy>s.y-.35&&gy<s.y+s.h+.35)}
+const missionEngine=createMissions3D(THREE,{scene,avatar,at,unit,sites:data.sites,held,box,mat,place,hint});
 let nearbyMission=null;
-function toggleMissions(force){
- const open=typeof force==="boolean"?force:missionsPanel.hidden;
- missionsPanel.hidden=!open;missionsToggle.setAttribute("aria-expanded",String(open));
-}
-function openLegacy(id){
- toggleMissions(false);held.clear();legacyOverlay.hidden=false;
- legacyTitle.textContent=id==="all"?"Todas as missões":missionEntries.find(x=>x.id===id)?.name||"Missões";
- // Mesma origem: progresso local do jogo original permanece acessível.
- if(!legacyFrame.src)legacyFrame.src="../index.html";
- legacyFrame.focus();
-}
-function closeLegacy(){legacyOverlay.hidden=true;held.clear();renderer.domElement.focus()}
-missionsToggle.addEventListener("click",()=>toggleMissions());
-document.getElementById("openAllMissions").addEventListener("click",()=>openLegacy("all"));
-document.getElementById("closeLegacy").addEventListener("click",closeLegacy);
-for(const entry of missionEntries){
- const btn=document.createElement("button");btn.type="button";
- btn.textContent=entry.name;btn.addEventListener("click",()=>openLegacy(entry.id));
- missionList.appendChild(btn);
-}
 const clock=new THREE.Clock(),look=new THREE.Vector3();
 function frame(){
  requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.045);
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
- const dx=cameraMode==="third"?(Number(held.has("d"))-Number(held.has("a"))):0,dz=cameraMode==="third"?(Number(held.has("w"))-Number(held.has("s"))):0;
+ const dx=(cameraMode==="third"||missionEngine.active)?(Number(held.has("d"))-Number(held.has("a"))):0,dz=(cameraMode==="third"||missionEngine.active)?(Number(held.has("w"))-Number(held.has("s"))):0;
  const move=forward.multiplyScalar(dz).addScaledVector(right,dx);
  if(move.lengthSq()>0){move.normalize().multiplyScalar(dt*(held.has("shift")?10:6));const x=avatar.position.x+move.x,z=avatar.position.z+move.z;if(!blocked(x,avatar.position.z))avatar.position.x=x;if(!blocked(avatar.position.x,z))avatar.position.z=z;avatar.rotation.y=Math.atan2(-move.x,-move.z);walk+=dt*11;legs[0].rotation.x=Math.sin(walk)*.55;legs[1].rotation.x=-Math.sin(walk)*.55;arms[0].rotation.x=-Math.sin(walk)*.42;arms[1].rotation.x=Math.sin(walk)*.42}else{legs[0].rotation.x*=.8;legs[1].rotation.x*=.8;arms[0].rotation.x*=.8;arms[1].rotation.x*=.8}
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
- const target=cameraMode==="third"?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:overviewTarget;
- const desired=cameraMode==="third"?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
+ const target=(cameraMode==="third"||missionEngine.active)?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:overviewTarget;
+ const desired=(cameraMode==="third"||missionEngine.active)?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
  camera.position.lerp(desired,1-Math.exp(-dt*4));look.lerp(target,1-Math.exp(-dt*6));camera.lookAt(look);
  let nearest=null,range=Infinity;for(const b of buildings){const d=Math.hypot(avatar.position.x-b.x,avatar.position.z-b.z);if(d<range){nearest=b;range=d}}
- nearbyMission=cameraMode==="third"&&nearest&&range<Math.max(nearest.w,nearest.d)*.85+5?nearest.site.id:null;
- if(cameraMode==="central"){place.textContent="Prédio Central — estudo arquitetônico";hint.textContent="Fachada em desenvolvimento com arco azul, janelas, alas amarelas e jardins inspirados na referência."}
+ missionEngine.update();
+ nearbyMission=!missionEngine.active&&cameraMode==="third"&&nearest&&range<Math.max(nearest.w,nearest.d)*.85+5?nearest.site.id:null;
+ if(missionEngine.active){place.textContent="Missão 3D em andamento";}
+ else if(cameraMode==="central"){place.textContent="Prédio Central — estudo arquitetônico";hint.textContent="Fachada em desenvolvimento com arco azul, janelas, alas amarelas e jardins inspirados na referência."}
  else if(cameraMode==="overview"){place.textContent="Vista panorâmica da FAAMA";hint.textContent="Campus completo em 3D. Arraste para girar, use o scroll para zoom ou pressione C para explorar."}
- else if(nearest&&range<Math.max(nearest.w,nearest.d)*.85+4){place.textContent=nearest.site.short||nearest.site.name;hint.textContent=nearest.site.info+" • Pressione E para acessar as missões deste local."}
+ else if(nearest&&range<Math.max(nearest.w,nearest.d)*.85+4){place.textContent=nearest.site.short||nearest.site.name;hint.textContent=nearest.site.info+" • Pressione E para entrar no interior 3D."}
  else{place.textContent="Explorando o campus";hint.textContent="Explore os prédios em 3D. Pressione M para acessar as dez missões."}
  renderer.render(scene,camera);
 }
