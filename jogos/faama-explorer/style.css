@@ -861,3 +861,69 @@ body {
   .restaurant-ingredients button span{font-size:16px}
   .restaurant-cooking-bottom button{padding:7px 9px;font-size:10px}
 }
+
+/* FAAMA Explorer 2.9 — Sala de enigmas e diário da FAAMinha */
+.quest-school{
+  margin-top:13px;
+  border-color:#8bd4b9;
+  background:linear-gradient(120deg,#1e4550,#34536b 52%,#295465);
+}
+.quest-school .quest-medallion{border-color:#a8e2c5}
+.quest-school .quest-title strong{color:#d3f8e6}
+.quest-school .quest-stage{border-color:#b9edca;color:#d5f8e8}
+.school-hud{
+  position:absolute;z-index:8;right:15px;top:86px;width:min(310px,36%);
+  border:2px solid #b4e1c9;border-radius:12px;padding:11px 12px;
+  background:linear-gradient(130deg,#265365ee,#356b68ee);
+  color:#f8f4df;box-shadow:0 8px 28px #0e283c88;pointer-events:none;
+}
+.school-hud-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.school-hud-header span{font-size:9px;font-weight:900;letter-spacing:.05em;color:#d4f6de}
+.school-hud-header strong{font-size:18px;font-weight:900;color:#fff0ac;font-variant-numeric:tabular-nums}
+.school-hud p{font-size:11px;line-height:1.4;margin:7px 0;color:#f7f3da}
+.school-progress{height:7px;border-radius:8px;background:#17394c;overflow:hidden}
+.school-progress i{display:block;width:0;height:100%;border-radius:8px;
+  background:linear-gradient(90deg,#8fe6bc,#f9e7a7);transition:width .15s ease}
+.school-puzzle{
+  position:absolute;z-index:31;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(515px,calc(100% - 26px));max-height:calc(100% - 20px);overflow-y:auto;
+  border:2px solid #addfc7;border-radius:15px;padding:17px;
+  background:linear-gradient(140deg,#193f57,#2b5968);color:#fff3d5;
+  box-shadow:0 18px 75px #081d2be9;
+}
+.school-puzzle-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.school-puzzle-heading div{display:flex;flex-direction:column;gap:5px}
+.school-puzzle-heading small{font-size:10px;font-weight:800;letter-spacing:.045em;color:#aeeac8}
+.school-puzzle-heading strong{font-size:19px;font-weight:900;line-height:1.2}
+.school-puzzle-heading button{
+  width:32px;height:32px;border-radius:7px;background:#316379;color:#fff5da;
+  border:1px solid #a4c7c7;cursor:pointer;font-size:21px
+}
+.school-puzzle p{font-size:12px;line-height:1.5;margin:11px 0 0}
+.school-puzzle .school-puzzle-clue{color:#d4f0c9}
+.school-puzzle .school-puzzle-question{font-size:14px;font-weight:800;color:#fff0b9}
+.school-puzzle-choices{display:grid;gap:8px;margin-top:15px}
+.school-puzzle-choices button{
+  display:block;text-align:left;width:100%;min-height:42px;
+  padding:10px 13px;border:1px solid #b1d6c8;border-radius:9px;
+  background:#345d6d;color:#f8f4dc;font-size:12px;font-weight:700;
+  line-height:1.4;cursor:pointer
+}
+.school-puzzle-choices button:hover,.school-puzzle-choices button:focus-visible{
+  background:#477a7f;outline:2px solid #ffe8aa;outline-offset:1px
+}
+.school-puzzle .school-puzzle-feedback{color:#ffda96;min-height:21px;font-weight:700}
+.school-puzzle .school-puzzle-help{font-size:10px;color:#b8d2d1;margin-top:8px}
+@media(max-width:800px){
+  .school-hud{top:53px;right:5px;width:44%;padding:6px 8px;border-width:1px;border-radius:8px}
+  .school-hud-header span{font-size:7px}
+  .school-hud-header strong{font-size:13px}
+  .school-hud p{font-size:9px;margin:4px 0}
+  .school-progress{height:4px}
+  .school-puzzle{padding:11px;border-radius:10px}
+  .school-puzzle-heading strong{font-size:15px}
+  .school-puzzle p{font-size:11px;margin-top:7px}
+  .school-puzzle .school-puzzle-question{font-size:12px}
+  .school-puzzle-choices{gap:6px;margin-top:10px}
+  .school-puzzle-choices button{font-size:11px;min-height:34px;padding:8px 10px}
+}
