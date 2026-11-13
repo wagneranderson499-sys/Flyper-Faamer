@@ -66,6 +66,18 @@
                     <p id="schoolHUDHint">Converse com Sofia para começar.</p>
                     <div class="school-progress"><i id="schoolProgressBar"></i></div>
                 </aside>
+                <aside id="poolHUD" class="pool-hud hidden" aria-label="Placar do Desafio Aquático">
+                    <div class="pool-hud-head"><span>🏊 DESAFIO AQUÁTICO</span><strong id="poolTimer">120,0s</strong></div>
+                    <p id="poolStatus">Converse com Nara para começar.</p>
+                    <div class="pool-hud-count"><strong id="poolBuoyCount">0 / 5 boias</strong><small id="poolState">Aguardando</small></div>
+                    <div class="pool-progress"><i id="poolBuoyBar"></i></div>
+                </aside>
+                <aside id="residenceHUD" class="residence-hud hidden" aria-label="Missão do residencial">
+                    <div class="residence-hud-head"><strong id="residenceHUDTitle">🏠 RESIDENCIAL</strong>
+                        <span id="residenceHUDCount">0/3</span></div>
+                    <p id="residenceHUDHint">Converse com o monitor para começar.</p>
+                    <div class="residence-progress"><i id="residenceHUDBar"></i></div>
+                </aside>
                 <div class="hud">
                     <div class="objective"><small>MISSÃO ATUAL</small><strong id="objective">Explore o campus e encontre
                             o Prédio Central</strong></div>
@@ -168,6 +180,22 @@
                     </div>
                     <p id="schoolPuzzleFeedback" class="school-puzzle-feedback" aria-live="polite">Escolha uma resposta.</p>
                     <p class="school-puzzle-help">Teclas 1, 2 e 3 para responder • Esc para voltar à escola</p>
+                </section>
+                <section id="residencePuzzle" class="residence-puzzle hidden" role="dialog" aria-modal="true"
+                    aria-labelledby="residencePuzzleTitle" aria-describedby="residencePuzzleQuestion">
+                    <div class="residence-puzzle-heading">
+                        <div><small>🏠 ORGANIZAÇÃO DO RESIDENCIAL • <span id="residencePuzzleStep">1/3</span></small>
+                            <strong id="residencePuzzleTitle">Escolha a melhor estratégia</strong></div>
+                        <button id="residencePuzzleClose" type="button" aria-label="Fechar desafio">×</button>
+                    </div>
+                    <p id="residencePuzzleQuestion">Como organizar a próxima etapa?</p>
+                    <div class="residence-puzzle-choices" role="group" aria-label="Respostas da missão">
+                        <button type="button" data-residence-answer="0">1. Alternativa</button>
+                        <button type="button" data-residence-answer="1">2. Alternativa</button>
+                        <button type="button" data-residence-answer="2">3. Alternativa</button>
+                    </div>
+                    <p id="residencePuzzleFeedback" class="residence-feedback" aria-live="polite">Selecione uma alternativa.</p>
+                    <small class="residence-help">Teclas 1, 2 ou 3 para responder • Esc para fechar</small>
                 </section>
                 <div id="toast" class="toast hidden"></div>
                 <div id="fatal" class="fatal hidden"></div>
@@ -331,6 +359,68 @@
                       title="Reiniciar somente O Tesouro da FAAMinha">Recomeçar missão 06</button>
                 </div>
             </section>
+            <section class="quest-tracker quest-pool" aria-label="Diário da Missão 07">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🏊</span>
+                        <div><small>MISSÃO 07 · PISCINA</small><strong>Desafio Aquático</strong></div>
+                    </div>
+                    <span class="quest-stage" id="poolQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="poolQuestDescription" class="quest-description">Converse com a guarda-vidas Nara para começar.</p>
+                <div class="quest-clues">
+                    <span id="poolQuestBuoys">○ Boias: 0 / 5</span>
+                    <span id="poolBestTime">⏱️ Recorde: —</span>
+                    <span id="poolQuestTime">⏳ Limite: 120 segundos</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="poolQuestAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP</small>
+                    <button id="poolQuestRestart" class="quest-restart" type="button">Recomeçar missão 07</button>
+                </div>
+            </section>
+            <section class="quest-tracker quest-female" aria-label="Diário da Missão 08">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🏠</span>
+                        <div><small>MISSÃO 08 · RESIDENCIAL FEMININO</small><strong>A Rotina Equilibrada</strong></div>
+                    </div>
+                    <span class="quest-stage" id="femaleQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="femaleQuestDescription" class="quest-description">Converse com Isabela no residencial.</p>
+                <div class="quest-clues">
+                    <span id="femaleQuestAgenda">🔒 Agenda semanal</span>
+                    <span id="femaleQuestGarrafa">🔒 Garrafa de água</span>
+                    <span id="femaleQuestLivro">🔒 Livro de leitura</span>
+                    <span id="femaleQuestSteps">🧩 Etapas: 0 / 3</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="femaleQuestAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP</small>
+                    <button id="femaleQuestRestart" class="quest-restart" type="button">Recomeçar missão 08</button>
+                </div>
+            </section>
+            <section class="quest-tracker quest-male" aria-label="Diário da Missão 09">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">🏠</span>
+                        <div><small>MISSÃO 09 · RESIDENCIAL MASCULINO</small><strong>Projeto em Equipe</strong></div>
+                    </div>
+                    <span class="quest-stage" id="maleQuestStage">DISPONÍVEL</span>
+                </div>
+                <p id="maleQuestDescription" class="quest-description">Converse com Gabriel no residencial.</p>
+                <div class="quest-clues">
+                    <span id="maleQuestCartaz">🔒 Cartaz do projeto</span>
+                    <span id="maleQuestLanterna">🔒 Lanterna de inspeção</span>
+                    <span id="maleQuestBloco">🔒 Bloco de anotações</span>
+                    <span id="maleQuestSteps">🧩 Etapas: 0 / 3</span>
+                </div>
+                <div class="quest-inventory">
+                    <span id="maleQuestAchievement">🏆 Conquista bloqueada</span>
+                    <small>Recompensa: +200 XP</small>
+                    <button id="maleQuestRestart" class="quest-restart" type="button">Recomeçar missão 09</button>
+                </div>
+            </section>
             <section class="quest-tracker quest-final-gate" aria-label="Desbloqueio da última fase: Igreja da FAAMA">
                 <div class="quest-tracker-heading">
                     <div class="quest-title">
@@ -366,7 +456,7 @@
                 </p>
             </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
-                    você</span><span>FAAMA Explorer 2.9 • O Tesouro da FAAMinha</span></div>
+                    você</span><span>FAAMA Explorer 3.2 • As Nove Missões do Campus</span></div>
         </section>
         <section class="mobile"><button data-key="ArrowUp">▲</button>
             <div><button data-key="ArrowLeft">◀</button><button data-key="ArrowDown">▼</button><button
@@ -383,6 +473,8 @@
     <script src="sports.js"></script>
     <script src="restaurant.js"></script>
     <script src="school.js"></script>
+    <script src="pool.js"></script>
+    <script src="residences.js"></script>
     <script src="final-gate.js"></script>
     <script src="game.js"></script>
 </body>
