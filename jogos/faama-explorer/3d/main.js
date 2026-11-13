@@ -36,8 +36,84 @@ function windowGrid(p,w,d,h,front,rows,columns,frame="#f2f4e8"){
  }
 }
 function planters(p,w,d){for(const side of [-1,1]){const x=p.x+side*(w*.32),z=p.z+d/2+2.5;box(2.7,.48,1.3,"#d8c49f",x,.24,z);for(let j=0;j<3;j++){const xx=x+(j-1)*.72;cylinder(.16,.65,"#477c3c",xx,.7,z,7);const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.29,1),mat(j%2?"#ed77ac":"#f4c456"));flower.position.set(xx,1.12,z);scene.add(flower)}}}
+// Fachada autoral do Prédio Central, modelada por partes a partir da referência.
+function centralBuilding(s,p,w,d){
+ const f=p.z+d/2, height=10.6, blue="#176cb4",sky="#6ac4e4",gold="#f5bf27",orange="#f28d21";
+ const glass=new THREE.MeshPhysicalMaterial({color:"#399ac7",metalness:.24,roughness:.15,transparent:true,opacity:.83,clearcoat:1,clearcoatRoughness:.1});
+ const glassLight=new THREE.MeshStandardMaterial({color:"#94d7ef",metalness:.14,roughness:.21,emissive:"#1b5469",emissiveIntensity:.12});
+ const glassPanels=(x0,x1,y0,y1,z,cols,rows)=>{
+  const cw=(x1-x0)/cols,ch=(y1-y0)/rows;
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+   const x=x0+(i+.5)*cw,y=y0+(j+.5)*ch;
+   const pane=new THREE.Mesh(new THREE.BoxGeometry(cw-.13,ch-.16,.12),((i+j)%5===0?glassLight:glass));
+   pane.position.set(x,y,z);pane.receiveShadow=true;scene.add(pane);
+   box(.065,ch,.19,"#c6e8f0",x0+i*cw,y,z+.09,false);
+  }
+  for(let j=0;j<=rows;j++)box(x1-x0,.08,.19,"#b8e1eb",(x0+x1)/2,y0+j*ch,z+.1,false);
+ };
+ // Três volumes arquitetônicos: alas laterais baixas e torre de entrada.
+ box(w,6.9,d,gold,p.x,3.45,p.z);
+ box(w*.84,3.1,d*.92,blue,p.x,7.85,p.z);
+ box(w*.26,height-6.8,d*.85,orange,p.x,8.7,p.z+.05);
+ for(const side of [-1,1]){
+  const wingX=p.x+side*w*.38;
+  box(w*.26,2.15,d*.93,gold,wingX,7.15,p.z);
+  box(w*.28,.3,d*.97,"#f5e7ba",wingX,8.34,p.z);
+  box(w*.24,.18,d*.95,orange,wingX,8.55,p.z);
+  box(w*.2,.32,d*.98,"#42b9d3",p.x+side*w*.25,9.6,p.z);
+  // Faixa azul marcante da fachada.
+  box(w*.29,.56,.36,blue,wingX,5.1,f+.26);
+  glassPanels(wingX-w*.115,wingX+w*.115,5.55,6.85,f+.29,4,1);
+  for(let i=0;i<3;i++){
+   const x=wingX+((i-1)*w*.075);
+   box(w*.055,1.6,.14,"#1d75ad",x,2.7,f+.25);
+   box(w*.055,.1,.22,"#e3d5a5",x,3.55,f+.35);
+  }
+ }
+ box(w+.65,.35,d+.7,"#22a7c5",p.x,10.02,p.z);
+ box(w*.29,.38,d*.8,"#f3c535",p.x,10.45,p.z);
+ // Pavimento superior inteiramente envidraçado, com caixilhos azuis.
+ glassPanels(p.x-w*.42,p.x+w*.42,7.0,9.35,f+.28,12,2);
+ box(w*.87,.5,.35,blue,p.x,9.48,f+.4);
+ // Hall central alto, colunas e porta de vidro.
+ box(w*.33,5.35,.45,blue,p.x,2.85,f+.4);
+ glassPanels(p.x-w*.135,p.x+w*.135,.75,4.9,f+.75,4,3);
+ box(w*.36,.3,2.3,blue,p.x,5.48,f+1.4);
+ for(const side of [-1,1]){
+  box(.36,4.7,.42,blue,p.x+side*w*.16,2.7,f+.74);
+  box(.25,2.7,.25,"#e3bb68",p.x+side*w*.145,1.35,f+2.35);
+ }
+ // Marquise curva azul, construída por lâminas arqueadas, com profundidade real.
+ const archPoints=[];
+ for(let i=0;i<=30;i++){
+  const t=i/30,x=p.x+(t-.5)*w*.42;
+  const y=5.45+1.15*Math.sin(Math.PI*t);
+  archPoints.push(new THREE.Vector3(x,y,f+2.8));
+ }
+ const arch=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPoints),48,.27,8,false),mat("#0d64b7",.38));
+ arch.castShadow=true;scene.add(arch);
+ for(let i=0;i<=18;i++){
+  const t=i/18,x=p.x+(t-.5)*w*.42,y=5.4+1.13*Math.sin(Math.PI*t);
+  box(.12,.13,2.2,"#1c82c9",x,y,f+1.7,false);
+ }
+ // Escadaria, piso de acesso e canteiros geométricos da referência.
+ for(let i=0;i<3;i++)box(w*.36+i*.6,.17,1.1,"#d8c9b0",p.x,.1+i*.17,f+3.9+i*.55);
+ for(const side of [-1,1]){
+  const x=p.x+side*w*.34;
+  box(w*.22,.46,2.25,"#d8c7a4",x,.24,f+3.1);
+  box(w*.19,.18,1.93,"#4e9448",x,.54,f+3.1);
+  for(let i=0;i<5;i++){
+   const xx=x+(i-2)*w*.035;
+   cylinder(.13,.65,"#367c3b",xx,.91,f+3.1,7);
+   const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.24,1),mat(i%2?"#f66f9f":"#f2bd48"));
+   flower.position.set(xx,1.34,f+3.1);scene.add(flower);
+  }
+ }
+ buildings.push({site:s,x:p.x,z:p.z,w,d});
+}
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
+ if(s.type==="central"){centralBuilding(s,p,w,d);return;}
  if(s.type==="pool"){
   box(w+3,.3,d+3,"#e9d5b0",p.x,.1,p.z);
   const water=box(w-.7,.13,d-.7,"#1687b8",p.x,.34,p.z);water.material=new THREE.MeshPhysicalMaterial({color:"#35b6d9",metalness:.18,roughness:.1,transparent:true,opacity:.86,clearcoat:1});
