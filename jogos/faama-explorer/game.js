@@ -3505,9 +3505,9 @@
     endingUI.credits.classList.toggle("hidden",!nowHidden);
     endingUI.toggleCredits.textContent=nowHidden?"Ocultar créditos":"Ver créditos";
   });
-  if(endingUI.restart)endingUI.restart.addEventListener("click",()=>{
+  function restartEntireJourney(){
     if(typeof window.confirm==="function" &&
-      !window.confirm("ATENÇÃO: recomeçar TODA a jornada apagará o progresso, os 1.850 XP possíveis, as 10 conquistas e todos os recordes. Você voltará à entrada da FAAMA. Deseja realmente apagar todos os seus avanços?"))return;
+      !window.confirm("Iniciar uma nova rodada para outro jogador? Isso apagará o progresso salvo das 10 missões, XP, conquistas, recordes e tempo de jogo neste navegador. Essa ação não pode ser desfeita."))return;
     pendingChurchEnding=false;
     pendingQuestNotice=null;
     closeFinalVictory();stopChurchCinematic();closeChurchChallenge();
@@ -3543,7 +3543,10 @@
     refreshPoolUI();refreshResidenceUI("female");refreshResidenceUI("male");
     refreshChurchUI();refreshFinalGateUI();refreshTotalXP();
     show("Nova jornada iniciada! As dez missões foram reiniciadas. Converse com Lia perto da entrada.",7);
-  });
+  }
+  const newJourneyButton=document.getElementById("newJourney");
+  if(newJourneyButton)newJourneyButton.addEventListener("click",restartEntireJourney);
+  if(endingUI.restart)endingUI.restart.addEventListener("click",restartEntireJourney);
 
   function changeZoom(d) {
     zoom = Math.max(
