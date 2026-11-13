@@ -37,78 +37,87 @@ function windowGrid(p,w,d,h,front,rows,columns,frame="#f2f4e8"){
 }
 function planters(p,w,d){for(const side of [-1,1]){const x=p.x+side*(w*.32),z=p.z+d/2+2.5;box(2.7,.48,1.3,"#d8c49f",x,.24,z);for(let j=0;j<3;j++){const xx=x+(j-1)*.72;cylinder(.16,.65,"#477c3c",xx,.7,z,7);const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.29,1),mat(j%2?"#ed77ac":"#f4c456"));flower.position.set(xx,1.12,z);scene.add(flower)}}}
 // Fachada autoral do Prédio Central, modelada por partes a partir da referência.
+// Modelo arquitetônico próprio: corpo recuado, empena e telhado inclinado.
 function centralBuilding(s,p,w,d){
- const f=p.z+d/2, height=10.6, blue="#176cb4",sky="#6ac4e4",gold="#f5bf27",orange="#f28d21";
- const glass=new THREE.MeshPhysicalMaterial({color:"#399ac7",metalness:.24,roughness:.15,transparent:true,opacity:.83,clearcoat:1,clearcoatRoughness:.1});
- const glassLight=new THREE.MeshStandardMaterial({color:"#94d7ef",metalness:.14,roughness:.21,emissive:"#1b5469",emissiveIntensity:.12});
- const glassPanels=(x0,x1,y0,y1,z,cols,rows)=>{
-  const cw=(x1-x0)/cols,ch=(y1-y0)/rows;
-  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
-   const x=x0+(i+.5)*cw,y=y0+(j+.5)*ch;
-   const pane=new THREE.Mesh(new THREE.BoxGeometry(cw-.13,ch-.16,.12),((i+j)%5===0?glassLight:glass));
-   pane.position.set(x,y,z);pane.receiveShadow=true;scene.add(pane);
-   box(.065,ch,.19,"#c6e8f0",x0+i*cw,y,z+.09,false);
-  }
-  for(let j=0;j<=rows;j++)box(x1-x0,.08,.19,"#b8e1eb",(x0+x1)/2,y0+j*ch,z+.1,false);
+ const front=p.z+d/2,back=p.z-d/2,blue="#0873d0",deep="#1262b6",cyan="#1aa6cc",gold="#f8c65c",orange="#e69c60";
+ const solid=(vertices,indices,color)=>{
+  const g=new THREE.BufferGeometry(),arr=[];
+  for(const face of indices)for(const id of face)arr.push(...vertices[id]);
+  g.setAttribute("position",new THREE.Float32BufferAttribute(arr,3));g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.77,side:THREE.DoubleSide}));
+  m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
  };
- // Três volumes arquitetônicos: alas laterais baixas e torre de entrada.
- box(w,6.9,d,gold,p.x,3.45,p.z);
- box(w*.84,3.1,d*.92,blue,p.x,7.85,p.z);
- box(w*.26,height-6.8,d*.85,orange,p.x,8.7,p.z+.05);
+ const quad=(v,color)=>solid(v,[[0,1,2],[0,2,3]],color);
+ const pane=(x,y,z,ww=1.05,hh=1.35)=>{
+  box(ww+.22,hh+.2,.18,"#e5f0ef",x,y,z);
+  box(ww,hh,.2,"#1c8fd1",x,y,z+.13);
+  box(ww*.77,hh*.79,.21,"#9de8f2",x-.07,y+.06,z+.26,false);
+  box(.055,hh,.28,"#f4f7f1",x,y,z+.3,false);
+  box(ww+.28,.11,.44,"#f3f4e7",x,y-hh/2-.13,z+.22);
+ };
+ // Corpo com frente azul e topo amarelo; o telhado nasce de uma empena triangular.
+ box(w,6.5,d,blue,p.x,3.25,p.z);
+ box(w,1.55,d,gold,p.x,7.25,p.z);
+ // Pequeno avanço da fachada inferior, deixando as laterais com profundidade.
+ box(w*.96,.22,.55,deep,p.x,6.42,front+.27);
+ box(w*.94,.24,.55,cyan,p.x,8.05,front+.3);
+ const eave=8.2,ridge=11.45,over=.75;
+ const lx=p.x-w/2-over,rx=p.x+w/2+over;
+ const fz=front+over,bz=back-over,rz=(fz+bz)/2;
+ // Duas águas reais, inclinadas no eixo da profundidade, com cumeeira e beirais.
+ quad([[lx,eave,fz],[rx,eave,fz],[rx,ridge,rz],[lx,ridge,rz]],"#087eb5");
+ quad([[lx,ridge,rz],[rx,ridge,rz],[rx,eave,bz],[lx,eave,bz]],"#0d9cc3");
+ quad([[p.x-w/2,8.2,front+.02],[p.x+w/2,8.2,front+.02],[p.x+w/2,11.08,rz],[p.x-w/2,11.08,rz]],"#0789bb");
+ quad([[p.x-w/2,11.08,rz],[p.x+w/2,11.08,rz],[p.x+w/2,8.2,back-.02],[p.x-w/2,8.2,back-.02]],"#0b87ac");
+ // Fechamento triangular nas duas laterais (empenas).
+ for(const x of [p.x-w/2,p.x+w/2])solid([[x,8.2,front],[x,8.2,back],[x,11.08,p.z]],[[0,1,2]],gold);
+ // Beirais grossos, ripas e cumeeira visíveis.
+ box(w+1.6,.22,.36,cyan,p.x,eave-.06,fz);
+ box(w+1.6,.22,.36,deep,p.x,eave-.06,bz);
+ box(w+1.6,.18,.24,"#2fc5da",p.x,ridge+.02,rz);
+ for(let i=0;i<5;i++){
+  const z=fz+(rz-fz)*(i+1)/6,y=eave+(ridge-eave)*(i+1)/6;
+  box(w+1.1,.09,.14,i%2?"#18a9d0":"#0876bf",p.x,y+.06,z,false);
+ }
+ // Claraboias pequenas acompanham a inclinação do telhado frontal.
+ for(let i=0;i<5;i++){
+  const x=p.x+(i-2)*w*.165,t=.48,y=eave+(ridge-eave)*t,z=fz+(rz-fz)*t;
+  const skylight=box(w*.09,.065,1.02,"#c4f6ff",x,y+.1,z);
+  skylight.rotation.x=Math.atan2(ridge-eave,rz-fz);
+  const trim=box(w*.11,.09,1.08,"#0754b6",x,y+.025,z-.03);
+  trim.rotation.x=skylight.rotation.x;
+ }
+ // Janelas simétricas, separadas em dois pavimentos.
+ for(let row=0;row<2;row++)for(let i=0;i<6;i++){
+  if(row===0&&(i===2||i===3))continue;
+  const x=p.x+(i-2.5)*w*.145;
+  pane(x,row===0?2.2:4.8,front+.19,w*.073,row===0?1.25:1.13);
+ }
+ // Faixa amarela irregular que se projeta sobre a parte azul.
+ box(w*.88,.67,.18,gold,p.x,6.08,front+.43);
+ for(let i=0;i<6;i++){
+  const x=p.x+(i-2.5)*w*.15;
+  box(w*.12,.22,.21,i%2?orange:gold,x,5.65-(i%3)*.15,front+.51);
+ }
+ // Porta dupla envidraçada, com batente e soleira.
+ box(w*.205,2.75,.26,"#e9eff0",p.x,1.43,front+.36);
  for(const side of [-1,1]){
-  const wingX=p.x+side*w*.38;
-  box(w*.26,2.15,d*.93,gold,wingX,7.15,p.z);
-  box(w*.28,.3,d*.97,"#f5e7ba",wingX,8.34,p.z);
-  box(w*.24,.18,d*.95,orange,wingX,8.55,p.z);
-  box(w*.2,.32,d*.98,"#42b9d3",p.x+side*w*.25,9.6,p.z);
-  // Faixa azul marcante da fachada.
-  box(w*.29,.56,.36,blue,wingX,5.1,f+.26);
-  glassPanels(wingX-w*.115,wingX+w*.115,5.55,6.85,f+.29,4,1);
-  for(let i=0;i<3;i++){
-   const x=wingX+((i-1)*w*.075);
-   box(w*.055,1.6,.14,"#1d75ad",x,2.7,f+.25);
-   box(w*.055,.1,.22,"#e3d5a5",x,3.55,f+.35);
+  const x=p.x+side*w*.052;
+  box(w*.095,2.5,.3,"#6cc9e6",x,1.4,front+.53);
+  box(.055,2.52,.36,"#e8f5f5",x,1.4,front+.72);
+  box(.045,.35,.18,"#f7f8ef",x-side*.14,1.35,front+.75);
+ }
+ // Arco duplo da entrada: curvas paralelas e projetadas, não um adesivo plano.
+ for(const [z,radius,color,offset] of [[front+.72,.23,orange,0],[front+.93,.18,"#1b9fe6",-.27]]){
+  const pts=[];
+  for(let i=0;i<=32;i++){
+   const t=i/32;
+   pts.push(new THREE.Vector3(p.x+(t-.5)*w*.31,3.3+offset+1.35*Math.sin(Math.PI*t),z));
   }
+  const arc=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),56,radius,9,false),mat(color,.5));
+  arc.castShadow=true;scene.add(arc);
  }
- box(w+.65,.35,d+.7,"#22a7c5",p.x,10.02,p.z);
- box(w*.29,.38,d*.8,"#f3c535",p.x,10.45,p.z);
- // Pavimento superior inteiramente envidraçado, com caixilhos azuis.
- glassPanels(p.x-w*.42,p.x+w*.42,7.0,9.35,f+.28,12,2);
- box(w*.87,.5,.35,blue,p.x,9.48,f+.4);
- // Hall central alto, colunas e porta de vidro.
- box(w*.33,5.35,.45,blue,p.x,2.85,f+.4);
- glassPanels(p.x-w*.135,p.x+w*.135,.75,4.9,f+.75,4,3);
- box(w*.36,.3,2.3,blue,p.x,5.48,f+1.4);
- for(const side of [-1,1]){
-  box(.36,4.7,.42,blue,p.x+side*w*.16,2.7,f+.74);
-  box(.25,2.7,.25,"#e3bb68",p.x+side*w*.145,1.35,f+2.35);
- }
- // Marquise curva azul, construída por lâminas arqueadas, com profundidade real.
- const archPoints=[];
- for(let i=0;i<=30;i++){
-  const t=i/30,x=p.x+(t-.5)*w*.42;
-  const y=5.45+1.15*Math.sin(Math.PI*t);
-  archPoints.push(new THREE.Vector3(x,y,f+2.8));
- }
- const arch=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPoints),48,.27,8,false),mat("#0d64b7",.38));
- arch.castShadow=true;scene.add(arch);
- for(let i=0;i<=18;i++){
-  const t=i/18,x=p.x+(t-.5)*w*.42,y=5.4+1.13*Math.sin(Math.PI*t);
-  box(.12,.13,2.2,"#1c82c9",x,y,f+1.7,false);
- }
- // Escadaria, piso de acesso e canteiros geométricos da referência.
- for(let i=0;i<3;i++)box(w*.36+i*.6,.17,1.1,"#d8c9b0",p.x,.1+i*.17,f+3.9+i*.55);
- for(const side of [-1,1]){
-  const x=p.x+side*w*.34;
-  box(w*.22,.46,2.25,"#d8c7a4",x,.24,f+3.1);
-  box(w*.19,.18,1.93,"#4e9448",x,.54,f+3.1);
-  for(let i=0;i<5;i++){
-   const xx=x+(i-2)*w*.035;
-   cylinder(.13,.65,"#367c3b",xx,.91,f+3.1,7);
-   const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.24,1),mat(i%2?"#f66f9f":"#f2bd48"));
-   flower.position.set(xx,1.34,f+3.1);scene.add(flower);
-  }
- }
+ for(let i=0;i<2;i++)box(w*.24+i*.3,.13,.62,"#d6c9b5",p.x,.07+i*.13,front+1.2+i*.4);
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
 function addBuilding(s){
