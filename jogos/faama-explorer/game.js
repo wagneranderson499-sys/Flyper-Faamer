@@ -282,6 +282,32 @@
     setInteriorMode(false);refreshResidenceUI(kind);
     show("Você voltou ao campus. O progresso do residencial foi salvo.",4);
   }
+  function enterChurch(){
+    if(!finalGate.progress().unlocked||!church.enter()){
+      show(finalGate.notice(),7);refreshFinalGateUI();return false;
+    }
+    if(interiorUI.building)interiorUI.building.textContent="⛪ IGREJA DA FAAMA • FASE FINAL";
+    held.clear();player.moving=false;setInteriorMode(true);
+    if(ui.toast)ui.toast.classList.add("hidden");
+    refreshChurchUI();
+    show(church.progress().completed
+      ?"Bem-vindo de volta! Você já é Lenda da FAAMA. Reveja sua vitória no diário."
+      :"Você chegou à última fase. Converse com o capelão Samuel.",6);
+    return true;
+  }
+  function leaveChurch(){
+    if(!church.active)return;
+    closeChurchChallenge();
+    stopChurchCinematic();
+    closeFinalVictory();
+    church.leave();held.clear();
+    player.x=churchSite.x+churchSite.w/2;
+    player.y=churchSite.y+churchSite.h+1.25;
+    player.moving=false;nearTalker=null;nearQuestItem=null;
+    setInteriorMode(false);
+    refreshChurchUI();
+    show("Você voltou ao campus. A história final e todas as conquistas continuam salvas.",5);
+  }
   // Os atores são independentes da planta aprovada dos prédios.
   const life = window.createCampusLife({
     ctx, P, sites, worldW: W, worldH: H,
@@ -330,7 +356,8 @@
     if(questUI.xp)questUI.xp.textContent=
       (quest.progress().xp+indoorQuest.progress().xp+academic.progress().xp+
         sports.progress().xp+restaurant.progress().xp+school.progress().xp+
-        pool.progress().xp+female.progress().xp+male.progress().xp)+" XP";
+        pool.progress().xp+female.progress().xp+male.progress().xp+
+        church.progress().xp)+" XP";
   }
   const poolUI={
     hud:document.getElementById("poolHUD"),
@@ -483,6 +510,25 @@
       };
     }
   });
+  const church=window.createFaamaChurch({
+    ctx,storage:questStorage,canvasWidth:SW,canvasHeight:SH,
+    isUnlocked:()=>finalGate.progress().unlocked
+  });
+  const PLAYTIME_KEY="faama-explorer-playtime-v1";
+  let playTimeSeconds=0,playtimeSaveBucket=0;
+  try{
+    const savedSeconds=Number(questStorage?.getItem(PLAYTIME_KEY));
+    if(Number.isFinite(savedSeconds)&&savedSeconds>=0&&savedSeconds<1e8){
+      playTimeSeconds=savedSeconds;playtimeSaveBucket=Math.floor(playTimeSeconds/8);
+    }
+  }catch(_error){}
+  function persistPlayTime(){
+    try{questStorage?.setItem(PLAYTIME_KEY,String(Math.round(playTimeSeconds)));}catch(_error){}
+  }
+  function formatPlaytime(seconds){
+    const n=Math.max(0,Math.round(seconds)),h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;
+    return h>0?h+"h "+String(m).padStart(2,"0")+"min":m>0?m+"min "+String(s).padStart(2,"0")+"s":s+"s";
+  }
   const finalGateUI={
     stage:document.getElementById("finalGateStage"),
     description:document.getElementById("finalGateDescription"),
@@ -504,19 +550,23 @@
   let finalGateCachedState="";
   function refreshFinalGateUI(){
     const p=finalGate.progress();
-    const state=p.chapters.map(c=>c.completed?"1":"0").join("");
+    const state=p.chapters.map(c=>c.completed?"1":"0").join("")+
+      (church.progress().completed?"1":"0");
     if(state===finalGateCachedState)return;
     finalGateCachedState=state;
     if(finalGateUI.stage)finalGateUI.stage.textContent=
-      p.unlocked?"🔓 LIBERADA":"🔒 BLOQUEADA";
-    if(finalGateUI.description)finalGateUI.description.textContent=p.unlocked
-      ?"Todas as missões anteriores foram concluídas! A Igreja é a fase final da aventura."
-      :"Conclua todas as outras missões para desbloquear a Igreja, a última fase do FAAMA Explorer.";
+      !p.unlocked?"🔒 BLOQUEADA":church.progress().completed?"🏆 JOGO ZERADO":"🔓 LIBERADA";
+    if(finalGateUI.description)finalGateUI.description.textContent=!p.unlocked
+      ?"Conclua todas as outras missões para desbloquear a Igreja, a última fase do FAAMA Explorer."
+      :church.progress().completed
+      ?"Missão final concluída! Você zerou o jogo e pode continuar explorando o campus."
+      :"Todas as missões anteriores foram concluídas! A Igreja está aberta para a grande missão final.";
     if(finalGateUI.count)finalGateUI.count.textContent=
       p.done+" de "+p.total+" missões concluídas";
     if(finalGateUI.bar)finalGateUI.bar.style.width=(p.done/p.total*100)+"%";
     if(finalGateUI.missing)finalGateUI.missing.textContent=p.unlocked
-      ?"Tudo pronto para o capítulo final!"
+      ?church.progress().completed?"🏆 Lenda da FAAMA — a jornada foi concluída!"
+        :"Tudo pronto! Entre na Igreja e conclua O Livro da Jornada."
       :"Faltam: "+p.missing.map(c=>c.name).join(" • ");
     for(const c of p.chapters){
       const node=finalGateUI.chapters[c.id];
