@@ -320,6 +320,7 @@
   let pendingSportsStart=false;
   let pendingRestaurantStart=false;
   let pendingPoolStart=false;
+  let pendingChurchEnding=false;
 
   // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
   let questStorage = null;
@@ -2265,7 +2266,8 @@
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
       daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
       helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳", sofia: "👩🏽‍🏫",
-      "nara-pool":"🏊🏽‍♀️","isabela-residencia":"👩🏽‍🎓","gabriel-residencia":"👨🏽‍🎓"
+      "nara-pool":"🏊🏽‍♀️","isabela-residencia":"👩🏽‍🎓","gabriel-residencia":"👨🏽‍🎓",
+      "samuel-chapel":"👨🏽‍💼"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -2295,6 +2297,9 @@
     const startSports=completed===true && pendingSportsStart && sports.active;
     const startRestaurant=completed===true && pendingRestaurantStart && restaurant.active;
     const startPool=completed===true && pendingPoolStart && pool.active;
+    const startChurchEnding=completed===true && pendingChurchEnding&&
+      church.active&&church.progress().completed;
+    pendingChurchEnding=false;
     pendingSportsStart=false;
     pendingRestaurantStart=false;
     pendingPoolStart=false;
@@ -2317,6 +2322,7 @@
       refreshPoolUI();
       show("Desafio Aquático iniciado! Colete cinco boias em até 120 segundos!",5);
     }
+    if(startChurchEnding)startChurchCinematic();
   }
 
   function advanceDialogue() {
@@ -2330,9 +2336,35 @@
   }
 
   function interact() {
-    if(foodOpen||schoolPuzzleOpen||residencePuzzleKind)return;
+    if(foodOpen||schoolPuzzleOpen||residencePuzzleKind||
+       churchChallengeActive||churchCinematicActive||endingOpen)return;
     if (activeDialogue) {
       advanceDialogue();
+      return;
+    }
+    if(church.active){
+      if(!finalGate.progress().unlocked){
+        leaveChurch();
+        show(finalGate.notice(),7);
+        return;
+      }
+      const action=church.nearest();
+      if(!action){show(church.objective(),5);return;}
+      if(action.kind==="exit")leaveChurch();
+      else if(action.kind==="npc"){
+        const event=church.talk();
+        pendingChurchEnding=event.celebrate===true;
+        openDialogue({...church.samuel,lines:event.lines});
+        if(event.changed){
+          refreshChurchUI();
+          refreshFinalGateUI();
+          pendingQuestNotice=event.message||null;
+        }
+      }else if(action.kind==="book"||action.kind==="virtue"){
+        const result=church.inspect(action.kind==="book"?"book":action.id);
+        if(result?.challenge)openChurchChallenge(result.challenge);
+        else if(result?.message)show(result.message,5);
+      }
       return;
     }
     if(pool.active){
@@ -2486,10 +2518,12 @@
     // A porta tem prioridade somente na sua faixa de acesso, sem
     // ocultar a pista da Missão 01 que fica mais ao sul da praça.
     if (near?.id==="church"&&nearChurchEntrance()) {
-      // O capítulo final deve validar novamente as nove missões antes de abrir.
-      // Até a implementação do seu interior, a entrada só exibe o status.
-      show(finalGate.notice(),8);
-      refreshFinalGateUI();
+      if(!finalGate.progress().unlocked){
+        show(finalGate.notice(),8);
+        refreshFinalGateUI();
+      }else{
+        enterChurch();
+      }
       return;
     }
     if (near?.id==="pool"&&nearNewSiteEntrance(poolSite)) {
@@ -2571,6 +2605,41 @@
   }
 
   function update(dt) {
+    if(church.active){
+      if(!finalGate.progress().unlocked){
+        closeDialogue(false);leaveChurch();show(finalGate.notice(),7);return;
+      }
+      if(churchCinematicActive||endingOpen){
+        held.clear();church.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="A Luz que Permanece • celebração da jornada";
+      }else if(churchChallengeActive){
+        held.clear();church.pause();
+        if(ui.interact)ui.interact.disabled=true;
+        if(ui.objective)ui.objective.textContent="Resolva a reflexão da missão final";
+      }else if(activeDialogue){
+        held.clear();church.pause();
+        if(ui.interact){ui.interact.disabled=false;ui.interact.textContent="CONTINUAR [E]";}
+        if(ui.objective)ui.objective.textContent="Conversa com "+activeDialogue.npc.name;
+      }else{
+        church.update(dt,held);
+        const action=church.nearest();
+        if(ui.interact){
+          ui.interact.disabled=!action;
+          ui.interact.textContent=action?.kind==="exit"?"SAIR [E]":
+            action?.kind==="npc"?"CONVERSAR [E]":
+            action?.kind==="book"?"LER LIVRO [E]":
+            action?.kind==="virtue"?"REFLETIR [E]":"INTERAGIR [E]";
+        }
+        if(ui.objective)ui.objective.textContent=church.objective();
+      }
+      if(ui.location)ui.location.textContent="IGREJA DA FAAMA • A LUZ QUE PERMANECE";
+      if(interiorUI.room)interiorUI.room.textContent="Capela e Livro da Jornada";
+      const hint=document.getElementById("hint");
+      if(hint)hint.textContent="WASD / SETAS • E interagir • 9 lembranças • 3 valores";
+      refreshChurchUI();
+      return;
+    }
     if(pool.active){
       if(activeDialogue){
         held.clear();pool.pause();
@@ -2850,7 +2919,9 @@
         ? "ENTRAR [E]" : near?.id==="female"&&nearNewSiteEntrance(femaleSite)
         ? "ENTRAR [E]" : near?.id==="male"&&nearNewSiteEntrance(maleSite)
         ? "ENTRAR [E]" : near?.id==="church"&&nearChurchEntrance()
-        ? finalGate.progress().unlocked?"FASE FINAL [E]":"🔒 BLOQUEADA [E]"
+        ? finalGate.progress().unlocked
+          ? church.progress().completed?"🏆 FINALIZADO [E]":"FASE FINAL [E]"
+          :"🔒 BLOQUEADA [E]"
         : near?.id==="school"&&nearSchoolEntrance()
         ? "ENTRAR [E]" : near?.id==="restaurant"&&nearRestaurantEntrance()
         ? "ENTRAR [E]" : near?.id==="sports"&&nearSportsEntrance()
@@ -2871,7 +2942,7 @@
         ? "[E] Entrar no Residencial Masculino"
         : near?.id==="church"&&nearChurchEntrance()
         ? finalGate.progress().unlocked
-          ? "[E] A Igreja está liberada para a última fase"
+          ? church.progress().completed?"[E] Igreja • jogo concluído":"[E] Entrar na última fase: Igreja"
           : "[E] Igreja bloqueada — conclua todas as missões"
         : near?.id==="school"&&nearSchoolEntrance()
         ? "[E] Entrar na FAAMinha"
@@ -2907,7 +2978,9 @@
                       ? "Próxima aventura: A Rotina Equilibrada no Residencial Feminino."
                       : !male.progress().completed
                       ? "Próxima aventura: Projeto em Equipe no Residencial Masculino."
-                      : "Nove missões concluídas! A Igreja foi desbloqueada para a fase final."
+                      : church.progress().completed
+                        ? "Você zerou o FAAMA Explorer! Continue explorando o campus."
+                        : "Nove missões concluídas! Entre na Igreja para a fase final."
                     : "Próxima aventura: O Tesouro da FAAMinha. Converse com Sofia!"
                   : "Nova missão: O Restaurante Misterioso. Converse com Clara!"
                 : "Próximo desafio: Circuito dos Campeões no Complexo Esportivo."
