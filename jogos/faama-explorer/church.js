@@ -158,11 +158,10 @@ window.createFaamaChurch=function createFaamaChurch({ctx,storage,canvasWidth=120
       "Todas as lembranças do Livro já estão reunidas.",
       "O painel de "+virtues[saved.virtues].title+" espera por você. São três reflexões finais: fé, esperança e amor."]};
     if(s==="return"){
-      // Verificar novamente a liberação antes da vitória; não confiar numa flag antiga.
+      // O diálogo FINAL pode ser cancelado com Esc. Recompensa somente
+      // depois de ler a última fala; nunca ao iniciar a conversa.
       if(!allowed())return {changed:false,lines:["Conclua todas as missões anteriores para continuar."]};
-      saved.completed=true;persist();glow=1;
-      return {changed:true,rewarded:true,celebrate:true,
-        message:"Jornada concluída! +200 XP • Lenda da FAAMA!",
+      return {changed:false,rewarded:false,celebrateOnClose:true,
         lines:[
           "Você completou o Livro da Jornada e descobriu a luz que permanece!",
           "O caminho trouxe conhecimento, serviço, equilíbrio, coragem e cooperação.",
@@ -174,6 +173,14 @@ window.createFaamaChurch=function createFaamaChurch({ctx,storage,canvasWidth=120
     return {changed:false,lines:[
       "Sua história está escrita no Livro da Jornada. Parabéns por chegar até aqui!",
       "Volte ao campus quando desejar. Você também pode rever a celebração no diário da missão."]};
+  }
+  function finish(){
+    // Chamado exclusivamente ao encerrar todas as falas de Samuel.
+    // A regra de acesso é verificada novamente para evitar vitória indevida.
+    if(!active||!allowed()||stage()!=="return")return {rewarded:false};
+    saved.completed=true;persist();glow=1;
+    return {rewarded:true,changed:true,
+      message:"Jornada concluída! +200 XP • Lenda da FAAMA!"};
   }
   function inspect(id){
     const s=stage();
@@ -389,6 +396,6 @@ window.createFaamaChurch=function createFaamaChurch({ctx,storage,canvasWidth=120
     ctx.restore();
   }
   return {enter,leave,update,pause,draw,nearest,solid,talk,inspect,answer,restart,
-    progress,stage,objective,memories,virtues,samuel,book,exit,
+    finish,progress,stage,objective,memories,virtues,samuel,book,exit,
     get active(){return active;},get player(){return player;},get glow(){return glow;}};
 };
