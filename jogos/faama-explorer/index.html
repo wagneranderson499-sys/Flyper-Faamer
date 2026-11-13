@@ -331,6 +331,40 @@
                       title="Reiniciar somente O Tesouro da FAAMinha">Recomeçar missão 06</button>
                 </div>
             </section>
+            <section class="quest-tracker quest-final-gate" aria-label="Desbloqueio da última fase: Igreja da FAAMA">
+                <div class="quest-tracker-heading">
+                    <div class="quest-title">
+                        <span class="quest-medallion" aria-hidden="true">⛪</span>
+                        <div>
+                            <small>FASE FINAL · IGREJA DA FAAMA</small>
+                            <strong>O Livro da Jornada • A Luz que Permanece</strong>
+                        </div>
+                    </div>
+                    <span class="quest-stage" id="finalGateStage">🔒 BLOQUEADA</span>
+                </div>
+                <p class="quest-description" id="finalGateDescription">
+                    A Igreja só será desbloqueada quando todas as outras missões estiverem concluídas.
+                </p>
+                <div class="final-gate-summary">
+                    <strong id="finalGateCount">0 de 9 missões concluídas</strong>
+                    <div class="final-gate-progress"><i id="finalGateBar"></i></div>
+                    <small id="finalGateMissing">Complete as missões anteriores para liberar a fase final.</small>
+                </div>
+                <div class="quest-clues final-gate-chapters" aria-label="Requisitos para desbloquear a Igreja">
+                    <span id="finalGateQuest01">○ A Chave Desaparecida</span>
+                    <span id="finalGateQuest02">○ Mistério do Prédio Central</span>
+                    <span id="finalGateAcademic">○ Desafio do Conhecimento</span>
+                    <span id="finalGateSports">○ Circuito dos Campeões</span>
+                    <span id="finalGateRestaurant">○ O Restaurante Misterioso</span>
+                    <span id="finalGateSchool">○ O Tesouro da FAAMinha</span>
+                    <span id="finalGatePool">🔒 Desafio Aquático — Piscina</span>
+                    <span id="finalGateFemale">🔒 Missão do Residencial Feminino</span>
+                    <span id="finalGateMale">🔒 Missão do Residencial Masculino</span>
+                </div>
+                <p class="final-gate-note">
+                    Após a última missão: um encerramento especial na Igreja e a tela “VOCÊ ZEROU O JOGO!”.
+                </p>
+            </section>
             <div class="bottom"><span>✦ Mapa inspirado na localização real dos prédios indicada por
                     você</span><span>FAAMA Explorer 2.9 • O Tesouro da FAAMinha</span></div>
         </section>
@@ -349,6 +383,7 @@
     <script src="sports.js"></script>
     <script src="restaurant.js"></script>
     <script src="school.js"></script>
+    <script src="final-gate.js"></script>
     <script src="game.js"></script>
 </body>
 
