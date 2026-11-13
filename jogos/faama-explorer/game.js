@@ -293,6 +293,7 @@
   let pendingQuestNotice = null;
   let pendingSportsStart=false;
   let pendingRestaurantStart=false;
+  let pendingPoolStart=false;
 
   // Missão 01 compartilha o Canvas, sem mudar o mapa nem os NPCs.
   let questStorage = null;
@@ -2048,7 +2049,8 @@
     const icon = {
       lia: "👩🏽‍🎓", mateus: "👨🏻‍💻", bia: "👩🏾‍⚕️",
       daniel: "👨🏼‍🎓", clara: "👩🏽‍🏫", marina: "👩🏽‍💼",
-      helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳", sofia: "👩🏽‍🏫"
+      helena: "👩🏽‍🏫", "clara-chef": "👩🏽‍🍳", sofia: "👩🏽‍🏫",
+      "nara-pool":"👩🏽‍🚒","isabela-residencia":"👩🏽‍🎓","gabriel-residencia":"👨🏽‍🎓"
     };
     return icon[npc.id] || "🧑‍🎓";
   }
@@ -2077,8 +2079,10 @@
     if (!activeDialogue) return;
     const startSports=completed===true && pendingSportsStart && sports.active;
     const startRestaurant=completed===true && pendingRestaurantStart && restaurant.active;
+    const startPool=completed===true && pendingPoolStart && pool.active;
     pendingSportsStart=false;
     pendingRestaurantStart=false;
+    pendingPoolStart=false;
     activeDialogue = null;
     dialogueUI.root.classList.add("hidden");
     held.clear();
@@ -2094,6 +2098,10 @@
       refreshRestaurantUI();
       show("Restaurante aberto! Você tem três minutos para preparar e entregar cinco pedidos.",5);
     }
+    if(startPool&&pool.start()){
+      refreshPoolUI();
+      show("Desafio Aquático iniciado! Colete cinco boias em até 120 segundos!",5);
+    }
   }
 
   function advanceDialogue() {
@@ -2107,9 +2115,46 @@
   }
 
   function interact() {
-    if(foodOpen||schoolPuzzleOpen)return;
+    if(foodOpen||schoolPuzzleOpen||residencePuzzleKind)return;
     if (activeDialogue) {
       advanceDialogue();
+      return;
+    }
+    if(pool.active){
+      const spot=pool.nearest();
+      if(!spot){show(pool.objective(),4);return;}
+      if(spot.kind==="exit")leavePool();
+      else if(spot.kind==="coach"){
+        const event=pool.talkCoach();
+        pendingPoolStart=event.startOnClose===true;
+        openDialogue({...pool.coach,lines:event.lines});
+      }else if(spot.kind==="finish"){
+        show(pool.progress().buoys<5?"Encontre as cinco boias e volte à chegada!":pool.objective(),4);
+      }
+      return;
+    }
+    const residence=currentResidence();
+    if(residence){
+      const action=residence.nearest();
+      const kind=residence.kind;
+      if(!action){show(residence.objective(),4);return;}
+      if(action.kind==="exit")leaveResidence(kind);
+      else if(action.kind==="npc"){
+        const result=residence.talk();
+        openDialogue({...residence.npc,lines:result.lines});
+        if(result.changed){
+          refreshResidenceUI(kind);
+          pendingQuestNotice=result.message||null;
+        }
+      }else if(action.kind==="item"){
+        const result=residence.inspect(action.id);
+        if(result?.message)show(result.message,6);
+        if(result?.changed)refreshResidenceUI(kind);
+      }else if(action.kind==="board"){
+        const result=residence.inspect("board");
+        if(result?.puzzle)openResidencePuzzle(kind,result.puzzle);
+        else if(result?.message)show(result.message,5);
+      }
       return;
     }
     if(school.active){
@@ -2232,6 +2277,15 @@
       refreshFinalGateUI();
       return;
     }
+    if (near?.id==="pool"&&nearNewSiteEntrance(poolSite)) {
+      enterPool();return;
+    }
+    if (near?.id==="female"&&nearNewSiteEntrance(femaleSite)) {
+      enterResidence("female");return;
+    }
+    if (near?.id==="male"&&nearNewSiteEntrance(maleSite)) {
+      enterResidence("male");return;
+    }
     if (near?.id==="school"&&nearSchoolEntrance()) {
       enterSchool();
       return;
@@ -2285,6 +2339,12 @@
       show("Para entrar no Restaurante, aproxime-se da entrada principal.",5);
     } else if (near?.id==="school") {
       show("Para entrar na FAAMinha, aproxime-se da porta principal da escola.",5);
+    } else if (near?.id==="pool") {
+      show("Para entrar na Piscina, aproxime-se do acesso principal ao sul da área de lazer.",5);
+    } else if (near?.id==="female") {
+      show("Para entrar no Residencial Feminino, aproxime-se da porta principal.",5);
+    } else if (near?.id==="male") {
+      show("Para entrar no Residencial Masculino, aproxime-se da porta principal.",5);
     } else if (near?.id==="church") {
       show(finalGate.notice(),8);
       refreshFinalGateUI();
