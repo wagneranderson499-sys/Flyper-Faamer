@@ -234,17 +234,20 @@ const player=at(20,42);avatar.position.set(player.x,0,player.z);
 const held=new Set();let yaw=0,dist=12,pitch=.36,dragging=false,lastX=0,lastY=0,walk=0;
 let cameraMode="third",overviewYaw=0,overviewDistance=138;
 const overviewTarget=new THREE.Vector3(0,0,0);
-const thirdButton=document.getElementById("cameraThird"),overviewButton=document.getElementById("cameraOverview");
+const thirdButton=document.getElementById("cameraThird"),overviewButton=document.getElementById("cameraOverview"),centralButton=document.getElementById("cameraCentral");
 function setCameraMode(mode){
- cameraMode=mode==="overview"?"overview":"third";held.clear();dragging=false;
+ cameraMode=mode==="central"?"central":mode==="overview"?"overview":"third";held.clear();dragging=false;
  thirdButton.classList.toggle("selected",cameraMode==="third");
  overviewButton.classList.toggle("selected",cameraMode==="overview");
+ centralButton.classList.toggle("selected",cameraMode==="central");
  thirdButton.setAttribute("aria-pressed",String(cameraMode==="third"));
  overviewButton.setAttribute("aria-pressed",String(cameraMode==="overview"));
+ centralButton.setAttribute("aria-pressed",String(cameraMode==="central"));
  hint.textContent=cameraMode==="overview"?"Vista panorâmica do campus. Arraste para girar e use o scroll para aproximar.":"Explore o campus com o personagem.";
 }
 thirdButton.addEventListener("click",()=>setCameraMode("third"));
 overviewButton.addEventListener("click",()=>setCameraMode("overview"));
+centralButton.addEventListener("click",()=>setCameraMode("central"));
 const keyMap={ArrowUp:"w",ArrowLeft:"a",ArrowDown:"s",ArrowRight:"d"};
 addEventListener("keydown",e=>{const k=keyMap[e.key]||e.key.toLowerCase();if(k==="c"&&!e.repeat){setCameraMode(cameraMode==="third"?"overview":"third");e.preventDefault();return}if(cameraMode==="third"&&["w","a","s","d","shift"].includes(k)){held.add(k);e.preventDefault()}});
 addEventListener("keyup",e=>held.delete(keyMap[e.key]||e.key.toLowerCase()));
@@ -252,7 +255,7 @@ addEventListener("blur",()=>held.clear());
 for(const b of document.querySelectorAll("[data-key]")){const k=b.dataset.key;b.addEventListener("pointerdown",e=>{e.preventDefault();held.add(k);b.setPointerCapture(e.pointerId)});for(const ev of ["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,()=>held.delete(k))}
 renderer.domElement.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener("pointerup",()=>dragging=false);
-renderer.domElement.addEventListener("pointermove",e=>{if(!dragging)return;if(cameraMode==="third"){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.004,.12,.8)}else{overviewYaw-=(e.clientX-lastX)*.004}lastX=e.clientX;lastY=e.clientY});
+renderer.domElement.addEventListener("pointermove",e=>{if(!dragging)return;if(cameraMode==="third"){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.004,.12,.8)}else if(cameraMode==="overview"){overviewYaw-=(e.clientX-lastX)*.004}lastX=e.clientX;lastY=e.clientY});
 renderer.domElement.addEventListener("wheel",e=>{if(cameraMode==="third")dist=THREE.MathUtils.clamp(dist+e.deltaY*.012,6,22);else overviewDistance=THREE.MathUtils.clamp(overviewDistance+e.deltaY*.12,65,190);e.preventDefault()},{passive:false});
 function blocked(x,z){const gx=(x-originX)/unit,gy=(z-originZ)/unit;if(gx<.5||gx>33.5||gy<.5||gy>43.5)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-.35&&gx<s.x+s.w+.35&&gy>s.y-.35&&gy<s.y+s.h+.35)}
 const clock=new THREE.Clock(),look=new THREE.Vector3();
@@ -262,11 +265,14 @@ function frame(){
  const dx=cameraMode==="third"?(Number(held.has("d"))-Number(held.has("a"))):0,dz=cameraMode==="third"?(Number(held.has("w"))-Number(held.has("s"))):0;
  const move=forward.multiplyScalar(dz).addScaledVector(right,dx);
  if(move.lengthSq()>0){move.normalize().multiplyScalar(dt*(held.has("shift")?10:6));const x=avatar.position.x+move.x,z=avatar.position.z+move.z;if(!blocked(x,avatar.position.z))avatar.position.x=x;if(!blocked(avatar.position.x,z))avatar.position.z=z;avatar.rotation.y=Math.atan2(-move.x,-move.z);walk+=dt*11;legs[0].rotation.x=Math.sin(walk)*.55;legs[1].rotation.x=-Math.sin(walk)*.55;arms[0].rotation.x=-Math.sin(walk)*.42;arms[1].rotation.x=Math.sin(walk)*.42}else{legs[0].rotation.x*=.8;legs[1].rotation.x*=.8;arms[0].rotation.x*=.8;arms[1].rotation.x*=.8}
- const target=cameraMode==="third"?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):overviewTarget;
- const desired=cameraMode==="third"?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
+ const centralSite=buildings.find(b=>b.site.id==="central");
+ const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
+ const target=cameraMode==="third"?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:overviewTarget;
+ const desired=cameraMode==="third"?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
  camera.position.lerp(desired,1-Math.exp(-dt*4));look.lerp(target,1-Math.exp(-dt*6));camera.lookAt(look);
  let nearest=null,range=Infinity;for(const b of buildings){const d=Math.hypot(avatar.position.x-b.x,avatar.position.z-b.z);if(d<range){nearest=b;range=d}}
- if(cameraMode==="overview"){place.textContent="Vista panorâmica da FAAMA";hint.textContent="Campus completo em 3D. Arraste para girar, use o scroll para zoom ou pressione C para explorar."}
+ if(cameraMode==="central"){place.textContent="Prédio Central — estudo arquitetônico";hint.textContent="Fachada em desenvolvimento com arco azul, janelas, alas amarelas e jardins inspirados na referência."}
+ else if(cameraMode==="overview"){place.textContent="Vista panorâmica da FAAMA";hint.textContent="Campus completo em 3D. Arraste para girar, use o scroll para zoom ou pressione C para explorar."}
  else if(nearest&&range<Math.max(nearest.w,nearest.d)*.85+4){place.textContent=nearest.site.short||nearest.site.name;hint.textContent=nearest.site.info+" • Missões disponíveis na versão 2D."}
  else{place.textContent="Explorando o campus";hint.textContent="Caminhe pelas vias e descubra os prédios em 3D."}
  renderer.render(scene,camera);
