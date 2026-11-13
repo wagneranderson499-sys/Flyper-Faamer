@@ -80,7 +80,7 @@ window.createFaamaResidence=function createFaamaResidence({kind,ctx,storage,canv
     {kind:"desk",x:7.2,y:7.0,w:2.0,h:.82},
     {kind:"shelf",x:9.1,y:3.1,w:1.0,h:2.6},
     {kind:"sofa",x:11.55,y:3.1,w:1.1,h:2.3},
-    {kind:"table",x:13.2,y:5.7,w:1.8,h:.72},
+    {kind:"table",x:13.25,y:3.45,w:1.85,h:.72},
     {kind:"wardrobe",x:24.15,y:3.1,w:1.1,h:2.1},
     {kind:"bed",x:18.3,y:3.65,w:2.55,h:1.15},
     {kind:"bed",x:21.2,y:9.6,w:2.55,h:1.15},
