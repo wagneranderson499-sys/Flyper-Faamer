@@ -103,14 +103,35 @@ function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i+
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
-// Simple third-person explorer avatar.
+// Explorador detalhado: rosto, uniforme, cabelo, mochila, braços e tênis.
 const avatar=new THREE.Group();scene.add(avatar);
-const body=new THREE.Mesh(new THREE.CapsuleGeometry(.43,.95,4,8),mat("#e4f0e9"));body.position.y=1.48;body.castShadow=true;avatar.add(body);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.4,16,12),mat("#c99372"));head.position.y=2.42;head.castShadow=true;avatar.add(head);
-const hair=new THREE.Mesh(new THREE.SphereGeometry(.41,16,12,0,Math.PI*2,0,Math.PI*.49),mat("#38342e"));hair.position.y=2.51;avatar.add(hair);
-const backpack=new THREE.Mesh(new THREE.BoxGeometry(.64,.9,.32),mat("#32596a"));backpack.position.set(0,1.48,.46);avatar.add(backpack);
-const legs=[];
-for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.57,3,6),mat("#283f62"));leg.position.set(side*.22,.56,0);avatar.add(leg);legs.push(leg)}
+function avatarMesh(geometry,color,x,y,z,parent=avatar){const mesh=new THREE.Mesh(geometry,mat(color));mesh.position.set(x,y,z);mesh.castShadow=true;parent.add(mesh);return mesh}
+const torso=avatarMesh(new THREE.CapsuleGeometry(.43,.8,5,12),"#eaf1e7",0,1.55,0);
+avatarMesh(new THREE.BoxGeometry(.72,.18,.12),"#2371a2",0,1.78,-.4);
+avatarMesh(new THREE.BoxGeometry(.2,.15,.13),"#e7b448",.12,1.72,-.48);
+const neck=avatarMesh(new THREE.CylinderGeometry(.17,.19,.28,12),"#c99070",0,2.15,0);
+const head=avatarMesh(new THREE.SphereGeometry(.42,24,18),"#c99070",0,2.53,-.04);
+avatarMesh(new THREE.SphereGeometry(.425,24,14,0,Math.PI*2,0,Math.PI*.46),"#342922",0,2.65,-.04);
+for(const side of [-1,1]){
+ avatarMesh(new THREE.SphereGeometry(.06,10,8),"#f8f5ec",side*.17,2.57,-.39);
+ avatarMesh(new THREE.SphereGeometry(.032,8,8),"#25252d",side*.17,2.57,-.445);
+ avatarMesh(new THREE.SphereGeometry(.09,8,8),"#c99070",side*.41,2.48,-.02);
+ avatarMesh(new THREE.BoxGeometry(.11,.47,.12),"#264d69",side*.34,1.55,.46);
+}
+avatarMesh(new THREE.BoxGeometry(.16,.04,.035),"#874b4a",0,2.34,-.445);
+avatarMesh(new THREE.BoxGeometry(.76,.93,.4),"#325b76",0,1.48,.47);
+avatarMesh(new THREE.BoxGeometry(.62,.18,.46),"#d8b461",0,1.83,.52);
+const arms=[],legs=[];
+for(const side of [-1,1]){
+ const arm=new THREE.Group();arm.position.set(side*.52,1.94,0);avatar.add(arm);
+ avatarMesh(new THREE.CapsuleGeometry(.145,.55,4,10),"#d5e5e7",0,-.39,0,arm);
+ avatarMesh(new THREE.SphereGeometry(.145,10,8),"#c99070",0,-.82,0,arm);
+ arms.push(arm);
+ const leg=new THREE.Group();leg.position.set(side*.23,.99,0);avatar.add(leg);
+ avatarMesh(new THREE.CapsuleGeometry(.16,.58,4,10),"#2c4262",0,-.38,0,leg);
+ avatarMesh(new THREE.BoxGeometry(.34,.19,.57),"#f3f2e8",0,-.86,-.11,leg);
+ legs.push(leg);
+}
 const player=at(20,42);avatar.position.set(player.x,0,player.z);
 const held=new Set();let yaw=0,dist=12,pitch=.36,dragging=false,lastX=0,lastY=0,walk=0;
 const keyMap={ArrowUp:"w",ArrowLeft:"a",ArrowDown:"s",ArrowRight:"d"};
@@ -129,7 +150,7 @@ function frame(){
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const dx=Number(held.has("d"))-Number(held.has("a")),dz=Number(held.has("w"))-Number(held.has("s"));
  const move=forward.multiplyScalar(dz).addScaledVector(right,dx);
- if(move.lengthSq()>0){move.normalize().multiplyScalar(dt*(held.has("shift")?10:6));const x=avatar.position.x+move.x,z=avatar.position.z+move.z;if(!blocked(x,avatar.position.z))avatar.position.x=x;if(!blocked(avatar.position.x,z))avatar.position.z=z;avatar.rotation.y=Math.atan2(-move.x,-move.z);walk+=dt*11;legs[0].rotation.x=Math.sin(walk)*.55;legs[1].rotation.x=-Math.sin(walk)*.55}else{legs[0].rotation.x*=.8;legs[1].rotation.x*=.8}
+ if(move.lengthSq()>0){move.normalize().multiplyScalar(dt*(held.has("shift")?10:6));const x=avatar.position.x+move.x,z=avatar.position.z+move.z;if(!blocked(x,avatar.position.z))avatar.position.x=x;if(!blocked(avatar.position.x,z))avatar.position.z=z;avatar.rotation.y=Math.atan2(-move.x,-move.z);walk+=dt*11;legs[0].rotation.x=Math.sin(walk)*.55;legs[1].rotation.x=-Math.sin(walk)*.55;arms[0].rotation.x=-Math.sin(walk)*.42;arms[1].rotation.x=Math.sin(walk)*.42}else{legs[0].rotation.x*=.8;legs[1].rotation.x*=.8;arms[0].rotation.x*=.8;arms[1].rotation.x*=.8}
  const target=avatar.position.clone().add(new THREE.Vector3(0,1.6,0));
  const desired=target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch)));
  camera.position.lerp(desired,1-Math.exp(-dt*6));look.lerp(target,1-Math.exp(-dt*10));camera.lookAt(look);
