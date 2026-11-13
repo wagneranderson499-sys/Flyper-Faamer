@@ -1142,8 +1142,33 @@
 
     architecturalFinish(b);
     drawSiteLabel(b);
+    if(b.type==="church")drawChurchFinalBadge(b);
   }
 
+  // Selo visual: sem mudar o mapa, a Igreja é o último capítulo.
+  function drawChurchFinalBadge(b){
+    const status=finalGate.progress();
+    const p=P(b.x+b.w/2,b.y+b.h/2,b.z+62);
+    const title=status.unlocked?"🔓 FASE FINAL":"🔒 ÚLTIMA FASE";
+    const line2=status.unlocked?"LIBERADA":status.done+"/"+status.total+" MISSÕES";
+    ctx.save();
+    ctx.shadowColor="#0c2537aa";
+    ctx.shadowBlur=12;
+    ctx.fillStyle=status.unlocked?"#1f6457ee":"#273748ef";
+    ctx.strokeStyle=status.unlocked?"#bfe4ba":"#e7c17d";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.roundRect(p.x-73,p.y-66,146,44,9);
+    ctx.fill();ctx.shadowBlur=0;ctx.stroke();
+    ctx.textAlign="center";
+    ctx.fillStyle="#fff2d4";
+    ctx.font="bold 12px Arial,sans-serif";
+    ctx.fillText(title,p.x,p.y-48);
+    ctx.fillStyle="#f7d894";
+    ctx.font="bold 10px Arial,sans-serif";
+    ctx.fillText(line2,p.x,p.y-32);
+    ctx.restore();
+  }
 
 
   // Texto com fundo de alto contraste, reutilizado por todas as estruturas.
@@ -1739,6 +1764,13 @@
       m.strokeStyle="#203d3a";
       m.lineWidth=1;
       m.strokeRect(ox+b.x*sx,oy+b.y*sy,b.w*sx,b.h*sy);
+      if(b.id==="church"){
+        m.textAlign="center";
+        m.font="bold 13px Arial,sans-serif";
+        m.fillStyle="#fff6d9";
+        m.fillText(finalGate.progress().unlocked?"✦":"🔒",
+          ox+(b.x+b.w/2)*sx,oy+(b.y+b.h/2)*sy+5);
+      }
     }
     life.drawMinimapMarkers(m,ox,oy,sx,sy);
     quest.drawMinimapMarkers(m,ox,oy,sx,sy);
