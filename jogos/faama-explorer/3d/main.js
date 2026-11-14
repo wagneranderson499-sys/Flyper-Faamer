@@ -479,8 +479,61 @@ function tree(x,z,seed){
 }
 function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],vx=bx-ax,vy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy||1)));if(Math.hypot(x-ax-vx*t,y-ay-vy*t)<1.8)return true}return false}
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
-for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
-for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
+// Praças atrás do Prédio Acadêmico, inspiradas na foto aérea da FAAMA.
+// Praça principal circular com anéis concêntricos e três pequenos jardins redondos.
+const plazas=[{x:30.2,y:24.1,r:3.05},{x:26.2,y:23.6,r:1.25},{x:25.2,y:26.2,r:1.15},{x:28.3,y:21.4,r:1.1}];
+function inPlaza(gx,gy,pad=0){return plazas.some(q=>Math.hypot((gx-q.x)*unit*spacing,(gy-q.y)*unit*spacing)<q.r+pad)}
+function plazaCircle(gx,gy,r,kind="main"){
+ const p=at(gx,gy),n=64;
+ const disc=(radius,color,y)=>{
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,.09,n),mat(color));
+  mesh.position.set(p.x,y,p.z);mesh.receiveShadow=true;scene.add(mesh);return mesh;
+ };
+ const ring=(radius,tube,color,y)=>{
+  const mesh=new THREE.Mesh(new THREE.TorusGeometry(radius,tube,8,n),mat(color));
+  mesh.rotation.x=-Math.PI/2;mesh.position.set(p.x,y,p.z);mesh.receiveShadow=true;scene.add(mesh);
+ };
+ disc(r,"#e3dcca",.09);ring(r-.09,.15,"#faf8f1",.16);
+ if(kind==="main"){
+  disc(r*.79,"#48864c",.17);ring(r*.78,.15,"#eee8da",.24);
+  disc(r*.53,"#ddd7c7",.22);ring(r*.51,.13,"#f9f7f0",.29);
+  disc(r*.31,"#43814c",.27);ring(r*.3,.1,"#e8e4d8",.33);
+  disc(r*.13,"#ddd8c9",.34);
+  for(let i=0;i<8;i++){
+   const t=i*Math.PI/4,xx=p.x+Math.cos(t)*r*.66,zz=p.z+Math.sin(t)*r*.66;
+   const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.25,1),mat(i%2?"#417a45":"#598e4d"));
+   shrub.position.set(xx,.51,zz);scene.add(shrub);
+  }
+  for(let i=0;i<4;i++){
+   const t=i*Math.PI/2,xx=p.x+Math.cos(t)*r*.93,zz=p.z+Math.sin(t)*r*.93;
+   const bench=box(.85,.17,.3,"#9b7650",xx,.42,zz);
+   bench.rotation.y=-t;
+  }
+ }else{
+  disc(r*.76,"#48824a",.18);ring(r*.76,.11,"#f2f0e7",.24);
+  for(let i=0;i<5;i++){
+   const t=i*Math.PI*2/5;
+   const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.22,1),mat(i%2?"#e7b257":"#bd6580"));
+   shrub.position.set(p.x+Math.cos(t)*r*.45,.43,p.z+Math.sin(t)*r*.45);scene.add(shrub);
+  }
+ }
+}
+function plazaWalk(a,b,width=1.7){
+ const A=at(...a),B=at(...b),length=Math.hypot(B.x-A.x,B.z-A.z);
+ const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
+ walk.rotation.y=Math.atan2(B.x-A.x,B.z-A.z);
+}
+// Caminhos conectados ao eixo de circulação existente, atrás do Acadêmico.
+plazaWalk([30,27],[30.2,24.1],2.1);
+plazaWalk([30.2,24.1],[26.2,23.6],1.45);
+plazaWalk([26.2,23.6],[25.2,26.2],1.3);
+plazaWalk([30.2,24.1],[28.3,21.4],1.35);
+plazaCircle(30.2,24.1,3.05);
+plazaCircle(26.2,23.6,1.25,"garden");
+plazaCircle(25.2,26.2,1.15,"garden");
+plazaCircle(28.3,21.4,1.1,"garden");
+for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y)||inPlaza(x,y,1.3))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
+for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y)||inPlaza(x,y,.5))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
 function palm(x,z){
  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.13,.25,5.8,9),mat("#8d7250"));stem.position.set(x,2.9,z);stem.castShadow=true;scene.add(stem);
@@ -490,8 +543,8 @@ function flowering(x,z,seed){
  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,2.5,7),mat("#77573e"));stem.position.set(x,1.25,z);scene.add(stem);
  for(let i=0;i<5;i++){const angle=i*Math.PI*2/5;const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.98,1),mat(i%2?"#ed6eac":"#f59ac4"));crown.position.set(x+Math.cos(angle)*.85,3.1+(i%2)*.45,z+Math.sin(angle)*.85);crown.castShadow=true;scene.add(crown)}
 }
-for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4))palm(p.x,p.z)}
-for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2))flowering(p.x,p.z,x*y)}
+for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4)&&!inPlaza(x,y,1))palm(p.x,p.z)}
+for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2)&&!inPlaza(x,y,1))flowering(p.x,p.z,x*y)}
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
 for(const [x,y] of [[17,35],[22,35],[13,35],[25,34],[17,30],[22,30],[14,21],[23,21],[12,16],[25,17],[11,40],[28,38]]){const p=at(x,y);if(!insideBuilding(x,y,.3))lamp(p.x,p.z)}
 // Portaria junto à rodovia, no extremo sul do campus.
