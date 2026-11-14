@@ -759,6 +759,30 @@ for(const side of [-1,1]){
  avatarMesh(new THREE.BoxGeometry(.35,.07,.6),"#42556b",0,-.99,-.13,leg);
  legs.push(leg);
 }
+// Personagem GLB enviado pelo usuário. O arquivo possui rig, mas nenhuma animação.
+// Mantemos o avatar anterior como reserva até o novo modelo terminar de carregar.
+let importedPlayer=null;
+const avatarFallback=[...avatar.children];
+new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb",gltf=>{
+ try{
+  const model=gltf.scene;
+  model.updateMatrixWorld(true);
+  const bounds=new THREE.Box3().setFromObject(model);
+  const size=bounds.getSize(new THREE.Vector3());
+  if(!Number.isFinite(size.y)||size.y<=0)throw Error("Modelo do personagem sem altura válida");
+  const scale=2.85/size.y;
+  model.scale.setScalar(scale);
+  model.updateMatrixWorld(true);
+  const scaledBounds=new THREE.Box3().setFromObject(model);
+  const center=scaledBounds.getCenter(new THREE.Vector3());
+  model.position.set(-center.x,-scaledBounds.min.y,-center.z);
+  model.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true}});
+  avatar.add(model);
+  for(const piece of avatarFallback)piece.visible=false;
+  importedPlayer=model;
+  console.info("Personagem GLB carregado (sem animações no arquivo)");
+ }catch(error){console.error("Falha ao preparar personagem GLB",error)}
+},undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error));
 const playerName=document.getElementById("playerName");
 if(playerName)playerName.textContent="Wagner";
 const player=at(20,42);avatar.position.set(player.x,0,player.z);
