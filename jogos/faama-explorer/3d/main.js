@@ -300,12 +300,121 @@ function addBuilding(s){
   buildings.push({site:s,x:p.x,z:p.z,w,d});return;
  }
  if(s.type==="sports"){
-  box(w,.35,d,"#3780b6",p.x,.15,p.z);
-  box(w*.82,.055,d*.77,"#297a5b",p.x,.38,p.z);
-  for(const x of [-1,1])for(const z of [-1,1])cylinder(.13,6,"#e3e9e5",p.x+x*w*.43,3,p.z+z*d*.42);
-  const canopy=box(w+1,.28,d+1,"#f5dfb4",p.x,6.2,p.z);canopy.rotation.z=.07;
-  for(let i=0;i<6;i++)box(.1,.14,d+1,"#237ac0",p.x-w/2+i*w/5,6.42,p.z);
-  buildings.push({site:s,x:p.x,z:p.z,w,d});return;
+  // Complexo esportivo: ginásio arqueado, quadra interna, quadras externas e arena.
+  // Dimensões em unidades do mundo; a área externa se estende para a esquerda do ginásio.
+  const group=new THREE.Group();group.position.set(p.x,0,p.z);scene.add(group);
+  const add=(geo,color,x,y,z,opts={})=>{
+   const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color,roughness:opts.roughness??.78,metalness:opts.metalness??0,side:opts.double?THREE.DoubleSide:THREE.FrontSide}));
+   mesh.position.set(x,y,z);mesh.castShadow=!!opts.shadow;mesh.receiveShadow=true;group.add(mesh);return mesh;
+  };
+  const slab=(W,H,D,color,x,y,z)=>add(new THREE.BoxGeometry(W,H,D),color,x,y,z);
+  const line=(x1,z1,x2,z2,color="#f5f2df",width=.085,y=.12)=>{
+   const length=Math.hypot(x2-x1,z2-z1);
+   const mesh=slab(width,.018,length,color,(x1+x2)/2,y,(z1+z2)/2);
+   mesh.rotation.y=Math.atan2(x2-x1,z2-z1);
+  };
+  const court=(cx,cz,W,D,ground,markings=true)=>{
+   slab(W+.7,.2,D+.7,"#d4d0c0",cx,.08,cz);
+   slab(W,.06,D,ground,cx,.21,cz);
+   if(markings){
+    const l=cx-W*.45,r=cx+W*.45,t=cz-D*.44,bt=cz+D*.44;
+    line(l,t,r,t);line(l,bt,r,bt);line(l,t,l,bt);line(r,t,r,bt);line(cx,t,cx,bt);
+    const circle=add(new THREE.TorusGeometry(Math.min(W,D)*.16,.052,5,40),"#f5f2df",cx,.27,cz);
+    circle.rotation.x=Math.PI/2;
+   }
+  };
+  const goal=(gx,gz,dir)=>{
+   const white="#f4f4e8",side=dir*1.05;
+   slab(.12,1.65,.12,white,gx-1.15,1.03,gz);
+   slab(.12,1.65,.12,white,gx+1.15,1.03,gz);
+   slab(2.45,.12,.12,white,gx,1.86,gz);
+   for(let j=0;j<5;j++)line(gx-1.12+j*.56,gz,gx-1.12+j*.56,gz+side,"#d8e4e0",.024,1.02);
+  };
+  // Quadra externa de futsal e basquete, com tela de proteção.
+  const outerX=-w*.95,outerZ=0,outerW=w*.96,outerD=d*.85;
+  court(outerX,outerZ,outerW,outerD,"#327eaa");
+  slab(outerW*.4,.055,outerD*.8,"#367b5d",outerX,.245,outerZ);
+  goal(outerX,outerZ-outerD*.45,1);goal(outerX,outerZ+outerD*.45,-1);
+  for(const side of [-1,1]){
+   const bx=outerX+side*outerW*.39;
+   slab(.09,3,.09,"#dce6e7",bx,1.6,outerZ);
+   const back=slab(1.35,.75,.06,"#e9ecea",bx,3.2,outerZ);
+   const hoop=add(new THREE.TorusGeometry(.29,.055,7,24),"#d47b32",bx-side*.42,2.93,outerZ);
+   hoop.rotation.y=Math.PI/2;
+  }
+  for(const side of [-1,1])for(let i=0;i<5;i++){
+   const px=outerX+side*(outerW/2+.2),pz=outerZ-outerD/2+i*outerD/4;
+   slab(.065,3.6,.065,"#a6c3c0",px,1.9,pz);
+  }
+  for(const side of [-1,1]){
+   const zz=outerZ+side*(outerD/2+.22);
+   for(let i=0;i<9;i++)slab(.025,2.6,.025,"#9abdb8",outerX-outerW/2+i*outerW/8,1.5,zz);
+   slab(outerW,.045,.045,"#a6c3c0",outerX,2.75,zz);
+  }
+  // Ginásio coberto, com piso poliesportivo, arquibancadas e cobertura arqueada.
+  const gymX=w*.12,gymZ=0,gymW=w*1.08,gymD=d*.95;
+  slab(gymW+1,.26,gymD+1,"#d2cfc1",gymX,.1,gymZ);
+  court(gymX,gymZ,gymW*.85,gymD*.76,"#327d59");
+  for(const side of [-1,1]){
+   for(let level=0;level<3;level++){
+    slab(.72,.24,gymD*.73,"#c5b48e",gymX+side*(gymW*.46+level*.25),.48+level*.36,gymZ);
+   }
+  }
+  // Arco elíptico contínuo: painel translúcido branco e estrutura azul.
+  const roofBase=6.9,archRise=3.15,roofHalf=gymW*.59,segments=32;
+  const vertices=[],faces=[];
+  for(let i=0;i<=segments;i++){
+   const u=i/segments,xx=gymX-roofHalf+u*roofHalf*2;
+   const height=roofBase+archRise*Math.sin(Math.PI*u);
+   vertices.push(xx,height,gymZ-gymD*.58,xx,height,gymZ+gymD*.58);
+   if(i<segments){const n=i*2;faces.push(n,n+1,n+2,n+1,n+3,n+2)}
+  }
+  const roofGeo=new THREE.BufferGeometry();
+  roofGeo.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));
+  roofGeo.setIndex(faces);roofGeo.computeVertexNormals();
+  add(roofGeo,"#f0eee1",0,0,0,{double:true});
+  const beam=(x1,y1,z1,x2,y2,z2,color,thickness)=>{
+   const from=new THREE.Vector3(x1,y1,z1),to=new THREE.Vector3(x2,y2,z2);
+   const mesh=add(new THREE.CylinderGeometry(thickness,thickness,from.distanceTo(to),8),color,0,0,0,{shadow:true});
+   mesh.position.copy(from).add(to).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),to.sub(from).normalize());
+  };
+  for(let i=0;i<=segments;i+=4){
+   const u=i/segments,xx=gymX-roofHalf+u*roofHalf*2,yy=roofBase+archRise*Math.sin(Math.PI*u);
+   beam(xx,yy,gymZ-gymD*.6,xx,yy,gymZ+gymD*.6,"#1768b4",.075);
+  }
+  for(const zz of [gymZ-gymD*.6,gymZ+gymD*.6]){
+   for(let i=0;i<segments;i++){
+    const u=i/segments,v=(i+1)/segments;
+    beam(gymX-roofHalf+u*roofHalf*2,roofBase+archRise*Math.sin(Math.PI*u),zz,
+     gymX-roofHalf+v*roofHalf*2,roofBase+archRise*Math.sin(Math.PI*v),zz,"#1465af",.13);
+   }
+  }
+  for(const xx of [gymX-roofHalf,gymX+roofHalf]){
+   for(const zz of [gymZ-gymD*.54,gymZ+gymD*.54]){
+    beam(xx,.2,zz,xx,roofBase,zz,"#e5e9e4",.11);
+   }
+  }
+  // Iluminação suspensa no interior.
+  for(const xx of [gymX-gymW*.23,gymX+gymW*.23]){
+   for(const zz of [gymZ-gymD*.25,gymZ+gymD*.25]){
+    const lamp=add(new THREE.BoxGeometry(1.25,.08,.32),"#f8f4d8",xx,roofBase-.8,zz);
+    lamp.material.emissive=new THREE.Color("#d9cba1");lamp.material.emissiveIntensity=.35;
+   }
+  }
+  // Quadra de areia ao lado, como espaço adicional do conjunto.
+  const sandX=-w*.92,sandZ=d*.93,sandW=w*.86,sandD=d*.65;
+  slab(sandW+.45,.18,sandD+.45,"#bfb8a5",sandX,.07,sandZ);
+  slab(sandW,.07,sandD,"#e6c78b",sandX,.18,sandZ);
+  line(sandX-sandW*.43,sandZ,sandX+sandW*.43,sandZ,"#f6f4ed",.065,.26);
+  for(const side of [-1,1]){
+   const px=sandX+side*sandW*.46;
+   slab(.08,2.45,.08,"#e5e6e0",px,1.25,sandZ);
+  }
+  slab(sandW*.92,.05,.04,"#dbe6e6",sandX,1.6,sandZ);
+  // Placa de identificação e acesso.
+  slab(gymW*.44,.5,.16,"#185b9a",gymX,3.55,gymZ+gymD*.64);
+  buildings.push({site:s,x:p.x,z:p.z,w:Math.max(w*2.9,outerW+gymW),d:d*2.5});
+  return;
  }
  const h=Math.max(5,s.z*.125),front=p.z+d/2+.08;
  const wall=s.type==="central"?"#f6c535":s.type==="school"?"#9bc65b":s.type==="restaurant"?"#757d77":s.type==="female"?"#ece9e0":s.wall;
