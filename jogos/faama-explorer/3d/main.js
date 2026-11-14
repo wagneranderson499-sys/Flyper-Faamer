@@ -479,9 +479,9 @@ function tree(x,z,seed){
 }
 function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],vx=bx-ax,vy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy||1)));if(Math.hypot(x-ax-vx*t,y-ay-vy*t)<1.8)return true}return false}
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
-// Praças atrás do Prédio Acadêmico, inspiradas na foto aérea da FAAMA.
+// Praça principal grande diretamente ATRÁS do Prédio Central (ao norte no mapa), conforme referência aérea.
 // Praça principal circular com anéis concêntricos e três pequenos jardins redondos.
-const plazas=[{x:30.2,y:24.1,r:5.1},{x:26.2,y:23.6,r:2.1},{x:25.2,y:26.2,r:1.85},{x:28.3,y:21.4,r:1.8}];
+const plazas=[{x:19,y:18.2,r:10.5},{x:13.8,y:18.2,r:2.8},{x:13.5,y:21.1,r:2.55},{x:15.2,y:15.1,r:2.5}];
 function inPlaza(gx,gy,pad=0){return plazas.some(q=>Math.hypot((gx-q.x)*unit*spacing,(gy-q.y)*unit*spacing)<q.r+pad)}
 function plazaCircle(gx,gy,r,kind="main"){
  const p=at(gx,gy),n=64;
@@ -523,15 +523,17 @@ function plazaWalk(a,b,width=1.7){
  const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
  walk.rotation.y=Math.atan2(B.x-A.x,B.z-A.z);
 }
-// Caminhos conectados ao eixo de circulação existente, atrás do Acadêmico.
-plazaWalk([30,27],[30.2,24.1],2.1);
-plazaWalk([30.2,24.1],[26.2,23.6],1.45);
-plazaWalk([26.2,23.6],[25.2,26.2],1.3);
-plazaWalk([30.2,24.1],[28.3,21.4],1.35);
-plazaCircle(30.2,24.1,5.1);
-plazaCircle(26.2,23.6,2.1,"garden");
-plazaCircle(25.2,26.2,1.85,"garden");
-plazaCircle(28.3,21.4,1.8,"garden");
+// A praça fica logo após a face posterior do Prédio Central (y=24).
+// Ligações com o caminho central e com os jardins menores, sem deslocar prédios.
+plazaWalk([19,22.8],[19,18.2],2.8);
+plazaWalk([19,18.2],[19,13.7],2.2);
+plazaWalk([19,18.2],[13.8,18.2],2.1);
+plazaWalk([13.8,18.2],[13.5,21.1],1.6);
+plazaWalk([13.8,18.2],[15.2,15.1],1.6);
+plazaCircle(19,18.2,10.5);
+plazaCircle(13.8,18.2,2.8,"garden");
+plazaCircle(13.5,21.1,2.55,"garden");
+plazaCircle(15.2,15.1,2.5,"garden");
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y)||inPlaza(x,y,1.3))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y)||inPlaza(x,y,.5))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
@@ -594,7 +596,7 @@ const player=at(20,42);avatar.position.set(player.x,0,player.z);
 const held=new Set();let yaw=0,dist=12,pitch=.36,dragging=false,lastX=0,lastY=0,walk=0;
 let cameraMode="third",overviewYaw=0,overviewDistance=138;
 const overviewTarget=new THREE.Vector3(0,0,0);
-const plazaTarget=at(30.2,24.1);
+const plazaTarget=at(19,18.2);
 const plazaButton=document.getElementById("cameraPlaza");
 const thirdButton=document.getElementById("cameraThird"),overviewButton=document.getElementById("cameraOverview"),centralButton=document.getElementById("cameraCentral");
 function setCameraMode(mode){
@@ -666,13 +668,13 @@ function frame(){
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
  const target=(cameraMode==="third"||missionEngine.active)?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x,0,plazaTarget.z):overviewTarget;
- const desired=(cameraMode==="third"||missionEngine.active)?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x+16,26,plazaTarget.z+22):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
+ const desired=(cameraMode==="third"||missionEngine.active)?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x+18,31,plazaTarget.z+26):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
  camera.position.lerp(desired,1-Math.exp(-dt*4));look.lerp(target,1-Math.exp(-dt*6));camera.lookAt(look);
  let nearest=null,range=Infinity;for(const b of buildings){const d=Math.hypot(avatar.position.x-b.x,avatar.position.z-b.z);if(d<range){nearest=b;range=d}}
  missionEngine.update();
  nearbyMission=!missionEngine.active&&cameraMode==="third"&&nearest&&range<Math.max(nearest.w,nearest.d)*.85+5?nearest.site.id:null;
  if(missionEngine.active){place.textContent="Missão 3D em andamento";}
- else if(cameraMode==="plaza"){place.textContent="Praças atrás do Prédio Acadêmico";hint.textContent="Praça circular principal e jardins menores. Use Terceira pessoa para explorar a pé."}
+ else if(cameraMode==="plaza"){place.textContent="Praça principal atrás do Prédio Central";hint.textContent="Praça circular principal e jardins menores. Use Terceira pessoa para explorar a pé."}
  else if(cameraMode==="central"){place.textContent="Prédio Central — estudo arquitetônico";hint.textContent="Fachada em desenvolvimento com arco azul, janelas, alas amarelas e jardins inspirados na referência."}
  else if(cameraMode==="overview"){place.textContent="Vista panorâmica da FAAMA";hint.textContent="Campus completo em 3D. Arraste para girar, use o scroll para zoom ou pressione C para explorar."}
  else if(nearest&&range<Math.max(nearest.w,nearest.d)*.85+4){place.textContent=nearest.site.short||nearest.site.name;hint.textContent=nearest.site.info+" • Pressione E para entrar no interior 3D."}
