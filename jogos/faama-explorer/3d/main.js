@@ -777,6 +777,8 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
   const scaledBounds=new THREE.Box3().setFromObject(model);
   const center=scaledBounds.getCenter(new THREE.Vector3());
   model.position.set(-center.x,-scaledBounds.min.y,-center.z);
+  // O GLB tem frente invertida em relação ao sentido de avanço do avatar.
+  model.rotation.y=Math.PI;
   model.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true}});
   avatar.add(model);
   for(const piece of avatarFallback)piece.visible=false;
@@ -872,7 +874,7 @@ function frame(){
   const activity=THREE.MathUtils.clamp(speed/5.5,0,1);
   const swing=Math.sin(walk)*.46*activity;
   const targets={
-   leftArm:{x:-swing*.7,z:-1.12},rightArm:{x:swing*.7,z:1.12},
+   leftArm:{x:-swing*.7,z:1.12},rightArm:{x:swing*.7,z:-1.12},
    leftLeg:{x:swing,z:0},rightLeg:{x:-swing,z:0}
   };
   for(const [name,rig] of Object.entries(playerRig)){
