@@ -1,5 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 import {createMissions3D} from "./missions3d.js";
+import {FBXLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/FBXLoader.js";
 import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js";
 
 const data={...window.FAAMA_MAP,sites:window.FAAMA_MAP.sites.map(site=>site.id==="male"?{...site,x:28.5,y:18,w:5,h:4}:site)};
@@ -496,7 +497,65 @@ function organicTree(x,z,seed,pink=false){
   crown.scale.set(1.02,.85,1.05);crown.castShadow=true;scene.add(crown);
  }
 }
-function tree(x,z,seed){organicTree(x,z,seed,false)}
+// A árvore FBX real é carregada uma única vez e clonada pelo campus.
+// Enquanto os arquivos não estiverem instalados, mantém a árvore procedural.
+const treeInstances=[];
+let highPolyTree=null;
+const treeStatus=document.createElement("div");
+treeStatus.textContent="🌳 Árvores 3D: carregando modelo...";
+Object.assign(treeStatus.style,{position:"fixed",right:"12px",bottom:"12px",zIndex:"9999",background:"#163e30",color:"white",padding:"7px 10px",borderRadius:"8px",font:"12px system-ui"});
+document.body.appendChild(treeStatus);
+function placeImportedTree(entry){
+ if(!highPolyTree)return;
+ for(const mesh of entry.fallback)scene.remove(mesh);
+ const clone=highPolyTree.clone(true);
+ const variant=.82+rng(entry.seed+61)*.32;
+ clone.scale.multiplyScalar(variant);
+ clone.rotation.y=rng(entry.seed+9)*Math.PI*2;
+ clone.position.set(entry.x,0,entry.z);
+ scene.add(clone);
+}
+function tree(x,z,seed){
+ if(highPolyTree){placeImportedTree({x,z,seed,fallback:[]});return}
+ const before=new Set(scene.children);
+ organicTree(x,z,seed,false);
+ treeInstances.push({x,z,seed,fallback:scene.children.filter(obj=>!before.has(obj))});
+}
+const treeBase="./models/highpoly-tree/";
+const textureLoader=new THREE.TextureLoader();
+new FBXLoader().load(treeBase+"SM_HP_Tree.FBX",model=>{
+ const leaf=textureLoader.load(treeBase+"T_HP_Tree_Leaf.PNG");
+ const bark=textureLoader.load(treeBase+"T_HP_Tree_Trunk.PNG");
+ const normal=textureLoader.load(treeBase+"T_HP_Tree_Trunk_normal.PNG");
+ for(const tex of [leaf,bark]){tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4}
+ const leafMaterial=new THREE.MeshStandardMaterial({map:leaf,side:THREE.DoubleSide,alphaTest:.35,roughness:.95});
+ const trunkMaterial=new THREE.MeshStandardMaterial({map:bark,normalMap:normal,roughness:1});
+ model.traverse(obj=>{
+  if(!obj.isMesh)return;
+  const materials=Array.isArray(obj.material)?obj.material:[obj.material];
+  obj.material=materials.map(m=>/leaf|folha/i.test(m?.name||"")?leafMaterial:trunkMaterial);
+  if(obj.material.length===1)obj.material=obj.material[0];
+  obj.castShadow=false;obj.receiveShadow=true;
+ });
+ // Normalização de escala e alinhamento ao chão para modelos FBX de qualquer unidade.
+ const bounds=new THREE.Box3().setFromObject(model);
+ const size=bounds.getSize(new THREE.Vector3());
+ if(!Number.isFinite(size.y)||size.y<=0)throw Error("FBX sem geometria válida");
+ const targetHeight=5.7;
+ const scale=targetHeight/size.y;
+ model.scale.multiplyScalar(scale);
+ const normalized=new THREE.Box3().setFromObject(model);
+ const center=normalized.getCenter(new THREE.Vector3());
+ model.position.x-=center.x;model.position.z-=center.z;model.position.y-=normalized.min.y;
+ highPolyTree=model;
+ for(const entry of treeInstances)placeImportedTree(entry);
+ treeInstances.length=0;
+ treeStatus.textContent="🌳 Árvores HighPoly carregadas";
+ console.info("Árvores FBX HighPoly integradas ao campus 3D");
+},undefined,error=>{
+ treeStatus.textContent="🌳 Modelo FBX ausente — árvores provisórias";
+ console.warn("Instale os arquivos em 3d/models/highpoly-tree/",error);
+});
 function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],vx=bx-ax,vy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy||1)));if(Math.hypot(x-ax-vx*t,y-ay-vy*t)<1.8)return true}return false}
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 // Praça principal grande diretamente ATRÁS do Prédio Central (ao norte no mapa), conforme referência aérea.
