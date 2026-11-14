@@ -26,6 +26,36 @@ const unit=2.4,spacing=1.4,originX=-17*unit*spacing,originZ=-22*unit*spacing;
 const at=(x,y)=>({x:originX+x*unit*spacing,z:originZ+y*unit*spacing});
 const base=new THREE.Mesh(new THREE.PlaneGeometry(300,320),mat("#739c68"));base.rotation.x=-Math.PI/2;base.position.y=-.13;base.receiveShadow=true;scene.add(base);
 const campus=new THREE.Mesh(new THREE.PlaneGeometry(34*unit*spacing,44*unit*spacing),mat("#81ac72"));campus.rotation.x=-Math.PI/2;campus.position.set(originX+17*unit*spacing,-.07,originZ+22*unit*spacing);campus.receiveShadow=true;scene.add(campus);
+// Gramado PBR Grass001 (ambientCG). Mantém as cores originais como fallback.
+const grassPath="./models/grass/Grass001_2K-JPG_";
+const grassLoader=new THREE.TextureLoader();
+const grassTilesPerUnit=1/2.4;
+function grassTexture(filename,width,height,isColor=false){
+ const texture=grassLoader.load(grassPath+filename,()=>{
+  if(isColor)console.info("Grama Grass001 PBR carregada com sucesso");
+ },undefined,error=>console.warn("Textura de grama não encontrada:",filename,error));
+ texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+ texture.repeat.set(width*grassTilesPerUnit,height*grassTilesPerUnit);
+ texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ if(isColor)texture.colorSpace=THREE.SRGBColorSpace;
+ return texture;
+}
+function applyGrass(mesh,width,height){
+ const color=grassTexture("Color.jpg",width,height,true);
+ const normal=grassTexture("NormalGL.jpg",width,height);
+ const roughness=grassTexture("Roughness.jpg",width,height);
+ const material=new THREE.MeshStandardMaterial({
+  color:"#ffffff",map:color,normalMap:normal,normalScale:new THREE.Vector2(.55,.55),
+  roughnessMap:roughness,roughness:1,metalness:0
+ });
+ // Evita gramado sem textura quando o arquivo não existe.
+ const original=mesh.material;
+ mesh.material=material;
+ const fallback=()=>{if(mesh.material===material){mesh.material=original;console.warn("Gramado original restaurado: arquivos Grass001 ausentes");}};
+ color.addEventListener?.("error",fallback);
+}
+applyGrass(base,300,320);
+applyGrass(campus,34*unit*spacing,44*unit*spacing);
 const buildings=[];
 function rng(n){const v=Math.sin(n*127.1+39.6)*43758.5453;return v-Math.floor(v)}
 function roof(x,z,w,d,height,color){const shape=new THREE.ConeGeometry(1,1,4);shape.rotateY(Math.PI/4);shape.scale(w*.75,1,d*.75);const mesh=new THREE.Mesh(shape,mat(color,.82));mesh.position.set(x,height,z);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh)}
