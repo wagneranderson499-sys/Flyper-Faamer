@@ -551,9 +551,6 @@ new GLTFLoader().load(treeBase+"SM_HP_Tree.glb",gltf=>{
   model.position.y-=normalized.min.y;
   highPolyTree=model;
   for(const entry of treeInstances)placeImportedTree(entry);
-  // A cerejeira usa a geometria detalhada desta árvore, sem copas esféricas.
-  for(const entry of ornamentalInstances.flower)placePinkHighPoly(entry);
-  ornamentalInstances.flower.length=0;
   treeInstances.length=0;
   treeStatus.textContent="🌳 Árvores HighPoly carregadas";
   console.info("Árvores GLB HighPoly integradas ao campus 3D");
@@ -643,8 +640,8 @@ for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
 // Modelos GLB: quatro variantes de palmeira e três de árvore florida.
 // Cada GLB inclui várias árvores; isolamos uma variante por instância.
-const ornamentalInstances={palm:[],flower:[]};
-const ornamentalModels={palm:null,flower:null};
+const ornamentalInstances={palm:[]};
+const ornamentalModels={palm:null};
 function normalizedOrnamental(source,kind,index){
  const model=source.clone(true);
  const root=model.getObjectByName(kind==="palm"?"RootNode":"GLTF_SceneRootNode");
@@ -708,67 +705,6 @@ function palm(x,z){
 }
 // Cerejeiras: reaproveitam SOMENTE a geometria realista da HighPoly,
 // com materiais de flor exclusivos. Palmeiras e árvores verdes não são alteradas.
-// Cerejeira: flores de cinco pétalas finas, sem esferas ou copas artificiais.
-// Materiais e modelos das palmeiras e árvores verdes permanecem intocados.
-const blossomPetalShape=new THREE.Shape();
-blossomPetalShape.moveTo(0,0);
-blossomPetalShape.bezierCurveTo(-.09,.075,-.105,.22,0,.245);
-blossomPetalShape.bezierCurveTo(.105,.22,.09,.075,0,0);
-const blossomPetalGeometry=new THREE.ShapeGeometry(blossomPetalShape,5);
-const blossomPetalMaterials=["#f6bad2","#f4a2c4","#e988b4","#ffe0e9"].map(color=>new THREE.MeshStandardMaterial({color,side:THREE.DoubleSide,roughness:1,metalness:0}));
-function placePinkHighPoly(entry){
- if(!highPolyTree)return;
- const clone=highPolyTree.clone(true);
- clone.traverse(obj=>{
-  if(!obj.isMesh)return;
-  const names=obj.name+" "+(Array.isArray(obj.material)?obj.material.map(m=>m?.name).join(" "):obj.material?.name||"");
-  if(/leaf|folha|foliage/i.test(names))obj.visible=false;
- });
- const variation=.88+rng(entry.seed+7)*.25;
- clone.scale.multiplyScalar(variation);
- clone.rotation.y=rng(entry.seed+19)*Math.PI*2;
- clone.position.set(entry.x,0,entry.z);
- scene.add(clone);
- const flowers=new THREE.Group();flowers.position.set(entry.x,0,entry.z);
- const dummy=new THREE.Object3D();
- const blossomsPerColor=65,petals=5;
- for(let colorIndex=0;colorIndex<blossomPetalMaterials.length;colorIndex++){
-  const mesh=new THREE.InstancedMesh(blossomPetalGeometry,blossomPetalMaterials[colorIndex],blossomsPerColor*petals);
-  mesh.frustumCulled=false;
-  let instance=0;
-  for(let i=0;i<blossomsPerColor;i++){
-   const n=i*17+colorIndex*1009+entry.seed*23;
-   // Pequenos grupos irregulares acompanham os ramos, com espaços entre eles.
-   const branch=Math.floor(rng(n+1)*11);
-   const theta=branch*Math.PI*2/11+rng(n+2)*.24;
-   const distance=(.38+rng(n+3)*1.45)*variation;
-   const height=(3.25+rng(n+4)*2.25)*variation;
-   const baseX=Math.cos(theta)*distance+(rng(n+5)-.5)*.5;
-   const baseZ=Math.sin(theta)*distance+(rng(n+6)-.5)*.5;
-   const scale=(.36+rng(n+7)*.32)*variation;
-   const tilt=rng(n+8)*Math.PI*2;
-   for(let petal=0;petal<petals;petal++){
-    const angle=petal*Math.PI*2/petals;
-    dummy.position.set(baseX,height,baseZ);
-    dummy.rotation.set(.35*Math.sin(tilt),tilt,angle);
-    dummy.scale.setScalar(scale);
-    dummy.updateMatrix();mesh.setMatrixAt(instance++,dummy.matrix);
-   }
-  }
-  mesh.instanceMatrix.needsUpdate=true;
-  flowers.add(mesh);
- }
- scene.add(flowers);
- for(const fallback of entry.fallback)scene.remove(fallback);
-}
-function flowering(x,z,seed){
- const entry={x,z,seed,fallback:[]};
- if(highPolyTree){placePinkHighPoly(entry);return}
- const before=new Set(scene.children);
- organicTree(x,z,seed,true);
- entry.fallback=scene.children.filter(obj=>!before.has(obj));
- ornamentalInstances.flower.push(entry);
-}
 // Mantém exatamente o carregamento e as variantes das palmeiras existentes.
 new GLTFLoader().load("./models/palm-trees/palm_trees.glb",gltf=>{
  try{
@@ -779,7 +715,7 @@ new GLTFLoader().load("./models/palm-trees/palm_trees.glb",gltf=>{
  }catch(error){console.error("Erro ao preparar palmeiras GLB",error)}
 },undefined,error=>console.warn("Palmeiras GLB indisponíveis; mantendo provisórias",error));
 for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4)&&!inPlaza(x,y,1))palm(p.x,p.z)}
-for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2)&&!inPlaza(x,y,1))flowering(p.x,p.z,x*y)}
+// Árvores rosas removidas a pedido; preservadas palmeiras e árvores verdes.
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
 for(const [x,y] of [[17,35],[22,35],[13,35],[25,34],[17,30],[22,30],[14,21],[23,21],[12,16],[25,17],[11,40],[28,38]]){const p=at(x,y);if(!insideBuilding(x,y,.3))lamp(p.x,p.z)}
 // Portaria junto à rodovia, no extremo sul do campus.
