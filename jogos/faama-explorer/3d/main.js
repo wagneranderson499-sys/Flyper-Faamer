@@ -30,10 +30,10 @@ const campus=new THREE.Mesh(new THREE.PlaneGeometry(34*unit*spacing,44*unit*spac
 const grassPath="./models/grass/Grass001_2K-JPG_";
 const grassLoader=new THREE.TextureLoader();
 const grassTilesPerUnit=1/2.4;
-function grassTexture(filename,width,height,isColor=false){
+function grassTexture(filename,width,height,isColor=false,onError=undefined){
  const texture=grassLoader.load(grassPath+filename,()=>{
   if(isColor)console.info("Grama Grass001 PBR carregada com sucesso");
- },undefined,error=>console.warn("Textura de grama não encontrada:",filename,error));
+ },undefined,error=>{console.warn("Textura de grama não encontrada:",filename,error);onError?.();});
  texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
  texture.repeat.set(width*grassTilesPerUnit,height*grassTilesPerUnit);
  texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
@@ -41,18 +41,18 @@ function grassTexture(filename,width,height,isColor=false){
  return texture;
 }
 function applyGrass(mesh,width,height){
- const color=grassTexture("Color.jpg",width,height,true);
- const normal=grassTexture("NormalGL.jpg",width,height);
- const roughness=grassTexture("Roughness.jpg",width,height);
- const material=new THREE.MeshStandardMaterial({
+ const original=mesh.material;
+ let material;
+ const fallback=()=>{if(mesh.material===material){mesh.material=original;console.warn("Gramado original restaurado: arquivos Grass001 ausentes");}};
+ const color=grassTexture("Color.jpg",width,height,true,fallback);
+ const normal=grassTexture("NormalGL.jpg",width,height,false,fallback);
+ const roughness=grassTexture("Roughness.jpg",width,height,false,fallback);
+ material=new THREE.MeshStandardMaterial({
   color:"#ffffff",map:color,normalMap:normal,normalScale:new THREE.Vector2(.55,.55),
   roughnessMap:roughness,roughness:1,metalness:0
  });
  // Evita gramado sem textura quando o arquivo não existe.
- const original=mesh.material;
  mesh.material=material;
- const fallback=()=>{if(mesh.material===material){mesh.material=original;console.warn("Gramado original restaurado: arquivos Grass001 ausentes");}};
- color.addEventListener?.("error",fallback);
 }
 applyGrass(base,300,320);
 applyGrass(campus,34*unit*spacing,44*unit*spacing);
