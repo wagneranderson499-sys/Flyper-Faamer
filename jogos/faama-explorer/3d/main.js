@@ -7,8 +7,8 @@ const data={...window.FAAMA_MAP,sites:window.FAAMA_MAP.sites.map(site=>site.id==
 // A mudança é exclusiva da versão 3D: o mapa original permanece intacto.
 if(!data?.sites||!data?.roads)throw Error("map-data.js não foi carregado");
 const stage=document.getElementById("stage"),place=document.getElementById("place"),hint=document.getElementById("hint");
-const scene=new THREE.Scene();scene.background=new THREE.Color("#a7d9e8");scene.fog=new THREE.FogExp2("#a7d9e8",.011);
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,260);
+const scene=new THREE.Scene();scene.background=new THREE.Color("#a7d9e8");scene.fog=new THREE.FogExp2("#a7d9e8",.008);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,360);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -20,10 +20,11 @@ sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=75;s
 const materials=new Map();
 function mat(color,roughness=1){const key=color+roughness;if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness}));return materials.get(key)}
 function box(w,h,d,color,x,y,z,cast=true){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));o.position.set(x,y,z);o.castShadow=cast;o.receiveShadow=true;scene.add(o);return o}
-const unit=2.4,originX=-17*unit,originZ=-22*unit;
-const at=(x,y)=>({x:originX+x*unit,z:originZ+y*unit});
-const base=new THREE.Mesh(new THREE.PlaneGeometry(220,230),mat("#739c68"));base.rotation.x=-Math.PI/2;base.position.y=-.13;base.receiveShadow=true;scene.add(base);
-const campus=new THREE.Mesh(new THREE.PlaneGeometry(34*unit,44*unit),mat("#81ac72"));campus.rotation.x=-Math.PI/2;campus.position.set(originX+17*unit,-.07,originZ+22*unit);campus.receiveShadow=true;scene.add(campus);
+const unit=2.4,spacing=1.4,originX=-17*unit*spacing,originZ=-22*unit*spacing;
+// Aumenta as distâncias entre construções sem alterar as dimensões dos modelos.
+const at=(x,y)=>({x:originX+x*unit*spacing,z:originZ+y*unit*spacing});
+const base=new THREE.Mesh(new THREE.PlaneGeometry(300,320),mat("#739c68"));base.rotation.x=-Math.PI/2;base.position.y=-.13;base.receiveShadow=true;scene.add(base);
+const campus=new THREE.Mesh(new THREE.PlaneGeometry(34*unit*spacing,44*unit*spacing),mat("#81ac72"));campus.rotation.x=-Math.PI/2;campus.position.set(originX+17*unit*spacing,-.07,originZ+22*unit*spacing);campus.receiveShadow=true;scene.add(campus);
 const buildings=[];
 function rng(n){const v=Math.sin(n*127.1+39.6)*43758.5453;return v-Math.floor(v)}
 function roof(x,z,w,d,height,color){const shape=new THREE.ConeGeometry(1,1,4);shape.rotateY(Math.PI/4);shape.scale(w*.75,1,d*.75);const mesh=new THREE.Mesh(shape,mat(color,.82));mesh.position.set(x,height,z);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh)}
@@ -461,8 +462,8 @@ for(const b of document.querySelectorAll("[data-key]")){const k=b.dataset.key;b.
 renderer.domElement.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener("pointerup",()=>dragging=false);
 renderer.domElement.addEventListener("pointermove",e=>{if(!dragging)return;if(cameraMode==="third"){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.004,.12,.8)}else if(cameraMode==="overview"){overviewYaw-=(e.clientX-lastX)*.004}lastX=e.clientX;lastY=e.clientY});
-renderer.domElement.addEventListener("wheel",e=>{if(cameraMode==="third")dist=THREE.MathUtils.clamp(dist+e.deltaY*.012,6,22);else overviewDistance=THREE.MathUtils.clamp(overviewDistance+e.deltaY*.12,65,190);e.preventDefault()},{passive:false});
-function blocked(x,z){if(missionEngine.active)return missionEngine.blocked(x,z);const gx=(x-originX)/unit,gy=(z-originZ)/unit,r=playerRadius/unit;if(gx<.5+r||gx>33.5-r||gy<.5+r||gy>43.5-r)return true;return data.sites.some(s=>s.type!=="pool"&&gx>s.x-r&&gx<s.x+s.w+r&&gy>s.y-r&&gy<s.y+s.h+r)}
+renderer.domElement.addEventListener("wheel",e=>{if(cameraMode==="third")dist=THREE.MathUtils.clamp(dist+e.deltaY*.012,6,22);else overviewDistance=THREE.MathUtils.clamp(overviewDistance+e.deltaY*.12,80,255);e.preventDefault()},{passive:false});
+function blocked(x,z){if(missionEngine.active)return missionEngine.blocked(x,z);const gx=(x-originX)/(unit*spacing),gy=(z-originZ)/(unit*spacing),r=playerRadius/(unit*spacing);if(gx<.5+r||gx>33.5-r||gy<.5+r||gy>43.5-r)return true;return buildings.some(b=>b.site.type!=="pool"&&Math.abs(x-b.x)<b.w/2+playerRadius&&Math.abs(z-b.z)<b.d/2+playerRadius)}
 const missionEngine=createMissions3D(THREE,{scene,avatar,at,unit,sites:data.sites,held,box,mat,place,hint});
 let nearbyMission=null;
 const clock=new THREE.Clock(),look=new THREE.Vector3();
