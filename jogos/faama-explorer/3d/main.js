@@ -2,7 +2,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.m
 import {createMissions3D} from "./missions3d.js";
 import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js";
 
-const data=window.FAAMA_MAP;
+const data={...window.FAAMA_MAP,sites:window.FAAMA_MAP.sites.map(site=>site.id==="male"?{...site,x:28.5,y:18,w:5,h:4}:site)};
+// O residencial masculino ocupa a antiga posição da árvore florida rosa (31,20).
+// A mudança é exclusiva da versão 3D: o mapa original permanece intacto.
 if(!data?.sites||!data?.roads)throw Error("map-data.js não foi carregado");
 const stage=document.getElementById("stage"),place=document.getElementById("place"),hint=document.getElementById("hint");
 const scene=new THREE.Scene();scene.background=new THREE.Color("#a7d9e8");scene.fog=new THREE.FogExp2("#a7d9e8",.011);
@@ -279,7 +281,7 @@ function flowering(x,z,seed){
  for(let i=0;i<5;i++){const angle=i*Math.PI*2/5;const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.98,1),mat(i%2?"#ed6eac":"#f59ac4"));crown.position.set(x+Math.cos(angle)*.85,3.1+(i%2)*.45,z+Math.sin(angle)*.85);crown.castShadow=true;scene.add(crown)}
 }
 for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4))palm(p.x,p.z)}
-for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[31,20],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2))flowering(p.x,p.z,x*y)}
+for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2))flowering(p.x,p.z,x*y)}
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
 for(const [x,y] of [[17,35],[22,35],[13,35],[25,34],[17,30],[22,30],[14,21],[23,21],[12,16],[25,17],[11,40],[28,38]]){const p=at(x,y);if(!insideBuilding(x,y,.3))lamp(p.x,p.z)}
 // Portaria junto à rodovia, no extremo sul do campus.
