@@ -823,7 +823,7 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
     const normalizeBoneName=name=>name
      .replace(/^.*[|]/,"")
      .replace(/^mixamorig[:_]?/i,"")
-     .replace(/_\\d+$/,"")
+     .replace(/_[0-9]+$/,"")
      .replace(/[^a-z0-9]/gi,"")
      .toLowerCase();
     const boneLookup=new Map();
