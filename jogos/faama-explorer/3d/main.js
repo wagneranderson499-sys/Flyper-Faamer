@@ -708,36 +708,48 @@ function palm(x,z){
 }
 // Cerejeiras: reaproveitam SOMENTE a geometria realista da HighPoly,
 // com materiais de flor exclusivos. Palmeiras e árvores verdes não são alteradas.
+// Flores pequenas e volumosas em geometria própria: não dependem da textura alfa das folhas.
+// Mantém intactos os materiais da árvore verde e das palmeiras.
+const blossomGeometry=new THREE.IcosahedronGeometry(1,1);
+const blossomMaterials=["#f4a0c4","#f8bbd4","#e981b2"].map(color=>new THREE.MeshStandardMaterial({color,roughness:.94,side:THREE.DoubleSide}));
 function placePinkHighPoly(entry){
  if(!highPolyTree)return;
  const clone=highPolyTree.clone(true);
  clone.traverse(obj=>{
   if(!obj.isMesh)return;
-  const recolor=material=>{
-   if(!material)return material;
-   const copy=material.clone();
-   if(/leaf|folha|foliage/i.test((material.name||"")+" "+obj.name)){
-    // Preserva o recorte alfa das folhas, mas substitui o verde pela cor das flores.
-    copy.color.set("#f7a3c9");
-    copy.side=THREE.DoubleSide;
-    copy.transparent=true;
-    copy.alphaTest=.3;
-    copy.onBeforeCompile=shader=>{
-     shader.fragmentShader=shader.fragmentShader.replace(
-      "#include <map_fragment>",
-      '#ifdef USE_MAP\\n vec4 sampledDiffuseColor = texture2D( map, vMapUv );\\n diffuseColor.a *= sampledDiffuseColor.a;\\n #endif'
-     );
-    };
-    copy.customProgramCacheKey=()=>"faama-pink-blossom-v1";
-   }
-   return copy;
-  };
-  obj.material=Array.isArray(obj.material)?obj.material.map(recolor):recolor(obj.material);
+  // Na cerejeira, só ocultamos a folhagem original: tronco e galhos continuam.
+  const names=(obj.name+" "+(Array.isArray(obj.material)?obj.material.map(m=>m?.name).join(" "):obj.material?.name||""));
+  if(/leaf|folha|foliage/i.test(names))obj.visible=false;
  });
- clone.scale.multiplyScalar(.88+rng(entry.seed+7)*.25);
+ const variation=.88+rng(entry.seed+7)*.25;
+ clone.scale.multiplyScalar(variation);
  clone.rotation.y=rng(entry.seed+19)*Math.PI*2;
  clone.position.set(entry.x,0,entry.z);
  scene.add(clone);
+ // Instancing mantém a copa densa sem centenas de draw calls por árvore.
+ const flowers=new THREE.Group();
+ flowers.position.set(entry.x,0,entry.z);
+ const dummy=new THREE.Object3D();
+ const count=105;
+ for(let colorIndex=0;colorIndex<blossomMaterials.length;colorIndex++){
+  const mesh=new THREE.InstancedMesh(blossomGeometry,blossomMaterials[colorIndex],count);
+  mesh.frustumCulled=false;
+  for(let i=0;i<count;i++){
+   const n=i*3+colorIndex*107+entry.seed*13;
+   const angle=rng(n+1)*Math.PI*2;
+   const radius=Math.sqrt(rng(n+2))*(1.8*variation);
+   const level=rng(n+3);
+   const crownWidth=.55+.45*Math.sin(Math.PI*level);
+   dummy.position.set(Math.cos(angle)*radius*crownWidth, (3.15+level*2.45)*variation,Math.sin(angle)*radius*crownWidth);
+   const size=(.10+rng(n+4)*.115)*variation;
+   dummy.scale.set(size*(.9+rng(n+5)*.3),size*(.85+rng(n+6)*.4),size);
+   dummy.rotation.set(rng(n+7)*Math.PI,rng(n+8)*Math.PI,0);
+   dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate=true;
+  flowers.add(mesh);
+ }
+ scene.add(flowers);
  for(const fallback of entry.fallback)scene.remove(fallback);
 }
 function flowering(x,z,seed){
