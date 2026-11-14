@@ -481,7 +481,7 @@ function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i+
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 // Praça principal grande diretamente ATRÁS do Prédio Central (ao norte no mapa), conforme referência aérea.
 // Praça principal circular com anéis concêntricos e três pequenos jardins redondos.
-const plazas=[{x:19,y:18.2,r:10.5},{x:13.8,y:18.2,r:2.8},{x:13.5,y:21.1,r:2.55},{x:15.2,y:15.1,r:2.5}];
+const plazas=[{x:19,y:20.25,r:11.8},{x:12.6,y:19.1,r:3.15},{x:12.2,y:22,r:2.9},{x:13.8,y:16.1,r:2.8}];
 function inPlaza(gx,gy,pad=0){return plazas.some(q=>Math.hypot((gx-q.x)*unit*spacing,(gy-q.y)*unit*spacing)<q.r+pad)}
 function plazaCircle(gx,gy,r,kind="main"){
  const p=at(gx,gy),n=64;
@@ -495,10 +495,21 @@ function plazaCircle(gx,gy,r,kind="main"){
  };
  disc(r,"#e3dcca",.09);ring(r-.09,.15,"#faf8f1",.16);
  if(kind==="main"){
-  disc(r*.79,"#48864c",.17);ring(r*.78,.15,"#eee8da",.24);
-  disc(r*.53,"#ddd7c7",.22);ring(r*.51,.13,"#f9f7f0",.29);
-  disc(r*.31,"#43814c",.27);ring(r*.3,.1,"#e8e4d8",.33);
+  disc(r*.83,"#48864c",.17);ring(r*.82,.18,"#eee8da",.24);
+  disc(r*.61,"#ddd7c7",.22);ring(r*.60,.15,"#f9f7f0",.29);
+  disc(r*.36,"#43814c",.27);ring(r*.35,.14,"#e8e4d8",.33);
   disc(r*.13,"#ddd8c9",.34);
+  // Canteiros floridos, anéis de arbustos e bancos como na referência.
+  for(let i=0;i<48;i++){
+   const angle=i*Math.PI*2/48,rr=r*(i%3===0?.73:.88);
+   const bloom=new THREE.Mesh(new THREE.IcosahedronGeometry(.22+(i%4)*.035,1),mat(i%4===0?"#f08bb4":i%4===1?"#e5c755":i%4===2?"#e56e96":"#55954d"));
+   bloom.position.set(p.x+Math.cos(angle)*rr,.46,p.z+Math.sin(angle)*rr);scene.add(bloom);
+  }
+  for(let i=0;i<12;i++){
+   const angle=i*Math.PI*2/12,rr=r*.47;
+   const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.26,1),mat(i%2?"#d979a0":"#5b9b53"));
+   shrub.position.set(p.x+Math.cos(angle)*rr,.52,p.z+Math.sin(angle)*rr);scene.add(shrub);
+  }
   for(let i=0;i<8;i++){
    const t=i*Math.PI/4,xx=p.x+Math.cos(t)*r*.66,zz=p.z+Math.sin(t)*r*.66;
    const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.25,1),mat(i%2?"#417a45":"#598e4d"));
@@ -523,17 +534,16 @@ function plazaWalk(a,b,width=1.7){
  const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
  walk.rotation.y=Math.atan2(B.x-A.x,B.z-A.z);
 }
-// A praça fica logo após a face posterior do Prédio Central (y=24).
-// Ligações com o caminho central e com os jardins menores, sem deslocar prédios.
-plazaWalk([19,22.8],[19,18.2],2.8);
-plazaWalk([19,18.2],[19,13.7],2.2);
-plazaWalk([19,18.2],[13.8,18.2],2.1);
-plazaWalk([13.8,18.2],[13.5,21.1],1.6);
-plazaWalk([13.8,18.2],[15.2,15.1],1.6);
-plazaCircle(19,18.2,10.5);
-plazaCircle(13.8,18.2,2.8,"garden");
-plazaCircle(13.5,21.1,2.55,"garden");
-plazaCircle(15.2,15.1,2.5,"garden");
+// Praça circular grande imediatamente ao norte da fachada posterior do Prédio Central.
+plazaWalk([19,24],[19,20.25],3.3);
+plazaWalk([19,20.25],[19,15.4],2.4);
+plazaWalk([19,20.25],[12.6,19.1],2);
+plazaWalk([12.6,19.1],[12.2,22],1.6);
+plazaWalk([12.6,19.1],[13.8,16.1],1.6);
+plazaCircle(19,20.25,11.8);
+plazaCircle(12.6,19.1,3.15,"garden");
+plazaCircle(12.2,22,2.9,"garden");
+plazaCircle(13.8,16.1,2.8,"garden");
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y)||inPlaza(x,y,1.3))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y)||inPlaza(x,y,.5))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
@@ -596,7 +606,7 @@ const player=at(20,42);avatar.position.set(player.x,0,player.z);
 const held=new Set();let yaw=0,dist=12,pitch=.36,dragging=false,lastX=0,lastY=0,walk=0;
 let cameraMode="third",overviewYaw=0,overviewDistance=138;
 const overviewTarget=new THREE.Vector3(0,0,0);
-const plazaTarget=at(19,18.2);
+const plazaTarget=at(19,20.25);
 const plazaButton=document.getElementById("cameraPlaza");
 const thirdButton=document.getElementById("cameraThird"),overviewButton=document.getElementById("cameraOverview"),centralButton=document.getElementById("cameraCentral");
 function setCameraMode(mode){
@@ -668,7 +678,7 @@ function frame(){
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
  const target=(cameraMode==="third"||missionEngine.active)?avatar.position.clone().add(new THREE.Vector3(0,1.6,0)):cameraMode==="central"?centralTarget:cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x,0,plazaTarget.z):overviewTarget;
- const desired=(cameraMode==="third"||missionEngine.active)?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x+18,31,plazaTarget.z+26):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
+ const desired=(cameraMode==="third"||missionEngine.active)?target.clone().add(new THREE.Vector3(Math.sin(yaw)*dist*Math.cos(pitch),dist*Math.sin(pitch)+2,Math.cos(yaw)*dist*Math.cos(pitch))):cameraMode==="central"?centralTarget.clone().add(new THREE.Vector3(13,15,34)):cameraMode==="plaza"?new THREE.Vector3(plazaTarget.x+15,30,plazaTarget.z+19):new THREE.Vector3(Math.sin(overviewYaw)*overviewDistance*.65,overviewDistance*.8,Math.cos(overviewYaw)*overviewDistance*.65);
  camera.position.lerp(desired,1-Math.exp(-dt*4));look.lerp(target,1-Math.exp(-dt*6));camera.lookAt(look);
  let nearest=null,range=Infinity;for(const b of buildings){const d=Math.hypot(avatar.position.x-b.x,avatar.position.z-b.z);if(d<range){nearest=b;range=d}}
  missionEngine.update();
