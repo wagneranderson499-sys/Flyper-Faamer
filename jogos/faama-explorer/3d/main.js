@@ -762,6 +762,7 @@ for(const side of [-1,1]){
 // Personagem GLB enviado pelo usuário. O arquivo possui rig, mas nenhuma animação.
 // Mantemos o avatar anterior como reserva até o novo modelo terminar de carregar.
 let importedPlayer=null;
+let playerRig=null;
 const avatarFallback=[...avatar.children];
 new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb",gltf=>{
  try{
@@ -780,7 +781,15 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
   avatar.add(model);
   for(const piece of avatarFallback)piece.visible=false;
   importedPlayer=model;
-  console.info("Personagem GLB carregado (sem animações no arquivo)");
+  // Rig Mixamo presente no GLB: pose de descanso e caminhada procedural.
+  const bones={};
+  for(const [key,name] of Object.entries({leftArm:"mixamorig_LeftArm_011",rightArm:"mixamorig_RightArm_035",leftLeg:"mixamorig_LeftUpLeg_062",rightLeg:"mixamorig_RightUpLeg_058"})){
+   const bone=model.getObjectByName(name);
+   if(bone?.isBone)bones[key]={bone,base:bone.quaternion.clone()};
+  }
+  if(Object.keys(bones).length===4)playerRig=bones;
+  else console.warn("Alguns ossos não encontrados; animação procedural parcial indisponível",Object.keys(bones));
+  console.info("Personagem GLB carregado; rig para caminhada:",!!playerRig);
  }catch(error){console.error("Falha ao preparar personagem GLB",error)}
 },undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error));
 const playerName=document.getElementById("playerName");
@@ -857,6 +866,21 @@ function frame(){
   arms[0].rotation.x=-Math.sin(walk)*amplitude*.7;arms[1].rotation.x=Math.sin(walk)*amplitude*.7;
  }else{
   for(const part of [...legs,...arms])part.rotation.x*=Math.exp(-dt*12);
+ }
+ // Animação leve do novo personagem: braços relaxados e passos sincronizados.
+ if(playerRig){
+  const activity=THREE.MathUtils.clamp(speed/5.5,0,1);
+  const swing=Math.sin(walk)*.46*activity;
+  const targets={
+   leftArm:{x:-swing*.7,z:-1.12},rightArm:{x:swing*.7,z:1.12},
+   leftLeg:{x:swing,z:0},rightLeg:{x:-swing,z:0}
+  };
+  for(const [name,rig] of Object.entries(playerRig)){
+   const pose=targets[name];
+   const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(pose.x,0,pose.z,"XYZ"));
+   const targetQuaternion=rig.base.clone().multiply(rotation);
+   rig.bone.quaternion.slerp(targetQuaternion,1-Math.exp(-dt*9));
+  }
  }
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
