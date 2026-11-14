@@ -638,11 +638,87 @@ document.body.appendChild(plazaMarker);
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y)||inPlaza(x,y,1.3))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y)||inPlaza(x,y,.5))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
-function palm(x,z){
- const stem=new THREE.Mesh(new THREE.CylinderGeometry(.13,.25,5.8,9),mat("#8d7250"));stem.position.set(x,2.9,z);stem.castShadow=true;scene.add(stem);
- for(let i=0;i<9;i++){const angle=i*Math.PI*2/9;const leaf=new THREE.Mesh(new THREE.ConeGeometry(.45,3.6,5),mat(i%2?"#3e994e":"#5db95b"));leaf.position.set(x+Math.cos(angle)*1.25,5.9,z+Math.sin(angle)*1.25);leaf.rotation.z=Math.cos(angle)*.88;leaf.rotation.x=-Math.sin(angle)*.88;leaf.castShadow=true;scene.add(leaf)}
+// Modelos GLB: quatro variantes de palmeira e três de árvore florida.
+// Cada GLB inclui várias árvores; isolamos uma variante por instância.
+const ornamentalInstances={palm:[],flower:[]};
+const ornamentalModels={palm:null,flower:null};
+function normalizedOrnamental(source,kind,index){
+ const model=source.clone(true);
+ const root=model.getObjectByName(kind==="palm"?"RootNode":"GLTF_SceneRootNode");
+ if(!root)throw Error("Estrutura inesperada do GLB "+kind);
+ for(const child of [...root.children]){
+  const name=child.name;
+  const keep=kind==="palm"
+   ?new RegExp("^Bark_"+(index+1)+"$").test(name)
+   :(index===0?/^(structure_2|foliage_3)$/.test(name)
+    :index===1?/^(structure\\.001_4|foliage\\.001_5)$/.test(name)
+    :/^(structure\\.002_6|foliage\\.002_7)$/.test(name));
+  if(!keep)root.remove(child);
+ }
+ model.updateMatrixWorld(true);
+ model.traverse(obj=>{
+  if(!obj.isMesh)return;
+  obj.castShadow=false;obj.receiveShadow=true;
+  for(const material of (Array.isArray(obj.material)?obj.material:[obj.material])){
+   if(!material)continue;
+   material.side=THREE.DoubleSide;
+   if(/leaf|foliage/i.test(obj.name+" "+material.name)){
+    material.alphaTest=.35;
+    material.depthWrite=true;
+    material.needsUpdate=true;
+   }
+  }
+ });
+ const bounds=new THREE.Box3().setFromObject(model);
+ const size=bounds.getSize(new THREE.Vector3());
+ if(!Number.isFinite(size.y)||size.y<=0)throw Error("Geometria vazia: "+kind+" "+index);
+ model.scale.multiplyScalar((kind==="palm"?6.3:5.4)/size.y);
+ const normalized=new THREE.Box3().setFromObject(model);
+ const center=normalized.getCenter(new THREE.Vector3());
+ model.position.x-=center.x;model.position.z-=center.z;model.position.y-=normalized.min.y;
+ return model;
 }
-function flowering(x,z,seed){organicTree(x,z,seed,true)}
+function placeOrnamental(kind,entry){
+ const variants=ornamentalModels[kind];
+ if(!variants)return;
+ const variant=variants[Math.floor(rng(entry.seed+31)*variants.length)%variants.length];
+ const clone=variant.clone(true);
+ clone.scale.multiplyScalar(.88+rng(entry.seed+7)*.25);
+ clone.rotation.y=rng(entry.seed+19)*Math.PI*2;
+ clone.position.set(entry.x,0,entry.z);
+ scene.add(clone);
+ for(const fallback of entry.fallback)scene.remove(fallback);
+}
+function ornamental(kind,x,z,seed,drawFallback){
+ const entry={x,z,seed,fallback:[]};
+ if(ornamentalModels[kind]){placeOrnamental(kind,entry);return}
+ const before=new Set(scene.children);
+ drawFallback();
+ entry.fallback=scene.children.filter(obj=>!before.has(obj));
+ ornamentalInstances[kind].push(entry);
+}
+function palm(x,z){
+ ornamental("palm",x,z,x*1.17+z*.73,()=>{
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.13,.25,5.8,9),mat("#8d7250"));stem.position.set(x,2.9,z);stem.castShadow=true;scene.add(stem);
+  for(let i=0;i<9;i++){const angle=i*Math.PI*2/9;const leaf=new THREE.Mesh(new THREE.ConeGeometry(.45,3.6,5),mat(i%2?"#3e994e":"#5db95b"));leaf.position.set(x+Math.cos(angle)*1.25,5.9,z+Math.sin(angle)*1.25);leaf.rotation.z=Math.cos(angle)*.88;leaf.rotation.x=-Math.sin(angle)*.88;leaf.castShadow=true;scene.add(leaf)}
+ });
+}
+function flowering(x,z,seed){
+ ornamental("flower",x,z,seed,()=>organicTree(x,z,seed,true));
+}
+for(const [kind,url,count] of [
+ ["palm","./models/palm-trees/palm_trees.glb",4],
+ ["flower","./models/cherry-blossom/cherry_blossom_trees.glb",3]
+]){
+ new GLTFLoader().load(url,gltf=>{
+  try{
+   ornamentalModels[kind]=Array.from({length:count},(_,i)=>normalizedOrnamental(gltf.scene,kind,i));
+   for(const entry of ornamentalInstances[kind])placeOrnamental(kind,entry);
+   ornamentalInstances[kind].length=0;
+   console.info("Vegetação GLB carregada:",kind,count,"variantes");
+  }catch(error){console.error("Erro ao preparar vegetação GLB:",kind,error)}
+ },undefined,error=>console.warn("Modelo ornamental indisponível; mantendo árvores provisórias:",url,error));
+}
 for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4)&&!inPlaza(x,y,1))palm(p.x,p.z)}
 for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2)&&!inPlaza(x,y,1))flowering(p.x,p.z,x*y)}
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
