@@ -551,6 +551,9 @@ new GLTFLoader().load(treeBase+"SM_HP_Tree.glb",gltf=>{
   model.position.y-=normalized.min.y;
   highPolyTree=model;
   for(const entry of treeInstances)placeImportedTree(entry);
+  // A cerejeira usa a geometria detalhada desta árvore, sem copas esféricas.
+  for(const entry of ornamentalInstances.flower)placePinkHighPoly(entry);
+  ornamentalInstances.flower.length=0;
   treeInstances.length=0;
   treeStatus.textContent="🌳 Árvores HighPoly carregadas";
   console.info("Árvores GLB HighPoly integradas ao campus 3D");
@@ -703,22 +706,57 @@ function palm(x,z){
   for(let i=0;i<9;i++){const angle=i*Math.PI*2/9;const leaf=new THREE.Mesh(new THREE.ConeGeometry(.45,3.6,5),mat(i%2?"#3e994e":"#5db95b"));leaf.position.set(x+Math.cos(angle)*1.25,5.9,z+Math.sin(angle)*1.25);leaf.rotation.z=Math.cos(angle)*.88;leaf.rotation.x=-Math.sin(angle)*.88;leaf.castShadow=true;scene.add(leaf)}
  });
 }
+// Cerejeiras: reaproveitam SOMENTE a geometria realista da HighPoly,
+// com materiais de flor exclusivos. Palmeiras e árvores verdes não são alteradas.
+function placePinkHighPoly(entry){
+ if(!highPolyTree)return;
+ const clone=highPolyTree.clone(true);
+ clone.traverse(obj=>{
+  if(!obj.isMesh)return;
+  const recolor=material=>{
+   if(!material)return material;
+   const copy=material.clone();
+   if(/leaf|folha|foliage/i.test((material.name||"")+" "+obj.name)){
+    // Preserva o recorte alfa das folhas, mas substitui o verde pela cor das flores.
+    copy.color.set("#f7a3c9");
+    copy.side=THREE.DoubleSide;
+    copy.transparent=true;
+    copy.alphaTest=.3;
+    copy.onBeforeCompile=shader=>{
+     shader.fragmentShader=shader.fragmentShader.replace(
+      "#include <map_fragment>",
+      '#ifdef USE_MAP\\n vec4 sampledDiffuseColor = texture2D( map, vMapUv );\\n diffuseColor.a *= sampledDiffuseColor.a;\\n #endif'
+     );
+    };
+    copy.customProgramCacheKey=()=>"faama-pink-blossom-v1";
+   }
+   return copy;
+  };
+  obj.material=Array.isArray(obj.material)?obj.material.map(recolor):recolor(obj.material);
+ });
+ clone.scale.multiplyScalar(.88+rng(entry.seed+7)*.25);
+ clone.rotation.y=rng(entry.seed+19)*Math.PI*2;
+ clone.position.set(entry.x,0,entry.z);
+ scene.add(clone);
+ for(const fallback of entry.fallback)scene.remove(fallback);
+}
 function flowering(x,z,seed){
- ornamental("flower",x,z,seed,()=>organicTree(x,z,seed,true));
+ const entry={x,z,seed,fallback:[]};
+ if(highPolyTree){placePinkHighPoly(entry);return}
+ const before=new Set(scene.children);
+ organicTree(x,z,seed,true);
+ entry.fallback=scene.children.filter(obj=>!before.has(obj));
+ ornamentalInstances.flower.push(entry);
 }
-for(const [kind,url,count] of [
- ["palm","./models/palm-trees/palm_trees.glb",4],
- ["flower","./models/cherry-blossom/cherry_blossom_trees.glb",3]
-]){
- new GLTFLoader().load(url,gltf=>{
-  try{
-   ornamentalModels[kind]=Array.from({length:count},(_,i)=>normalizedOrnamental(gltf.scene,kind,i));
-   for(const entry of ornamentalInstances[kind])placeOrnamental(kind,entry);
-   ornamentalInstances[kind].length=0;
-   console.info("Vegetação GLB carregada:",kind,count,"variantes");
-  }catch(error){console.error("Erro ao preparar vegetação GLB:",kind,error)}
- },undefined,error=>console.warn("Modelo ornamental indisponível; mantendo árvores provisórias:",url,error));
-}
+// Mantém exatamente o carregamento e as variantes das palmeiras existentes.
+new GLTFLoader().load("./models/palm-trees/palm_trees.glb",gltf=>{
+ try{
+  ornamentalModels.palm=Array.from({length:4},(_,i)=>normalizedOrnamental(gltf.scene,"palm",i));
+  for(const entry of ornamentalInstances.palm)placeOrnamental("palm",entry);
+  ornamentalInstances.palm.length=0;
+  console.info("Palmeiras GLB carregadas: 4 variantes");
+ }catch(error){console.error("Erro ao preparar palmeiras GLB",error)}
+},undefined,error=>console.warn("Palmeiras GLB indisponíveis; mantendo provisórias",error));
 for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4)&&!inPlaza(x,y,1))palm(p.x,p.z)}
 for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2)&&!inPlaza(x,y,1))flowering(p.x,p.z,x*y)}
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
