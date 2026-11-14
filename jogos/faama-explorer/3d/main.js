@@ -708,17 +708,20 @@ function palm(x,z){
 }
 // Cerejeiras: reaproveitam SOMENTE a geometria realista da HighPoly,
 // com materiais de flor exclusivos. Palmeiras e árvores verdes não são alteradas.
-// Flores pequenas e volumosas em geometria própria: não dependem da textura alfa das folhas.
-// Mantém intactos os materiais da árvore verde e das palmeiras.
-const blossomGeometry=new THREE.IcosahedronGeometry(1,1);
-const blossomMaterials=["#f4a0c4","#f8bbd4","#e981b2"].map(color=>new THREE.MeshStandardMaterial({color,roughness:.94,side:THREE.DoubleSide}));
+// Cerejeira: flores de cinco pétalas finas, sem esferas ou copas artificiais.
+// Materiais e modelos das palmeiras e árvores verdes permanecem intocados.
+const blossomPetalShape=new THREE.Shape();
+blossomPetalShape.moveTo(0,0);
+blossomPetalShape.bezierCurveTo(-.09,.075,-.105,.22,0,.245);
+blossomPetalShape.bezierCurveTo(.105,.22,.09,.075,0,0);
+const blossomPetalGeometry=new THREE.ShapeGeometry(blossomPetalShape,5);
+const blossomPetalMaterials=["#f6bad2","#f4a2c4","#e988b4","#ffe0e9"].map(color=>new THREE.MeshStandardMaterial({color,side:THREE.DoubleSide,roughness:1,metalness:0}));
 function placePinkHighPoly(entry){
  if(!highPolyTree)return;
  const clone=highPolyTree.clone(true);
  clone.traverse(obj=>{
   if(!obj.isMesh)return;
-  // Na cerejeira, só ocultamos a folhagem original: tronco e galhos continuam.
-  const names=(obj.name+" "+(Array.isArray(obj.material)?obj.material.map(m=>m?.name).join(" "):obj.material?.name||""));
+  const names=obj.name+" "+(Array.isArray(obj.material)?obj.material.map(m=>m?.name).join(" "):obj.material?.name||"");
   if(/leaf|folha|foliage/i.test(names))obj.visible=false;
  });
  const variation=.88+rng(entry.seed+7)*.25;
@@ -726,25 +729,31 @@ function placePinkHighPoly(entry){
  clone.rotation.y=rng(entry.seed+19)*Math.PI*2;
  clone.position.set(entry.x,0,entry.z);
  scene.add(clone);
- // Instancing mantém a copa densa sem centenas de draw calls por árvore.
- const flowers=new THREE.Group();
- flowers.position.set(entry.x,0,entry.z);
+ const flowers=new THREE.Group();flowers.position.set(entry.x,0,entry.z);
  const dummy=new THREE.Object3D();
- const count=105;
- for(let colorIndex=0;colorIndex<blossomMaterials.length;colorIndex++){
-  const mesh=new THREE.InstancedMesh(blossomGeometry,blossomMaterials[colorIndex],count);
+ const blossomsPerColor=65,petals=5;
+ for(let colorIndex=0;colorIndex<blossomPetalMaterials.length;colorIndex++){
+  const mesh=new THREE.InstancedMesh(blossomPetalGeometry,blossomPetalMaterials[colorIndex],blossomsPerColor*petals);
   mesh.frustumCulled=false;
-  for(let i=0;i<count;i++){
-   const n=i*3+colorIndex*107+entry.seed*13;
-   const angle=rng(n+1)*Math.PI*2;
-   const radius=Math.sqrt(rng(n+2))*(1.8*variation);
-   const level=rng(n+3);
-   const crownWidth=.55+.45*Math.sin(Math.PI*level);
-   dummy.position.set(Math.cos(angle)*radius*crownWidth, (3.15+level*2.45)*variation,Math.sin(angle)*radius*crownWidth);
-   const size=(.10+rng(n+4)*.115)*variation;
-   dummy.scale.set(size*(.9+rng(n+5)*.3),size*(.85+rng(n+6)*.4),size);
-   dummy.rotation.set(rng(n+7)*Math.PI,rng(n+8)*Math.PI,0);
-   dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
+  let instance=0;
+  for(let i=0;i<blossomsPerColor;i++){
+   const n=i*17+colorIndex*1009+entry.seed*23;
+   // Pequenos grupos irregulares acompanham os ramos, com espaços entre eles.
+   const branch=Math.floor(rng(n+1)*11);
+   const theta=branch*Math.PI*2/11+rng(n+2)*.24;
+   const distance=(.38+rng(n+3)*1.45)*variation;
+   const height=(3.25+rng(n+4)*2.25)*variation;
+   const baseX=Math.cos(theta)*distance+(rng(n+5)-.5)*.5;
+   const baseZ=Math.sin(theta)*distance+(rng(n+6)-.5)*.5;
+   const scale=(.36+rng(n+7)*.32)*variation;
+   const tilt=rng(n+8)*Math.PI*2;
+   for(let petal=0;petal<petals;petal++){
+    const angle=petal*Math.PI*2/petals;
+    dummy.position.set(baseX,height,baseZ);
+    dummy.rotation.set(.35*Math.sin(tilt),tilt,angle);
+    dummy.scale.setScalar(scale);
+    dummy.updateMatrix();mesh.setMatrixAt(instance++,dummy.matrix);
+   }
   }
   mesh.instanceMatrix.needsUpdate=true;
   flowers.add(mesh);
