@@ -472,11 +472,31 @@ function path(points,width,color){
 }
 for(const road of data.roads){path(road,3.5,"#c7bea4");path(road,2.85,"#e4d6b8")}
 const trunkMat=mat("#6e5740"),leaves=[mat("#346e48"),mat("#4a8753"),mat("#629a5e"),mat("#3b7d4a")];
-function tree(x,z,seed){
- const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.26,2.2,7),trunkMat);trunk.position.set(x,1.05,z);trunk.castShadow=true;scene.add(trunk);
- for(let i=0;i<3;i++){const foliage=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1+(seed+i)%3*.15,1),leaves[(Math.floor(seed*11)+i)%leaves.length]);
- foliage.position.set(x+(i-1)*.54,2.65+(i%2)*.44,z+(i%2)*.25);foliage.castShadow=true;scene.add(foliage)}
+// Vegetação orgânica otimizada: galhos visíveis e folhagens irregulares.
+// Inspirada nas referências HighPoly Tree Packs, sem copiar ativos comerciais.
+const leafGeo=new THREE.IcosahedronGeometry(1,2);
+const branchGeo=new THREE.CylinderGeometry(.07,.12,1,6);
+function organicTree(x,z,seed,pink=false){
+ const rand=(n)=>rng(seed*3.79+n*17.23);
+ const height=3.5+rand(1)*1.8,spread=1.65+rand(2)*.7;
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13,.28,height*.72,9),mat("#73543c"));
+ trunk.position.set(x,height*.36,z);trunk.castShadow=true;scene.add(trunk);
+ const palette=pink?["#ef8ab9","#f3a6c9","#df6aa7","#f5bad4"]:["#437b3b","#579246","#6e9f4f","#356e40","#83aa56"];
+ for(let i=0;i<7;i++){
+  const theta=i*Math.PI*2/7+rand(i+5)*.55,rad=spread*(.35+rand(i+18)*.48);
+  const bx=x+Math.cos(theta)*rad,bz=z+Math.sin(theta)*rad,by=height*(.68+rand(i+30)*.26);
+  const from=new THREE.Vector3(x,height*.55,z),to=new THREE.Vector3(bx,by,bz),v=to.clone().sub(from);
+  const branch=new THREE.Mesh(branchGeo,mat("#73543c"));branch.position.copy(from).add(to).multiplyScalar(.5);branch.scale.set(1,v.length(),1);branch.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());scene.add(branch);
+  const cluster=new THREE.Mesh(leafGeo,mat(palette[i%palette.length],.93));
+  cluster.position.set(bx,by,bz);cluster.scale.set(.8+rand(i+40)*.55,.9+rand(i+50)*.65,.85+rand(i+60)*.55);cluster.castShadow=i%2===0;scene.add(cluster);
+ }
+ for(let i=0;i<3;i++){
+  const crown=new THREE.Mesh(leafGeo,mat(palette[(i+2)%palette.length],.93));
+  crown.position.set(x+(i-1)*.48,height+.15+(i%2)*.28,z+(i-1)*.3);
+  crown.scale.set(1.02,.85,1.05);crown.castShadow=true;scene.add(crown);
+ }
 }
+function tree(x,z,seed){organicTree(x,z,seed,false)}
 function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],vx=bx-ax,vy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy||1)));if(Math.hypot(x-ax-vx*t,y-ay-vy*t)<1.8)return true}return false}
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 // Praça principal grande diretamente ATRÁS do Prédio Central (ao norte no mapa), conforme referência aérea.
@@ -557,10 +577,7 @@ function palm(x,z){
  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.13,.25,5.8,9),mat("#8d7250"));stem.position.set(x,2.9,z);stem.castShadow=true;scene.add(stem);
  for(let i=0;i<9;i++){const angle=i*Math.PI*2/9;const leaf=new THREE.Mesh(new THREE.ConeGeometry(.45,3.6,5),mat(i%2?"#3e994e":"#5db95b"));leaf.position.set(x+Math.cos(angle)*1.25,5.9,z+Math.sin(angle)*1.25);leaf.rotation.z=Math.cos(angle)*.88;leaf.rotation.x=-Math.sin(angle)*.88;leaf.castShadow=true;scene.add(leaf)}
 }
-function flowering(x,z,seed){
- const stem=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,2.5,7),mat("#77573e"));stem.position.set(x,1.25,z);scene.add(stem);
- for(let i=0;i<5;i++){const angle=i*Math.PI*2/5;const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.98,1),mat(i%2?"#ed6eac":"#f59ac4"));crown.position.set(x+Math.cos(angle)*.85,3.1+(i%2)*.45,z+Math.sin(angle)*.85);crown.castShadow=true;scene.add(crown)}
-}
+function flowering(x,z,seed){organicTree(x,z,seed,true)}
 for(const [x,y] of [[12,24],[24,25],[11,33],[26,34],[12,17],[23,18],[10,39],[27,24],[8,21],[15,14],[24,10]]){const p=at(x,y);if(!insideBuilding(x,y,.4)&&!inPlaza(x,y,1))palm(p.x,p.z)}
 for(const [x,y] of [[9,27],[12,30],[13,36],[25,35],[24,30],[8,36],[11,18],[23,13],[7,24]]){const p=at(x,y);if(!insideBuilding(x,y,.2)&&!inPlaza(x,y,1))flowering(p.x,p.z,x*y)}
 function lamp(x,z){cylinder(.065,4.4,"#5b655f",x,2.2,z);const globe=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshStandardMaterial({color:"#fff3c5",emissive:"#e8c77e",emissiveIntensity:.45}));globe.position.set(x,4.48,z);scene.add(globe)}
