@@ -915,7 +915,8 @@ function frame(){
  const dx=(cameraMode==="third"||missionEngine.active)?(Number(held.has("d"))-Number(held.has("a"))):0,dz=(cameraMode==="third"||missionEngine.active)?(Number(held.has("w"))-Number(held.has("s"))):0;
  const move=forward.multiplyScalar(dz).addScaledVector(right,dx);
  const moving=move.lengthSq()>0;
- const maxSpeed=held.has("shift")?8.5:5.5;
+ // Passos menores: a distância percorrida acompanha melhor o ciclo das pernas.
+ const maxSpeed=held.has("shift")?5.2:3.0;
  if(moving)move.normalize().multiplyScalar(maxSpeed);
  const smooth=1-Math.exp(-dt*(moving?9:14));
  velocity.x=THREE.MathUtils.lerp(velocity.x,move.x,smooth);
@@ -954,7 +955,7 @@ function frame(){
  if(walkMixer&&walkAction){
   const walking=speed>.15;
   walkAction.paused=!walking;
-  if(walking)walkAction.timeScale=THREE.MathUtils.clamp(speed/5.5,.4,1.7);
+  if(walking)walkAction.timeScale=THREE.MathUtils.clamp(speed/3.0,.35,1.7);
   walkMixer.update(dt);
  }
  const centralSite=buildings.find(b=>b.site.id==="central");
