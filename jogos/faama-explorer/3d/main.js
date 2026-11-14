@@ -351,7 +351,7 @@ for(const s of data.sites){
   child.position.x-=p.x;child.position.z-=p.z;
   group.add(child);
  }
- group.rotation.y=-Math.PI/2;
+ group.rotation.y=s.id==="church"?Math.PI/2:-Math.PI/2;
  scene.add(group);
 }
 function path(points,width,color){
