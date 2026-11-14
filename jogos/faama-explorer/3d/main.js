@@ -874,7 +874,7 @@ function frame(){
   const activity=THREE.MathUtils.clamp(speed/5.5,0,1);
   const swing=Math.sin(walk)*.46*activity;
   const targets={
-   leftArm:{x:-swing*.7,z:1.12},rightArm:{x:swing*.7,z:-1.12},
+   leftArm:{x:-swing*.35,z:1.53},rightArm:{x:swing*.35,z:-1.53},
    leftLeg:{x:swing,z:0},rightLeg:{x:-swing,z:0}
   };
   for(const [name,rig] of Object.entries(playerRig)){
