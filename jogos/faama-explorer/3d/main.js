@@ -339,7 +339,7 @@ function addBuilding(s){
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
 for(const s of data.sites){
- if(s.id!=="male"&&s.id!=="academic"&&s.id!=="church"){addBuilding(s);continue}
+ if(s.id!=="male"&&s.id!=="academic"&&s.id!=="church"&&s.id!=="school"){addBuilding(s);continue}
  // Girar os prédios masculino, acadêmico e igreja para apresentar suas fachadas ao caminho.
  const before=new Set(scene.children);
  addBuilding(s);
@@ -351,7 +351,7 @@ for(const s of data.sites){
   child.position.x-=p.x;child.position.z-=p.z;
   group.add(child);
  }
- group.rotation.y=s.id==="church"?Math.PI/2:-Math.PI/2;
+ group.rotation.y=(s.id==="church"||s.id==="school")?Math.PI/2:-Math.PI/2;
  scene.add(group);
 }
 function path(points,width,color){
