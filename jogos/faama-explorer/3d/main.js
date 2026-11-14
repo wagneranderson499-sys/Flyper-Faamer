@@ -199,11 +199,96 @@ function realCentralFallback(p,w,d){
   }
  }
 }
+// Fachada do Residencial Masculino modelada a partir da foto enviada.
+function maleResidencePhotoModel(p,w,d){
+ const x=p.x,z=p.z,front=z+d/2;
+ const cream="#e9e6dc",tile="#f4f0e9",blue="#343f93",green="#2a9e7f",glass="#244a59";
+ const add=(W,H,D,C,X,Y,Z)=>box(W,H,D,C,X,Y,Z);
+ const sloped=(x0,z0,width,depth,height,angle)=>{
+  const roofMesh=new THREE.Mesh(new THREE.BoxGeometry(width,.28,depth),mat(green));
+  roofMesh.position.set(x0,height,z0);roofMesh.rotation.z=angle;roofMesh.castShadow=true;scene.add(roofMesh);
+  for(let j=0;j<Math.floor(width/.36);j++){
+   const xx=x0-width/2+.18+j*.36;
+   const rib=box(.045,.065,depth,"#73c6ad",xx,height+.16+Math.tan(angle)*(xx-x0),z0,false);
+   rib.rotation.z=angle;
+  }
+ };
+ // Duas alas largas com fachadas de azulejo branco.
+ add(w*.42,7.1,d*.95,cream,x-w*.3,3.55,z);
+ add(w*.42,7.1,d*.95,cream,x+w*.3,3.55,z);
+ add(w*.2,6.6,d*.84,"#d9d8d0",x,3.3,z-d*.06);
+ for(const side of [-1,1]){
+  const sx=x+side*w*.31;
+  // Janelas de blocos de vidro no pavimento superior.
+  for(let row=0;row<5;row++)for(let col=0;col<3;col++){
+   add(.24,.26,.11,"#abc3cb",sx+(col-1)*.28,4.8+row*.3,front+.16);
+   add(.04,.27,.13,"#f9f9f3",sx+(col-1)*.28+.14,4.8+row*.3,front+.22);
+  }
+  // Janelas térreas estreitas.
+  add(w*.13,1.45,.13,glass,sx,2.05,front+.17);
+  for(let k=0;k<4;k++)add(.055,1.45,.15,"#eeeae2",sx-w*.055+k*w*.037,2.05,front+.26);
+  // Coberturas verdes inclinadas sobre as alas.
+  sloped(sx,z,w*.49,d*1.1,7.5,-side*.09);
+  // Mãos-francesas metálicas sob a borda do telhado.
+  for(const dx of [-w*.16,w*.16]){
+   const brace=add(.11,.85,.11,"#283b42",sx+dx,6.9,front+.42);
+   brace.rotation.z=side*.4;
+  }
+ }
+ // Entrada central profunda, envidraçada e com quatro portas.
+ add(w*.39,3.45,.18,"#d9d8d0",x,1.75,front+.15);
+ for(let i=0;i<4;i++){
+  const xx=x+(i-1.5)*w*.09;
+  add(w*.082,2.7,.19,glass,xx,1.5,front+.29);
+  add(.055,2.8,.23,"#d7e2df",xx+w*.043,1.5,front+.43);
+  add(w*.075,.06,.23,"#7fa7aa",xx,2.55,front+.44);
+ }
+ // Faixa de azulejos azul-violeta contornando a varanda.
+ add(w*.49,.76,1.65,blue,x,3.77,front+1.1);
+ add(w*.35,.8,.18,tile,x,4.52,front+1.91);
+ for(const side of [-1,1]){
+  const railing=add(w*.24,.13,.13,"#a6c2c8",x+side*w*.13,5.2,front+1.92);
+  railing.rotation.y=side*.42;
+  for(let i=0;i<4;i++){
+   const xx=x+side*(w*.02+i*w*.055);
+   add(.05,.65,.06,"#dce9e7",xx,4.9,front+1.91-i*.1);
+  }
+ }
+ // Pórtico triangular frontal e empena acima da varanda.
+ const triangle=new THREE.Shape();triangle.moveTo(-w*.23,0);triangle.lineTo(0,2.05);triangle.lineTo(w*.23,0);triangle.closePath();
+ const tg=new THREE.ExtrudeGeometry(triangle,{depth:.38,bevelEnabled:false});
+ const tympanum=new THREE.Mesh(tg,mat("#f0eee6"));tympanum.position.set(x,7.25,front-.35);tympanum.castShadow=true;scene.add(tympanum);
+ // Coluna cilíndrica verde-clara, contínua entre os dois pavimentos.
+ const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.38,.44,9.1,20),mat("#9bc9bf"));
+ pillar.position.set(x,4.55,front+1.68);pillar.castShadow=true;scene.add(pillar);
+ for(let j=0;j<20;j++){
+  const theta=j*Math.PI*2/20;
+  const strip=new THREE.Mesh(new THREE.BoxGeometry(.07,8.85,.035),mat(j%3===0?"#d5e8e0":"#6fa99f"));
+  strip.position.set(x+Math.cos(theta)*.405,4.55,front+1.68+Math.sin(theta)*.405);
+  strip.rotation.y=-theta;scene.add(strip);
+ }
+ // Jardins e passeio em frente à entrada.
+ add(w*.55,.12,3.1,"#e4dfd4",x,.07,front+2.5);
+ for(const side of [-1,1]){
+  const bx=x+side*w*.4;
+  add(w*.18,.48,1.45,"#d9d1c4",bx,.24,front+2.3);
+  for(let i=0;i<4;i++){
+   const xx=bx+(i-1.5)*w*.035;
+   const leaf=new THREE.Mesh(new THREE.IcosahedronGeometry(.29,1),mat(i%2?"#578a4b":"#8a6449"));
+   leaf.position.set(xx,.76,front+2.3);scene.add(leaf);
+  }
+ }
+}
 function addBuilding(s){
  const p=at(s.x+s.w/2,s.y+s.h/2),w=s.w*unit,d=s.h*unit;
  if(s.type==="central"){
   buildings.push({site:s,x:p.x,z:p.z,w,d});
   realCentralFallback(p,w,d);
+  return;
+ }
+ if(s.type==="male"){
+  buildings.push({site:s,x:p.x,z:p.z,w,d});
+  maleResidencePhotoModel(p,w,d);
   return;
  }
  if(s.type==="pool"){
