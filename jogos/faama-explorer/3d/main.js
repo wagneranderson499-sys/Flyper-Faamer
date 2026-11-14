@@ -1,6 +1,7 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 import {createMissions3D} from "./missions3d.js";
 import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js";
+import {FBXLoader} from "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/FBXLoader.js";
 
 const data={...window.FAAMA_MAP,sites:window.FAAMA_MAP.sites.map(site=>site.id==="male"?{...site,x:28.5,y:18,w:5,h:4}:site)};
 // O residencial masculino ocupa a antiga posição da árvore florida rosa (31,20).
@@ -763,6 +764,7 @@ for(const side of [-1,1]){
 // Mantemos o avatar anterior como reserva até o novo modelo terminar de carregar.
 let importedPlayer=null;
 let playerRig=null;
+let walkMixer=null,walkAction=null;
 const avatarFallback=[...avatar.children];
 new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb",gltf=>{
  try{
@@ -810,6 +812,39 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
   if(Object.keys(bones).length===4)playerRig=bones;
   else console.warn("Alguns ossos não encontrados; animação procedural parcial indisponível",Object.keys(bones));
   console.info("Personagem GLB carregado; rig para caminhada:",!!playerRig);
+  // Animação Walking.fbx (Mixamo, Without Skin): aplica somente rotações
+  // aos ossos do personagem GLB, sem deslocar o avatar no mapa.
+  new FBXLoader().load("./models/player/Walking.fbx",fbx=>{
+   try{
+    const clip=fbx.animations[0];
+    if(!clip)throw Error("Walking.fbx não contém animação");
+    const boneLookup=new Map();
+    model.traverse(node=>{
+     if(!node.isBone)return;
+     const normalized=node.name.replace(/^mixamorig[:_]?/i,"").replace(/_\\d+$/,"").toLowerCase();
+     boneLookup.set(normalized,node.name);
+    });
+    const tracks=[];
+    for(const track of clip.tracks){
+     const split=track.name.lastIndexOf(".");
+     if(split<0)continue;
+     const property=track.name.slice(split+1);
+     if(property!=="quaternion")continue;
+     const sourceName=track.name.slice(0,split).replace(/^.*[|]/,"");
+     const key=sourceName.replace(/^mixamorig[:_]?/i,"").replace(/_\\d+$/,"").toLowerCase();
+     const targetName=boneLookup.get(key);
+     if(!targetName)continue;
+     const mapped=track.clone();mapped.name=targetName+".quaternion";tracks.push(mapped);
+    }
+    if(tracks.length<10)throw Error("Poucos ossos compatíveis com a animação: "+tracks.length);
+    const mappedClip=new THREE.AnimationClip("Walking",clip.duration,tracks);
+    walkMixer=new THREE.AnimationMixer(model);
+    walkAction=walkMixer.clipAction(mappedClip);
+    walkAction.play();walkAction.paused=true;
+    playerRig=null; // Desativa a animação manual quando o FBX estiver pronto.
+    console.info("Caminhada Mixamo integrada:",tracks.length,"ossos");
+   }catch(error){console.error("Não foi possível aplicar Walking.fbx; mantendo movimentos anteriores",error)}
+  },undefined,error=>console.warn("Walking.fbx não encontrado; mantendo animação anterior",error));
  }catch(error){console.error("Falha ao preparar personagem GLB",error)}
 },undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error));
 const playerName=document.getElementById("playerName");
@@ -901,6 +936,12 @@ function frame(){
    const targetQuaternion=(rig.down||rig.base).clone().multiply(rotation);
    rig.bone.quaternion.slerp(targetQuaternion,1-Math.exp(-dt*9));
   }
+ }
+ if(walkMixer&&walkAction){
+  const walking=speed>.15;
+  walkAction.paused=!walking;
+  if(walking)walkAction.timeScale=THREE.MathUtils.clamp(speed/5.5,.4,1.7);
+  walkMixer.update(dt);
  }
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
