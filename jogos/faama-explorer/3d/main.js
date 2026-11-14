@@ -339,8 +339,8 @@ function addBuilding(s){
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
 for(const s of data.sites){
- if(s.id!=="male"){addBuilding(s);continue}
- // Girar somente o residencial masculino: fachada voltada para o caminho mostrado.
+ if(s.id!=="male"&&s.id!=="academic"){addBuilding(s);continue}
+ // Girar os prédios masculino e acadêmico para apresentar a fachada ao caminho.
  const before=new Set(scene.children);
  addBuilding(s);
  const p=at(s.x+s.w/2,s.y+s.h/2);
