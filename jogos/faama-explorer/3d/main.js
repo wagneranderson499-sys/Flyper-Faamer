@@ -799,7 +799,10 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
    if(!child)continue;
    const worldRotation=rig.bone.getWorldQuaternion(new THREE.Quaternion());
    const currentDirection=child.position.clone().normalize().applyQuaternion(worldRotation);
-   const delta=new THREE.Quaternion().setFromUnitVectors(currentDirection,new THREE.Vector3(0,-1,0));
+   // Afasta discretamente os braços do tronco (aprox. 7 graus), mantendo-os para baixo.
+   const outward=key==="leftArm"?-0.12:0.12;
+   const relaxedDirection=new THREE.Vector3(outward,-1,0).normalize();
+   const delta=new THREE.Quaternion().setFromUnitVectors(currentDirection,relaxedDirection);
    const desiredWorld=delta.multiply(worldRotation);
    const parentWorld=rig.bone.parent.getWorldQuaternion(new THREE.Quaternion());
    rig.down=parentWorld.invert().multiply(desiredWorld);
