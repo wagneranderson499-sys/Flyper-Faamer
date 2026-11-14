@@ -481,7 +481,8 @@ function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i+
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
 // Praça principal grande diretamente ATRÁS do Prédio Central (ao norte no mapa), conforme referência aérea.
 // Praça principal circular com anéis concêntricos e três pequenos jardins redondos.
-const plazas=[{x:19,y:18.2,r:18.5},{x:11.9,y:19.2,r:3.8},{x:11.6,y:22,r:3.5},{x:13.1,y:16.1,r:3.4}];
+// Praça principal: ocupa a área imediatamente atrás do Prédio Central.
+const plazas=[{x:19,y:18.2,r:16},{x:11.7,y:19.2,r:3.5},{x:11.5,y:22,r:3.1},{x:13,y:15.9,r:3.2}];
 function inPlaza(gx,gy,pad=0){return plazas.some(q=>Math.hypot((gx-q.x)*unit*spacing,(gy-q.y)*unit*spacing)<q.r+pad)}
 function plazaCircle(gx,gy,r,kind="main"){
  const p=at(gx,gy),n=64;
@@ -493,7 +494,7 @@ function plazaCircle(gx,gy,r,kind="main"){
   const mesh=new THREE.Mesh(new THREE.TorusGeometry(radius,tube,8,n),mat(color));
   mesh.rotation.x=-Math.PI/2;mesh.position.set(p.x,y,p.z);mesh.receiveShadow=true;scene.add(mesh);
  };
- disc(r,"#e3dcca",.16);ring(r-.09,.19,"#faf8f1",.23);
+ disc(r,"#e3dcca",.24);ring(r-.09,.19,"#faf8f1",.32);
  if(kind==="main"){
   disc(r*.83,"#48864c",.26);ring(r*.82,.18,"#eee8da",.34);
   disc(r*.61,"#ddd7c7",.36);ring(r*.60,.15,"#f9f7f0",.44);
@@ -534,16 +535,21 @@ function plazaWalk(a,b,width=1.7){
  const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
  walk.rotation.y=Math.atan2(B.x-A.x,B.z-A.z);
 }
-// Praça circular grande imediatamente ao norte da fachada posterior do Prédio Central.
+// Praça reconstruída na traseira do Central. O disco é grande e claramente visível na panorâmica.
 plazaWalk([19,24],[19,18.2],3.3);
-plazaWalk([19,18.2],[19,12.6],2.4);
-plazaWalk([19,18.2],[11.9,19.2],2);
-plazaWalk([11.9,19.2],[11.6,22],1.6);
-plazaWalk([11.9,19.2],[13.1,16.1],1.6);
-plazaCircle(19,18.2,18.5);
-plazaCircle(11.9,19.2,3.8,"garden");
-plazaCircle(11.6,22,3.5,"garden");
-plazaCircle(13.1,16.1,3.4,"garden");
+plazaWalk([19,18.2],[19,12.8],2.4);
+plazaWalk([19,18.2],[11.7,19.2],2);
+plazaWalk([11.7,19.2],[11.5,22],1.6);
+plazaWalk([11.7,19.2],[13,15.9],1.6);
+plazaCircle(19,18.2,16);
+plazaCircle(11.7,19.2,3.5,"garden");
+plazaCircle(11.5,22,3.1,"garden");
+plazaCircle(13,15.9,3.2,"garden");
+// Elemento identificador visível, inclusive quando a câmera estiver distante.
+const plazaMarker=document.createElement("div");
+plazaMarker.textContent="✓ CENÁRIO ATUALIZADO · PRAÇA GRANDE V5";
+Object.assign(plazaMarker.style,{position:"fixed",bottom:"12px",left:"12px",zIndex:"9999",background:"#123b31",color:"#fff",padding:"9px 12px",borderRadius:"9px",font:"bold 12px system-ui",pointerEvents:"none"});
+document.body.appendChild(plazaMarker);
 for(let y=1;y<43;y+=1.6)for(let x=1;x<33;x+=1.55){const seed=rng(x*31+y*17);if(seed<.57||insideBuilding(x,y,1.3)||nearRoad(x,y)||inPlaza(x,y,1.3))continue;const p=at(x+(seed-.5)*.7,y+(rng(seed*22)-.5)*.7);tree(p.x,p.z,seed)}
 for(let i=0;i<85;i++){const x=1+rng(i*19)*32,y=1+rng(i*47)*42;if(insideBuilding(x,y,.8)||nearRoad(x,y)||inPlaza(x,y,.5))continue;const p=at(x,y);box(.12,.25,.12,i%4===0?"#e7d49a":"#5c9553",p.x,.08,p.z,false)}
 // Paisagismo inspirado na referência: palmeiras, ipês floridos, postes e portaria.
