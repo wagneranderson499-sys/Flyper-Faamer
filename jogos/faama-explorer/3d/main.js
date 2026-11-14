@@ -252,7 +252,22 @@ function addBuilding(s){
  planters(p,w,d);
  buildings.push({site:s,x:p.x,z:p.z,w,d});
 }
-for(const s of data.sites)addBuilding(s);
+for(const s of data.sites){
+ if(s.id!=="male"){addBuilding(s);continue}
+ // Girar somente o residencial masculino: fachada voltada para o caminho mostrado.
+ const before=new Set(scene.children);
+ addBuilding(s);
+ const p=at(s.x+s.w/2,s.y+s.h/2);
+ const group=new THREE.Group();group.position.set(p.x,0,p.z);
+ for(const child of [...scene.children]){
+  if(before.has(child))continue;
+  scene.remove(child);
+  child.position.x-=p.x;child.position.z-=p.z;
+  group.add(child);
+ }
+ group.rotation.y=-Math.PI/2;
+ scene.add(group);
+}
 function path(points,width,color){
  for(let i=0;i<points.length-1;i++){
   const a=at(...points[i]),b=at(...points[i+1]),len=Math.hypot(b.x-a.x,b.z-a.z);
