@@ -818,11 +818,17 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
    try{
     const clip=fbx.animations[0];
     if(!clip)throw Error("Walking.fbx não contém animação");
+    // FBXLoader e GLTFLoader usam convenções diferentes para nomes de ossos.
+    // Ex.: "mixamorigHips", "mixamorig:Hips" e "mixamorig_Hips_001".
+    const normalizeBoneName=name=>name
+     .replace(/^.*[|]/,"")
+     .replace(/^mixamorig[:_]?/i,"")
+     .replace(/_\\d+$/,"")
+     .replace(/[^a-z0-9]/gi,"")
+     .toLowerCase();
     const boneLookup=new Map();
     model.traverse(node=>{
-     if(!node.isBone)return;
-     const normalized=node.name.replace(/^mixamorig[:_]?/i,"").replace(/_\\d+$/,"").toLowerCase();
-     boneLookup.set(normalized,node.name);
+     if(node.isBone)boneLookup.set(normalizeBoneName(node.name),node.name);
     });
     const tracks=[];
     for(const track of clip.tracks){
@@ -830,12 +836,20 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
      if(split<0)continue;
      const property=track.name.slice(split+1);
      if(property!=="quaternion")continue;
-     const sourceName=track.name.slice(0,split).replace(/^.*[|]/,"");
-     const key=sourceName.replace(/^mixamorig[:_]?/i,"").replace(/_\\d+$/,"").toLowerCase();
+     const sourceName=track.name.slice(0,split);
+     const key=normalizeBoneName(sourceName);
      const targetName=boneLookup.get(key);
      if(!targetName)continue;
-     const mapped=track.clone();mapped.name=targetName+".quaternion";tracks.push(mapped);
+     const mapped=track.clone();
+     mapped.name=targetName+".quaternion";
+     tracks.push(mapped);
     }
+    console.info("Diagnóstico Mixamo:",{
+     fbxbones:clip.tracks.slice(0,8).map(t=>t.name),
+     glbbones:[...boneLookup.entries()].slice(0,8),
+     compatible:tracks.length,
+     total:clip.tracks.length
+    });
     if(tracks.length<10)throw Error("Poucos ossos compatíveis com a animação: "+tracks.length);
     const mappedClip=new THREE.AnimationClip("Walking",clip.duration,tracks);
     walkMixer=new THREE.AnimationMixer(model);
