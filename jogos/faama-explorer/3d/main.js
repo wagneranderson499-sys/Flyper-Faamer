@@ -789,6 +789,21 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
    const bone=model.getObjectByName(name);
    if(bone?.isBone)bones[key]={bone,base:bone.quaternion.clone()};
   }
+  // Calcula a pose de braços para baixo a partir da direção real dos ossos,
+  // sem depender dos eixos locais (que variam entre modelos GLB).
+  model.updateWorldMatrix(true,true);
+  for(const key of ["leftArm","rightArm"]){
+   const rig=bones[key];
+   if(!rig)continue;
+   const child=rig.bone.children.find(node=>node.isBone&&node.position.lengthSq()>1e-6);
+   if(!child)continue;
+   const worldRotation=rig.bone.getWorldQuaternion(new THREE.Quaternion());
+   const currentDirection=child.position.clone().normalize().applyQuaternion(worldRotation);
+   const delta=new THREE.Quaternion().setFromUnitVectors(currentDirection,new THREE.Vector3(0,-1,0));
+   const desiredWorld=delta.multiply(worldRotation);
+   const parentWorld=rig.bone.parent.getWorldQuaternion(new THREE.Quaternion());
+   rig.down=parentWorld.invert().multiply(desiredWorld);
+  }
   if(Object.keys(bones).length===4)playerRig=bones;
   else console.warn("Alguns ossos não encontrados; animação procedural parcial indisponível",Object.keys(bones));
   console.info("Personagem GLB carregado; rig para caminhada:",!!playerRig);
@@ -874,13 +889,13 @@ function frame(){
   const activity=THREE.MathUtils.clamp(speed/5.5,0,1);
   const swing=Math.sin(walk)*.46*activity;
   const targets={
-   leftArm:{x:-swing*.35,z:1.53},rightArm:{x:swing*.35,z:-1.53},
+   leftArm:{x:-swing*.22,z:0},rightArm:{x:swing*.22,z:0},
    leftLeg:{x:swing,z:0},rightLeg:{x:-swing,z:0}
   };
   for(const [name,rig] of Object.entries(playerRig)){
    const pose=targets[name];
    const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(pose.x,0,pose.z,"XYZ"));
-   const targetQuaternion=rig.base.clone().multiply(rotation);
+   const targetQuaternion=(rig.down||rig.base).clone().multiply(rotation);
    rig.bone.quaternion.slerp(targetQuaternion,1-Math.exp(-dt*9));
   }
  }
