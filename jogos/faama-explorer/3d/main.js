@@ -494,11 +494,37 @@ for(const s of data.sites){
  group.rotation.y=(s.id==="church"||s.id==="school")?Math.PI/2:-Math.PI/2;
  scene.add(group);
 }
+// Piso intertravado PBR aplicado às estradinhas e passarelas.
+const pavementLoader=new THREE.TextureLoader();
+const pavementBase="./models/pavement/PavingStones108_2K-JPG_";
+function paveSegment(width,length,x,y,z,angle){
+ let surface;
+ const texture=(name,color=false)=>{
+  const tex=pavementLoader.load(pavementBase+name,undefined,undefined,()=>{
+   if(surface)surface.visible=false;
+   console.warn("Textura PavingStones108 ausente:",name);
+  });
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  tex.repeat.set(width/2.3,length/2.3);
+  tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+  if(color)tex.colorSpace=THREE.SRGBColorSpace;
+  return tex;
+ };
+ const map=texture("Color.jpg",true),normalMap=texture("NormalGL.jpg"),roughnessMap=texture("Roughness.jpg");
+ surface=new THREE.Mesh(new THREE.PlaneGeometry(width,length),new THREE.MeshStandardMaterial({map,normalMap,roughnessMap,normalScale:new THREE.Vector2(.65,.65),roughness:1,metalness:0,side:THREE.DoubleSide}));
+ surface.rotation.order="YXZ";
+ surface.rotation.set(-Math.PI/2,angle,0);
+ surface.position.set(x,y,z);
+ surface.receiveShadow=true;
+ scene.add(surface);
+}
 function path(points,width,color){
  for(let i=0;i<points.length-1;i++){
   const a=at(...points[i]),b=at(...points[i+1]),len=Math.hypot(b.x-a.x,b.z-a.z);
   const o=box(width,.065,len,color,(a.x+b.x)/2,.015,(a.z+b.z)/2,false);
-  o.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  const angle=Math.atan2(b.x-a.x,b.z-a.z);
+  o.rotation.y=angle;
+  if(width<3)paveSegment(width,len,(a.x+b.x)/2,.051,(a.z+b.z)/2,angle);
  }
 }
 for(const road of data.roads){path(road,3.5,"#c7bea4");path(road,2.85,"#e4d6b8")}
@@ -649,7 +675,7 @@ function plazaCircle(gx,gy,r,kind="main"){
 function plazaWalk(a,b,width=1.7){
  const A=at(...a),B=at(...b),length=Math.hypot(B.x-A.x,B.z-A.z);
  const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
- walk.rotation.y=Math.atan2(B.x-A.x,B.z-A.z);
+ const angle=Math.atan2(B.x-A.x,B.z-A.z);walk.rotation.y=angle;paveSegment(width,length,(A.x+B.x)/2,.156,(A.z+B.z)/2,angle);
 }
 // Praça reconstruída na traseira do Central. O disco é grande e claramente visível na panorâmica.
 plazaWalk([19,24],[19,18.2],3.3);
