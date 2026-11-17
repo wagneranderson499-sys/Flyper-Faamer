@@ -495,29 +495,40 @@ for(const s of data.sites){
  scene.add(group);
 }
 // Piso intertravado PBR aplicado às estradinhas e passarelas.
+// Compartilha as três texturas PBR entre todos os trechos: evita centenas de downloads.
 const pavementLoader=new THREE.TextureLoader();
 const pavementBase="./models/pavement/PavingStones108_2K-JPG_";
-function pavementMaterial(width,length,fallback){
- const tilesX=width/2.3,tilesY=length/2.3;
- let material;
- const texture=(name,color=false)=>{
-  const tex=pavementLoader.load(pavementBase+name,undefined,undefined,()=>{
-   console.warn("Textura PavingStones108 ausente:",name);
-   if(material)material.map=null;
-   if(material)material.color.set(fallback);
-   if(material)material.needsUpdate=true;
-  });
-  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
-  tex.repeat.set(tilesX,tilesY);
-  tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
-  if(color)tex.colorSpace=THREE.SRGBColorSpace;
-  return tex;
- };
- const map=texture("Color.jpg",true);
- const normalMap=texture("NormalGL.jpg");
- const roughnessMap=texture("Roughness.jpg");
- material=new THREE.MeshStandardMaterial({map,normalMap,roughnessMap,normalScale:new THREE.Vector2(.65,.65),roughness:1,metalness:0});
- return material;
+const pavementTexture=(name,isColor=false)=>{
+ const url=pavementBase+name;
+ const tex=pavementLoader.load(url,undefined,undefined,error=>{
+  console.error("Não foi possível carregar a textura do piso:",url,error);
+ });
+ tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+ tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ if(isColor)tex.colorSpace=THREE.SRGBColorSpace;
+ return tex;
+};
+const pavementMap=pavementTexture("Color.jpg",true);
+const pavementNormal=pavementTexture("NormalGL.jpg");
+const pavementRoughness=pavementTexture("Roughness.jpg");
+const pavementSharedMaterial=new THREE.MeshStandardMaterial({
+ map:pavementMap,normalMap:pavementNormal,roughnessMap:pavementRoughness,
+ normalScale:new THREE.Vector2(.65,.65),roughness:1,metalness:0
+});
+function applyPavement(mesh,width,length){
+ // BoxGeometry: a face superior ocupa os vértices UV 8..11.
+ // Repete os blocos proporcionalmente ao tamanho real de cada trecho.
+ const uv=mesh.geometry.attributes.uv;
+ const repeatX=width/2.3,repeatY=length/2.3;
+ for(let face=0;face<6;face++){
+  const i=face*4;
+  uv.setXY(i,0,repeatY);
+  uv.setXY(i+1,repeatX,repeatY);
+  uv.setXY(i+2,0,0);
+  uv.setXY(i+3,repeatX,0);
+ }
+ uv.needsUpdate=true;
+ mesh.material=pavementSharedMaterial;
 }
 function path(points,width,color){
  for(let i=0;i<points.length-1;i++){
@@ -525,7 +536,7 @@ function path(points,width,color){
   const o=box(width,.065,len,color,(a.x+b.x)/2,.015,(a.z+b.z)/2,false);
   const angle=Math.atan2(b.x-a.x,b.z-a.z);
   o.rotation.y=angle;
-  if(width<3)o.material=pavementMaterial(width,len,color);
+  if(width<3)applyPavement(o,width,len);
  }
 }
 for(const road of data.roads){path(road,3.5,"#c7bea4");path(road,2.85,"#e4d6b8")}
@@ -676,7 +687,7 @@ function plazaCircle(gx,gy,r,kind="main"){
 function plazaWalk(a,b,width=1.7){
  const A=at(...a),B=at(...b),length=Math.hypot(B.x-A.x,B.z-A.z);
  const walk=box(width,.065,length,"#e7dfcd",(A.x+B.x)/2,.12,(A.z+B.z)/2,false);
- const angle=Math.atan2(B.x-A.x,B.z-A.z);walk.rotation.y=angle;walk.material=pavementMaterial(width,length,"#e7dfcd");
+ const angle=Math.atan2(B.x-A.x,B.z-A.z);walk.rotation.y=angle;applyPavement(walk,width,length);
 }
 // Praça reconstruída na traseira do Central. O disco é grande e claramente visível na panorâmica.
 plazaWalk([19,24],[19,18.2],3.3);
