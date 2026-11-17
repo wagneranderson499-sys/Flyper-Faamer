@@ -533,7 +533,7 @@ function applyPavement(mesh,width,length){
 function path(points,width,color){
  for(let i=0;i<points.length-1;i++){
   const a=at(...points[i]),b=at(...points[i+1]),len=Math.hypot(b.x-a.x,b.z-a.z);
-  const o=box(width,.065,len,color,(a.x+b.x)/2,.015,(a.z+b.z)/2,false);
+  const o=box(width,.065,len,color,(a.x+b.x)/2,width<3?.09:.015,(a.z+b.z)/2,false);
   const angle=Math.atan2(b.x-a.x,b.z-a.z);
   o.rotation.y=angle;
   if(width<3)applyPavement(o,width,len);
@@ -622,6 +622,7 @@ new GLTFLoader().load(treeBase+"SM_HP_Tree.glb",gltf=>{
   for(const entry of treeInstances)placeImportedTree(entry);
   treeInstances.length=0;
   treeStatus.textContent="🌳 Árvores HighPoly carregadas";
+  console.info("Árvore HighPoly: dimensões originais",size.toArray(),"instâncias",scene.children.length);
   console.info("Árvores GLB HighPoly integradas ao campus 3D");
  }catch(error){
   treeStatus.textContent="🌳 Erro ao preparar GLB — árvores provisórias";
