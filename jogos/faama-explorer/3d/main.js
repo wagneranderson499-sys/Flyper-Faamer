@@ -18,6 +18,14 @@ stage.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight("#f0f9ff","#527a55",1.45));
 const sun=new THREE.DirectionalLight("#fff5d8",2.35);sun.position.set(-35,75,-24);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=75;sun.shadow.camera.bottom=-75;sun.shadow.normalBias=.025;scene.add(sun);
+// Diagnóstico visível dos recursos 3D, sem interromper o jogo.
+const assetWarnings=document.createElement("div");
+Object.assign(assetWarnings.style,{position:"fixed",left:"12px",top:"105px",zIndex:"99999",background:"#542b20",color:"#fff",padding:"8px 10px",borderRadius:"7px",font:"12px system-ui",maxWidth:"390px",display:"none",whiteSpace:"pre-wrap"});
+document.body.appendChild(assetWarnings);
+function reportAssetError(type,url){
+ assetWarnings.style.display="block";
+ assetWarnings.textContent+="⚠ "+type+": "+url+"\\n";
+}
 const materials=new Map();
 function mat(color,roughness=1){const key=color+roughness;if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness}));return materials.get(key)}
 function box(w,h,d,color,x,y,z,cast=true){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));o.position.set(x,y,z);o.castShadow=cast;o.receiveShadow=true;scene.add(o);return o}
@@ -498,23 +506,26 @@ for(const s of data.sites){
 // Compartilha as três texturas PBR entre todos os trechos: evita centenas de downloads.
 const pavementLoader=new THREE.TextureLoader();
 const pavementBase="./models/pavement/PavingStones108_2K-JPG_";
-const pavementTexture=(name,isColor=false)=>{
+// Não deixar a estrada preta enquanto os mapas JPG são carregados.
+const pavementSharedMaterial=new THREE.MeshStandardMaterial({color:"#ded6c4",roughness:1,metalness:0});
+const pavementTexture=(name,onReady,isColor=false)=>{
  const url=pavementBase+name;
- const tex=pavementLoader.load(url,undefined,undefined,error=>{
-  console.error("Não foi possível carregar a textura do piso:",url,error);
+ const tex=pavementLoader.load(url,()=>{
+  onReady(tex);
+  pavementSharedMaterial.needsUpdate=true;
+  console.info("Piso PBR carregado:",url);
+ },undefined,error=>{
+  console.error("Erro ao carregar piso:",url,error);
+  reportAssetError("Piso",url);
  });
  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
  tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
  if(isColor)tex.colorSpace=THREE.SRGBColorSpace;
  return tex;
 };
-const pavementMap=pavementTexture("Color.jpg",true);
-const pavementNormal=pavementTexture("NormalGL.jpg");
-const pavementRoughness=pavementTexture("Roughness.jpg");
-const pavementSharedMaterial=new THREE.MeshStandardMaterial({
- map:pavementMap,normalMap:pavementNormal,roughnessMap:pavementRoughness,
- normalScale:new THREE.Vector2(.65,.65),roughness:1,metalness:0
-});
+const pavementMap=pavementTexture("Color.jpg",tex=>{pavementSharedMaterial.map=tex;pavementSharedMaterial.color.set("#ffffff");},true);
+const pavementNormal=pavementTexture("NormalGL.jpg",tex=>{pavementSharedMaterial.normalMap=tex;pavementSharedMaterial.normalScale.set(.65,.65);});
+const pavementRoughness=pavementTexture("Roughness.jpg",tex=>{pavementSharedMaterial.roughnessMap=tex;});
 function applyPavement(mesh,width,length){
  // BoxGeometry: a face superior ocupa os vértices UV 8..11.
  // Repete os blocos proporcionalmente ao tamanho real de cada trecho.
@@ -626,11 +637,11 @@ new GLTFLoader().load(treeBase+"SM_HP_Tree.glb",gltf=>{
   console.info("Árvores GLB HighPoly integradas ao campus 3D");
  }catch(error){
   treeStatus.textContent="🌳 Erro ao preparar GLB — árvores provisórias";
-  console.error("Erro ao preparar modelo GLB",error);
+  console.error("Erro ao preparar modelo GLB",error);reportAssetError("Árvores","Modelo GLB inválido: "+error.message);
  }
 },undefined,error=>{
  treeStatus.textContent="🌳 Falha ao carregar GLB — árvores provisórias";
- console.error("Falha ao carregar SM_HP_Tree.glb",error);
+ console.error("Falha ao carregar SM_HP_Tree.glb",error);reportAssetError("Árvores",treeBase+"SM_HP_Tree.glb");
 });
 function nearRoad(x,y){for(const road of data.roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],vx=bx-ax,vy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy||1)));if(Math.hypot(x-ax-vx*t,y-ay-vy*t)<1.8)return true}return false}
 function insideBuilding(x,y,pad=0){return data.sites.some(s=>x>s.x-pad&&x<s.x+s.w+pad&&y>s.y-pad&&y<s.y+s.h+pad)}
@@ -928,8 +939,8 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
     console.info("Caminhada Mixamo integrada:",tracks.length,"ossos");
    }catch(error){console.error("Não foi possível aplicar Walking.fbx; mantendo movimentos anteriores",error)}
   },undefined,error=>console.warn("Walking.fbx não encontrado; mantendo animação anterior",error));
- }catch(error){console.error("Falha ao preparar personagem GLB",error)}
-},undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error));
+ }catch(error){console.error("Falha ao preparar personagem GLB",error);reportAssetError("Personagem",error.message)}
+},undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error);reportAssetError("Personagem","./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb"));
 const playerName=document.getElementById("playerName");
 if(playerName)playerName.textContent="Wagner";
 const player=at(20,42);avatar.position.set(player.x,0,player.z);
