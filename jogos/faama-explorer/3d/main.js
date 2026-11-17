@@ -940,7 +940,7 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
    }catch(error){console.error("Não foi possível aplicar Walking.fbx; mantendo movimentos anteriores",error)}
   },undefined,error=>console.warn("Walking.fbx não encontrado; mantendo animação anterior",error));
  }catch(error){console.error("Falha ao preparar personagem GLB",error);reportAssetError("Personagem",error.message)}
-},undefined,error=>console.warn("Personagem GLB indisponível; mantendo avatar anterior",error);reportAssetError("Personagem","./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb"));
+},undefined,error=>{console.warn("Personagem GLB indisponível; mantendo avatar anterior",error);reportAssetError("Personagem","./models/player/rigged_t-pose_human_male_w_50_face_blendshapes.glb");});
 const playerName=document.getElementById("playerName");
 if(playerName)playerName.textContent="Wagner";
 const player=at(20,42);avatar.position.set(player.x,0,player.z);
