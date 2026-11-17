@@ -934,8 +934,12 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
     const mappedClip=new THREE.AnimationClip("Walking",clip.duration,tracks);
     walkMixer=new THREE.AnimationMixer(model);
     walkAction=walkMixer.clipAction(mappedClip);
-    walkAction.play();walkAction.paused=true;
-    playerRig=null; // Desativa a animação manual quando o FBX estiver pronto.
+    walkAction.setLoop(THREE.LoopRepeat,Infinity);
+    walkAction.enabled=true;
+    walkAction.setEffectiveWeight(1);
+    walkAction.play();
+    walkAction.paused=true;
+    playerRig=null; // A animação FBX controla os ossos durante a caminhada.
     console.info("Caminhada Mixamo integrada:",tracks.length,"ossos");
    }catch(error){console.error("Não foi possível aplicar Walking.fbx; mantendo movimentos anteriores",error)}
   },undefined,error=>console.warn("Walking.fbx não encontrado; mantendo animação anterior",error));
@@ -1034,9 +1038,14 @@ function frame(){
  }
  if(walkMixer&&walkAction){
   const walking=speed>.15;
-  walkAction.paused=!walking;
-  if(walking)walkAction.timeScale=THREE.MathUtils.clamp(speed/3.0,.35,1.7);
-  walkMixer.update(dt);
+  if(walking){
+   walkAction.paused=false;
+   walkAction.setEffectiveTimeScale(THREE.MathUtils.clamp(speed/3.0,.35,1.7));
+   walkMixer.update(dt);
+  }else{
+   // Congela a animação ao parar, evitando avanço invisível dos passos.
+   walkAction.paused=true;
+  }
  }
  const centralSite=buildings.find(b=>b.site.id==="central");
  const centralTarget=centralSite?new THREE.Vector3(centralSite.x,4.6,centralSite.z+centralSite.d*.25):overviewTarget;
