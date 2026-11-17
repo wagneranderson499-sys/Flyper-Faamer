@@ -866,10 +866,14 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
   for(const piece of avatarFallback)piece.visible=false;
   importedPlayer=model;
   // Rig Mixamo presente no GLB: pose de descanso e caminhada procedural.
+  // Localiza ossos por nome normalizado, sem depender dos sufixos do exportador.
+  const normalizeRigBone=name=>name.replace(/^.*[|]/,"").replace(/^mixamorig[:_]?/i,"").replace(/_[0-9]+$/,"").replace(/[^a-z0-9]/gi,"").toLowerCase();
+  const rigBoneMap=new Map();
+  model.traverse(node=>{if(node.isBone)rigBoneMap.set(normalizeRigBone(node.name),node)});
   const bones={};
-  for(const [key,name] of Object.entries({leftArm:"mixamorig_LeftArm_011",rightArm:"mixamorig_RightArm_035",leftLeg:"mixamorig_LeftUpLeg_062",rightLeg:"mixamorig_RightUpLeg_058"})){
-   const bone=model.getObjectByName(name);
-   if(bone?.isBone)bones[key]={bone,base:bone.quaternion.clone()};
+  for(const [key,name] of Object.entries({leftArm:"LeftArm",rightArm:"RightArm",leftLeg:"LeftUpLeg",rightLeg:"RightUpLeg"})){
+   const bone=rigBoneMap.get(normalizeRigBone(name));
+   if(bone)bones[key]={bone,base:bone.quaternion.clone()};
   }
   // Calcula a pose de braços para baixo a partir da direção real dos ossos,
   // sem depender dos eixos locais (que variam entre modelos GLB).
@@ -930,7 +934,7 @@ new GLTFLoader().load("./models/player/rigged_t-pose_human_male_w_50_face_blends
      compatible:tracks.length,
      total:clip.tracks.length
     });
-    if(tracks.length<10)throw Error("Poucos ossos compatíveis com a animação: "+tracks.length);
+    if(tracks.length<10)throw Error("Poucos ossos compatíveis com a animação: "+tracks.length+"; mantendo caminhada procedural");
     const mappedClip=new THREE.AnimationClip("Walking",clip.duration,tracks);
     walkMixer=new THREE.AnimationMixer(model);
     walkAction=walkMixer.clipAction(mappedClip);
